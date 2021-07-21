@@ -20,9 +20,9 @@ class Edge(object):
         self.start_socket = start_socket
         self.end_socket = end_socket
 
-        self.start_socket.edge = self
+        self.start_socket.set_connected_edge(self)
         if self.end_socket is not None:
-            self.end_socket.edge = self
+            self.end_socket.set_connected_edge(self)
 
         self.gr_edge = typ.value(self)
         self.update_positions()
@@ -45,9 +45,9 @@ class Edge(object):
 
     def remove_from_sockets(self):
         if self.start_socket is not None:
-            self.start_socket.edge = None
+            self.start_socket.remove_edge(self)
         if self.end_socket is not None:
-            self.end_socket.edge = None
+            self.end_socket.remove_edge(self)
         self.start_socket = None
         self.end_socket = None
 

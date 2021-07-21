@@ -1,11 +1,13 @@
 import imp
 from PySide2 import QtGui
+
+from luna import Logger
 import luna.utils.enumFn as enumFn
 import luna_builder.editor.graphics_socket as graphics_socket
 imp.reload(graphics_socket)
 
 
-class Socket():
+class Socket(object):
 
     class Position(enumFn.Enum):
         LEFT_TOP = 1
@@ -39,13 +41,35 @@ class Socket():
         self.gr_socket.setPos(*self.node.get_socket_position(self.index, self.posistion))
 
         # Edge
-        self.edge = None
+        self.edges = []
 
     def has_edge(self):
-        return self.edge is not None
+        return bool(self.edges)
 
     def get_position(self):
         return self.node.get_socket_position(self.index, self.posistion)
 
     def set_connected_edge(self, edge=None):
-        self.edge = edge
+        if not edge:
+            self.edges.clear()
+            return
+
+    def remove_edge(self, edge):
+        if edge in self.edges:
+            Logger.debug('Removing edge {0}'.format(edge))
+            self.edges.remove(edge)
+
+
+class InputSocket(Socket):
+    def set_connected_edge(self, edge=None):
+        super(InputSocket, self).set_connected_edge(edge=edge)
+        if self.edges:
+            self.edges[0].remove()
+        self.edges = [edge]
+
+
+class OutputSocket(Socket):
+    def set_connected_edge(self, edge=None):
+        super(OutputSocket, self).set_connected_edge(edge=edge)
+        if edge not in self.edges:
+            self.edges.append(edge)

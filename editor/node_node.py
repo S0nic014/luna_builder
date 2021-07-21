@@ -29,11 +29,11 @@ class Node(object):
         self.inputs = []
         self.outputs = []
         for index, item in enumerate(inputs):
-            socket = node_socket.Socket(node=self, index=index, position=node_socket.Socket.Position.LEFT_TOP, data_type=item)
+            socket = node_socket.InputSocket(node=self, index=index, position=node_socket.Socket.Position.LEFT_TOP, data_type=item)
             self.inputs.append(socket)
 
         for index, item in enumerate(outputs):
-            socket = node_socket.Socket(node=self, index=index, position=node_socket.Socket.Position.RIGHT_TOP, data_type=item)
+            socket = node_socket.OutputSocket(node=self, index=index, position=node_socket.Socket.Position.RIGHT_TOP, data_type=item)
             self.outputs.append(socket)
 
     @property
@@ -62,4 +62,5 @@ class Node(object):
     def update_connected_edges(self):
         for socket in self.inputs + self.outputs:
             if socket.has_edge():
-                socket.edge.update_positions()
+                for edge in socket.edges:
+                    edge.update_positions()

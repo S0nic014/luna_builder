@@ -206,7 +206,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
     def log_scene_objects(self, item):
         if isinstance(item, graphics_socket.QLGraphicsSocket):
             Logger.debug(item.socket)
-            Logger.debug('  Connected edge: {0}'.format(item.socket.edge))
+            Logger.debug('  Connected edge: {0}'.format(item.socket.edges))
         elif isinstance(item, graphics_node.QLGraphicsNode):
             Logger.debug(item.node)
         elif isinstance(item, graphics_edge.QLGraphicsEdge):

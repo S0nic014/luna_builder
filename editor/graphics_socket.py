@@ -4,8 +4,9 @@ from PySide2 import QtCore
 
 
 class QLGraphicsSocket(QtWidgets.QGraphicsItem):
-    def __init__(self, parent=None, color=QtGui.QColor("#FFFF7700")):
-        super(QLGraphicsSocket, self).__init__(parent)
+    def __init__(self, socket, color=QtGui.QColor("#FFFF7700")):
+        self.socket = socket
+        super(QLGraphicsSocket, self).__init__(socket.node.gr_node)
 
         self.radius = 6.0
         self.outline_width = 1.0

@@ -23,6 +23,11 @@ class Socket():
                    DataType.STRING: QtGui.QColor("#FF52e220"),
                    DataType.COMPONENT: QtGui.QColor("#FF0056a6")}
 
+    def __str__(self):
+        cls_name = self.__class__.__name__
+        nice_id = '{0}..{1}'.format(hex(id(self))[2:5], hex(id(self))[-3:])
+        return "<{0} {1}>".format(cls_name, nice_id)
+
     def __init__(self, node, index=0, position=Position.LEFT_TOP, data_type=DataType.NUMERIC):
         self.node = node
         self.index = index
@@ -30,7 +35,7 @@ class Socket():
         self.data_type = data_type if isinstance(data_type, Socket.DataType) else Socket.DataType(data_type)
 
         # Graphics
-        self.gr_socket = graphics_socket.QLGraphicsSocket(self.node.gr_node, color=self.DATA_COLORS.get(self.data_type))
+        self.gr_socket = graphics_socket.QLGraphicsSocket(self, color=self.DATA_COLORS.get(self.data_type))
         self.gr_socket.setPos(*self.node.get_socket_position(self.index, self.posistion))
 
         # Edge

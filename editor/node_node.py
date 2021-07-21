@@ -8,6 +8,12 @@ imp.reload(node_socket)
 
 
 class Node(object):
+
+    def __str__(self):
+        cls_name = self.__class__.__name__
+        nice_id = '{0}..{1}'.format(hex(id(self))[2:5], hex(id(self))[-3:])
+        return "<{0} {1}>".format(cls_name, nice_id)
+
     def __init__(self, scene, title="Custom node", inputs=[], outputs=[]):
         self.scene = scene
         self.title = title

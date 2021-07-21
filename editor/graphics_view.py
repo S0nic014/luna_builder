@@ -5,7 +5,10 @@ from PySide2 import QtWidgets
 
 from luna import Logger
 import luna.utils.enumFn as enumFn
+import luna_builder.editor.node_edge as node_edge
 import luna_builder.editor.graphics_socket as graphics_socket
+import luna_builder.editor.graphics_node as graphics_node
+import luna_builder.editor.graphics_edge as graphics_edge
 imp.reload(graphics_socket)
 
 
@@ -41,6 +44,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
 
+    # =========== Qt Events overrides =========== #
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.MiddleButton:
             self.middle_mouse_press(event)
@@ -61,6 +65,39 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         else:
             super(QLGraphicsView, self).mouseReleaseEvent(event)
 
+    def wheelEvent(self, event):
+        # Calculate zoom vector
+        zoom_out_factor = 1 / self.zoom_in_factor
+
+        # Calculate zoom
+        if event.angleDelta().y() > 0:
+            zoom_factor = self.zoom_in_factor
+            self.zoom += self.zoom_step
+        else:
+            zoom_factor = zoom_out_factor
+            self.zoom -= self.zoom_step
+
+        clamped = False
+        if self.zoom < self.zoom_range[0]:
+            self.zoom = self.zoom_range[0]
+            clamped = True
+        elif self.zoom > self.zoom_range[1]:
+            self.zoom = self.zoom_range[1]
+            clamped = True
+
+        # Set scene scale
+        if not clamped or self.zoom_clamp is False:
+            self.scale(zoom_factor, zoom_factor)
+
+    def mouseMoveEvent(self, event):
+        if self.edge_mode == QLGraphicsView.EdgeMode.DRAG:
+            pos = self.mapToScene(event.pos())
+            self.drag_edge.gr_edge.set_destination(pos.x(), pos.y())
+            self.drag_edge.gr_edge.update()
+
+        super(QLGraphicsView, self).mouseMoveEvent(event)
+
+    # =========== Handling button presses =========== #
     def middle_mouse_press(self, event):
         self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         releaseEvent = QtGui.QMouseEvent(QtCore.QEvent.MouseButtonRelease, event.localPos(), event.screenPos(),
@@ -109,33 +146,14 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
     def right_mouse_press(self, event):
         super(QLGraphicsView, self).mousePressEvent(event)
 
+        item = self.get_item_at_click(event)
+
+        self.log_scene_objects(item)
+
     def right_mouse_release(self, event):
         super(QLGraphicsView, self).mouseReleaseEvent(event)
 
-    def wheelEvent(self, event):
-        # Calculate zoom vector
-        zoom_out_factor = 1 / self.zoom_in_factor
-
-        # Calculate zoom
-        if event.angleDelta().y() > 0:
-            zoom_factor = self.zoom_in_factor
-            self.zoom += self.zoom_step
-        else:
-            zoom_factor = zoom_out_factor
-            self.zoom -= self.zoom_step
-
-        clamped = False
-        if self.zoom < self.zoom_range[0]:
-            self.zoom = self.zoom_range[0]
-            clamped = True
-        elif self.zoom > self.zoom_range[1]:
-            self.zoom = self.zoom_range[1]
-            clamped = True
-
-        # Set scene scale
-        if not clamped or self.zoom_clamp is False:
-            self.scale(zoom_factor, zoom_factor)
-
+    # =========== Supporting methods =========== #
     def get_item_at_click(self, event):
         """Object at click event position
 
@@ -160,17 +178,46 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         click_release_delta = new_lmb_releas_scene_pos - self.last_lmb_click_pos
         return (click_release_delta.x() ** 2 + click_release_delta.y() ** 2) > QLGraphicsView.EDGE_DRAG_START_THRESHOLD ** 2
 
-    def start_edge_drag(self, clicked_item):
+    def start_edge_drag(self, item):
         self.edge_mode = QLGraphicsView.EdgeMode.DRAG
         Logger.debug('Start dragging edge: {}'.format(self.edge_mode))
-        Logger.debug('Assign socket')
+        Logger.debug('Assign socket to: {0}'.format(item.socket))
+        self.drag_edge = node_edge.Edge(self.gr_scene.scene, item.socket, None, typ=node_edge.Edge.Style.BEZIER)
 
-    def end_edge_drag(self, clicked_item):
+    def end_edge_drag(self, item):
         self.edge_mode = QLGraphicsView.EdgeMode.NOOP
         Logger.debug('End dragging edge')
         # Another socket clicked while dragging edge
-        if isinstance(clicked_item, graphics_socket.QLGraphicsSocket):
-            Logger.debug('Assign end socket')
+        if isinstance(item, graphics_socket.QLGraphicsSocket):
+            Logger.debug('Assign end socket: {0}'.format(item.socket))
+            self.drag_edge.end_socket = item.socket
+            self.drag_edge.start_socket.set_connected_edge(self.drag_edge)
+            self.drag_edge.end_socket.set_connected_edge(self.drag_edge)
+            Logger.debug('Edge connected: {0}'.format(self.drag_edge))
+            self.drag_edge.update_positions()
             return True
+        else:
+            Logger.debug("Canceling edge dragging")
+            self.drag_edge.remove()
+            self.drag_edge = None
 
         return False
+
+    def log_scene_objects(self, item):
+        if isinstance(item, graphics_socket.QLGraphicsSocket):
+            Logger.debug(item.socket)
+            Logger.debug('  Connected edge: {0}'.format(item.socket.edge))
+        elif isinstance(item, graphics_node.QLGraphicsNode):
+            Logger.debug(item.node)
+        elif isinstance(item, graphics_edge.QLGraphicsEdge):
+            Logger.debug(item.edge)
+            Logger.debug('  Start: {0}, End:{1}'.format(item.edge.start_socket, item.edge.end_socket))
+
+        if not item:
+            Logger.debug('SCENE:')
+            Logger.debug('  Nodes:')
+            for node in self.gr_scene.scene.nodes:
+                Logger.debug('    {0}'.format(node))
+            Logger.debug('  Edges:')
+            for edge in self.gr_scene.scene.edges:
+                Logger.debug('    {0}'.format(edge))

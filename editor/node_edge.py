@@ -10,6 +10,11 @@ class Edge(object):
         DIRECT = graphics_edge.QLGraphicsEdgeDirect
         BEZIER = graphics_edge.QDGraphicsEdgeBezier
 
+    def __str__(self):
+        cls_name = self.__class__.__name__
+        nice_id = '{0}..{1}'.format(hex(id(self))[2:5], hex(id(self))[-3:])
+        return "<{0} {1}>".format(cls_name, nice_id)
+
     def __init__(self, scene, start_socket, end_socket, typ=Style.BEZIER):
         self.scene = scene
         self.start_socket = start_socket
@@ -22,6 +27,7 @@ class Edge(object):
         self.gr_edge = typ.value(self)
         self.update_positions()
         self.scene.gr_scene.addItem(self.gr_edge)
+        self.scene.add_edge(self)
 
     def update_positions(self):
         source_pos = self.start_socket.get_position()
@@ -33,6 +39,8 @@ class Edge(object):
             end_pos[0] += self.end_socket.node.gr_node.pos().x()
             end_pos[1] += self.end_socket.node.gr_node.pos().y()
             self.gr_edge.set_destination(*end_pos)
+        else:
+            self.gr_edge.set_destination(*source_pos)
         self.gr_edge.update()
 
     def remove_from_sockets(self):

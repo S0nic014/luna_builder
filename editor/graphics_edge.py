@@ -8,14 +8,19 @@ class QLGraphicsEdge(QtWidgets.QGraphicsPathItem):
         super(QLGraphicsEdge, self).__init__(parent)
 
         self.edge = edge
+        self.source_position = [0, 0]
+        self.destination_position = [200, 100]
 
         # Colors and pens
         self._color = QtGui.QColor("#001000")
         self._color_selected = QtGui.QColor("#00ff00")
         self._pen = QtGui.QPen(self._color)
         self._pen_selected = QtGui.QPen(self._color_selected)
+        self._pen_dragging = QtGui.QPen(self._color)
+        self._pen_dragging.setStyle(QtCore.Qt.DashLine)
         self._pen.setWidthF(2.0)
         self._pen_selected.setWidthF(3.0)
+        self._pen_dragging.setWidthF(2.0)
 
         # Flags
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)
@@ -30,7 +35,10 @@ class QLGraphicsEdge(QtWidgets.QGraphicsPathItem):
     def paint(self, painter, widget=None, options=None):
         self.update_path()
 
-        painter.setPen(self._pen if not self.isSelected() else self._pen_selected)
+        if not self.edge.end_socket:
+            painter.setPen(self._pen_dragging)
+        else:
+            painter.setPen(self._pen if not self.isSelected() else self._pen_selected)
         painter.setBrush(QtCore.Qt.NoBrush)
         painter.drawPath(self.path())
 

@@ -194,26 +194,38 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
     def end_edge_drag(self, item):
         self.edge_mode = QLGraphicsView.EdgeMode.NOOP
         Logger.debug('End dragging edge')
-        # Another socket clicked while dragging edge
-        if isinstance(item, graphics_socket.QLGraphicsSocket):
-            if isinstance(item.socket, node_socket.OutputSocket):
-                Logger.debug('Assign start socket: {0}'.format(item.socket))
-                self.drag_edge.start_socket = item.socket
-            elif isinstance(item.socket, node_socket.InputSocket):
-                Logger.debug('Assign end socket: {0}'.format(item.socket))
-                self.drag_edge.end_socket = item.socket
-
-            self.drag_edge.start_socket.set_connected_edge(self.drag_edge)
-            self.drag_edge.end_socket.set_connected_edge(self.drag_edge)
-            Logger.debug('Edge connected: {0}'.format(self.drag_edge))
-            self.drag_edge.update_positions()
-            return True
-        else:
+        if not isinstance(item, graphics_socket.QLGraphicsSocket) or not self.is_connection_possible(item):
             Logger.debug("Canceling edge dragging")
             self.drag_edge.remove()
             self.drag_edge = None
+            return False
 
-        return False
+        # Another socket clicked while dragging edge
+        if isinstance(item.socket, node_socket.OutputSocket):
+            Logger.debug('Assign start socket: {0}'.format(item.socket))
+            self.drag_edge.start_socket = item.socket
+        elif isinstance(item.socket, node_socket.InputSocket):
+            Logger.debug('Assign end socket: {0}'.format(item.socket))
+            self.drag_edge.end_socket = item.socket
+
+        # Set connections, update positions
+        self.drag_edge.start_socket.set_connected_edge(self.drag_edge)
+        self.drag_edge.end_socket.set_connected_edge(self.drag_edge)
+        Logger.debug('Edge connected: {0}'.format(self.drag_edge))
+        self.drag_edge.update_positions()
+        return True
+
+    def is_connection_possible(self, item):
+        assigned_socket = self.drag_edge.get_assigned_socket()
+        if isinstance(item.socket, type(assigned_socket)):
+            Logger.warning('Can\'t connect two sockets of the same type')
+            return False
+
+        if item.socket.data_type != assigned_socket.data_type:
+            Logger.warning('Can\'t connect data types {0} and {1}'.format(item.socket.data_type, assigned_socket.data_type))
+            return False
+
+        return True
 
     def log_scene_objects(self, item):
         if isinstance(item, graphics_socket.QLGraphicsSocket):

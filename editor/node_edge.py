@@ -62,3 +62,11 @@ class Edge(object):
         self.scene.gr_scene.removeItem(self.gr_edge)
         self.gr_edge = None
         self.scene.remove_edge(self)
+
+    def get_assigned_socket(self):
+        if self.start_socket and self.end_socket:
+            return (self.start_socket, self.end_socket)
+        elif not self.end_socket:
+            return self.start_socket
+        else:
+            return self.end_socket

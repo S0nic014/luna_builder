@@ -218,10 +218,16 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
     def is_connection_possible(self, item):
         assigned_socket = self.drag_edge.get_assigned_socket()
+        # Clicking on socket edge is dragging from
+        if item.socket == assigned_socket:
+            return False
+
+        # Trying to connect output->output or input->input
         if isinstance(item.socket, type(assigned_socket)):
             Logger.warning('Can\'t connect two sockets of the same type')
             return False
 
+        # Data types missmatch
         if item.socket.data_type != assigned_socket.data_type:
             Logger.warning('Can\'t connect data types {0} and {1}'.format(item.socket.data_type, assigned_socket.data_type))
             return False

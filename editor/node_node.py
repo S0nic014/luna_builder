@@ -1,4 +1,5 @@
 import imp
+from luna import Logger
 import luna_builder.editor.graphics_node as graphics_node
 import luna_builder.editor.node_content as node_content
 import luna_builder.editor.node_socket as node_socket
@@ -62,3 +63,19 @@ class Node(object):
     def update_connected_edges(self):
         for socket in self.inputs + self.outputs:
             socket.update_edges()
+
+    def remove(self):
+        try:
+            Logger.debug('> Removing node {0}'.format(self))
+            Logger.debug('- remove all edges')
+            for socket in self.inputs + self.outputs:
+                for edge in socket.edges:
+                    edge.remove()
+            Logger.debug('- remove graphics node')
+            self.scene.gr_scene.removeItem(self.gr_node)
+            self.gr_node = None
+            Logger.debug('- remove node from the scene')
+            self.scene.remove_node(self)
+            Logger.debug('- Done.')
+        except Exception:
+            Logger.exception('Failed to delete node {0}'.format(self))

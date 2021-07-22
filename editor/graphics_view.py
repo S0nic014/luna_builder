@@ -102,6 +102,12 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
         super(QLGraphicsView, self).mouseMoveEvent(event)
 
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Delete:
+            self.delete_selected()
+        else:
+            super(QLGraphicsView, self).keyPressEvent(event)
+
     # =========== Handling button presses =========== #
     def middle_mouse_press(self, event):
         self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
@@ -252,3 +258,14 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             Logger.debug('  Edges:')
             for edge in self.gr_scene.scene.edges:
                 Logger.debug('    {0}'.format(edge))
+
+    def delete_selected(self):
+        selected_items = self.gr_scene.selectedItems()
+        nodes_selected = [item for item in selected_items if isinstance(item, graphics_node.QLGraphicsNode)]
+        if nodes_selected:
+            for gr_node in nodes_selected:
+                gr_node.node.remove()
+        else:
+            for item in selected_items:
+                if isinstance(item, graphics_edge.QLGraphicsEdge):
+                    item.edge.remove()

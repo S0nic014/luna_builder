@@ -56,7 +56,7 @@ class Socket(object):
 
     def remove_edge(self, edge):
         if edge in self.edges:
-            Logger.debug('Removing edge {0}'.format(edge))
+            Logger.debug('{0}: Removing edge {1}'.format(self, edge))
             self.edges.remove(edge)
 
     def update_edges(self):

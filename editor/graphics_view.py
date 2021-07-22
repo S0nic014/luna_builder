@@ -98,6 +98,8 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
     def mouseMoveEvent(self, event):
         if self.edge_mode == QLGraphicsView.EdgeMode.DRAG:
             pos = self.mapToScene(event.pos())
+            # Offset X to avoid clicking on the edge
+            pos.setX(pos.x() - 1.0)
             if self.drag_edge.start_socket:
                 self.drag_edge.gr_edge.set_destination(pos.x(), pos.y())
             else:
@@ -119,10 +121,10 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
     # =========== Handling button presses =========== #
     def middle_mouse_press(self, event):
-        self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         releaseEvent = QtGui.QMouseEvent(QtCore.QEvent.MouseButtonRelease, event.localPos(), event.screenPos(),
                                          QtCore.Qt.LeftButton, QtCore.Qt.NoButton, event.modifiers())
         super(QLGraphicsView, self).mouseReleaseEvent(releaseEvent)
+        self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         fake_event = QtGui.QMouseEvent(event.type(), event.localPos(), event.screenPos(),
                                        QtCore.Qt.LeftButton, event.buttons() | QtCore.Qt.LeftButton, event.modifiers())
         super(QLGraphicsView, self).mousePressEvent(fake_event)
@@ -131,7 +133,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         fake_event = QtGui.QMouseEvent(event.type(), event.localPos(), event.screenPos(),
                                        QtCore.Qt.LeftButton, event.buttons() & ~QtCore.Qt.LeftButton, event.modifiers())
         super(QLGraphicsView, self).mouseReleaseEvent(fake_event)
-        self.setDragMode(QtWidgets.QGraphicsView.NoDrag)
+        self.setDragMode(QtWidgets.QGraphicsView.RubberBandDrag)
 
     def left_mouse_press(self, event):
 
@@ -151,13 +153,11 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
                 return
 
         if not item:
-            self.debug_modifiers(event)
             if event.modifiers() & QtCore.Qt.ControlModifier:
                 self.edge_mode = QLGraphicsView.EdgeMode.CUT
                 fake_event = QtGui.QMouseEvent(QtCore.QEvent.MouseButtonRelease, event.localPos(), event.screenPos(),
                                                QtCore.Qt.LeftButton, QtCore.Qt.NoButton, event.modifiers())
                 super(QLGraphicsView, self).mouseReleaseEvent(fake_event)
-                QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.CrossCursor)
                 return
 
         super(QLGraphicsView, self).mousePressEvent(event)
@@ -175,7 +175,6 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             self.cut_intersecting_edges()
             self.cutline.line_points = []
             self.cutline.update()
-            QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.ArrowCursor)
             self.edge_mode = QLGraphicsView.EdgeMode.NOOP
             return
 

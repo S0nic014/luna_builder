@@ -6,6 +6,7 @@ from PySide2 import QtWidgets
 from luna import Logger
 import luna.utils.enumFn as enumFn
 import luna_builder.editor.node_edge as node_edge
+import luna_builder.editor.node_socket as node_socket
 import luna_builder.editor.graphics_socket as graphics_socket
 import luna_builder.editor.graphics_node as graphics_node
 import luna_builder.editor.graphics_edge as graphics_edge
@@ -92,7 +93,10 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
     def mouseMoveEvent(self, event):
         if self.edge_mode == QLGraphicsView.EdgeMode.DRAG:
             pos = self.mapToScene(event.pos())
-            self.drag_edge.gr_edge.set_destination(pos.x(), pos.y())
+            if self.drag_edge.start_socket:
+                self.drag_edge.gr_edge.set_destination(pos.x(), pos.y())
+            else:
+                self.drag_edge.gr_edge.set_source(pos.x(), pos.y())
             self.drag_edge.gr_edge.update()
 
         super(QLGraphicsView, self).mouseMoveEvent(event)
@@ -182,15 +186,23 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.edge_mode = QLGraphicsView.EdgeMode.DRAG
         Logger.debug('Start dragging edge: {}'.format(self.edge_mode))
         Logger.debug('Assign socket to: {0}'.format(item.socket))
-        self.drag_edge = node_edge.Edge(self.gr_scene.scene, item.socket, None, typ=node_edge.Edge.Style.BEZIER)
+        if isinstance(item.socket, node_socket.OutputSocket):
+            self.drag_edge = node_edge.Edge(self.gr_scene.scene, item.socket, None, typ=node_edge.Edge.Style.BEZIER)
+        else:
+            self.drag_edge = node_edge.Edge(self.gr_scene.scene, None, item.socket, typ=node_edge.Edge.Style.BEZIER)
 
     def end_edge_drag(self, item):
         self.edge_mode = QLGraphicsView.EdgeMode.NOOP
         Logger.debug('End dragging edge')
         # Another socket clicked while dragging edge
         if isinstance(item, graphics_socket.QLGraphicsSocket):
-            Logger.debug('Assign end socket: {0}'.format(item.socket))
-            self.drag_edge.end_socket = item.socket
+            if isinstance(item.socket, node_socket.OutputSocket):
+                Logger.debug('Assign start socket: {0}'.format(item.socket))
+                self.drag_edge.start_socket = item.socket
+            elif isinstance(item.socket, node_socket.InputSocket):
+                Logger.debug('Assign end socket: {0}'.format(item.socket))
+                self.drag_edge.end_socket = item.socket
+
             self.drag_edge.start_socket.set_connected_edge(self.drag_edge)
             self.drag_edge.end_socket.set_connected_edge(self.drag_edge)
             Logger.debug('Edge connected: {0}'.format(self.drag_edge))

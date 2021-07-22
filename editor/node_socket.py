@@ -63,7 +63,7 @@ class Socket(object):
 class InputSocket(Socket):
     def set_connected_edge(self, edge=None):
         super(InputSocket, self).set_connected_edge(edge=edge)
-        if self.edges:
+        if self.edges and edge not in self.edges:
             self.edges[0].remove()
         self.edges = [edge]
 

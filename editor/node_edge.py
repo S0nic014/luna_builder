@@ -20,7 +20,8 @@ class Edge(object):
         self.start_socket = start_socket
         self.end_socket = end_socket
 
-        self.start_socket.set_connected_edge(self)
+        if self.start_socket is not None:
+            self.start_socket.set_connected_edge(self)
         if self.end_socket is not None:
             self.end_socket.set_connected_edge(self)
 
@@ -30,16 +31,21 @@ class Edge(object):
         self.scene.add_edge(self)
 
     def update_positions(self):
-        source_pos = self.start_socket.get_position()
-        source_pos[0] += self.start_socket.node.gr_node.pos().x()
-        source_pos[1] += self.start_socket.node.gr_node.pos().y()
-        self.gr_edge.set_source(*source_pos)
-        if self.end_socket is not None:
+        if self.start_socket:
+            source_pos = self.start_socket.get_position()
+            source_pos[0] += self.start_socket.node.gr_node.pos().x()
+            source_pos[1] += self.start_socket.node.gr_node.pos().y()
+            self.gr_edge.set_source(*source_pos)
+
+        if self.end_socket:
             end_pos = self.end_socket.get_position()
             end_pos[0] += self.end_socket.node.gr_node.pos().x()
             end_pos[1] += self.end_socket.node.gr_node.pos().y()
             self.gr_edge.set_destination(*end_pos)
-        else:
+
+        if not self.start_socket:
+            self.gr_edge.set_source(*end_pos)
+        if not self.end_socket:
             self.gr_edge.set_destination(*source_pos)
         self.gr_edge.update()
 

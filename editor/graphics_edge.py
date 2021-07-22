@@ -35,7 +35,7 @@ class QLGraphicsEdge(QtWidgets.QGraphicsPathItem):
     def paint(self, painter, widget=None, options=None):
         self.update_path()
 
-        if not self.edge.end_socket:
+        if not self.edge.end_socket or not self.edge.start_socket:
             painter.setPen(self._pen_dragging)
         else:
             painter.setPen(self._pen if not self.isSelected() else self._pen_selected)

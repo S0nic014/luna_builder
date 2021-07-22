@@ -33,7 +33,7 @@ class QLGraphicsEdge(QtWidgets.QGraphicsPathItem):
         self.destination_position = [x, y]
 
     def paint(self, painter, widget=None, options=None):
-        self.update_path()
+        self.setPath(self.calc_path())
 
         if not self.edge.end_socket or not self.edge.start_socket:
             painter.setPen(self._pen_dragging)
@@ -42,20 +42,28 @@ class QLGraphicsEdge(QtWidgets.QGraphicsPathItem):
         painter.setBrush(QtCore.Qt.NoBrush)
         painter.drawPath(self.path())
 
-    def update_path(self):
+    def calc_path(self):
         """Handle path drawing from point A to point B"""
         raise NotImplementedError("This method has to be overriden in a derived class")
 
+    def intersects_with(self, pt1, pt2):
+        cutpath = QtGui.QPainterPath(pt1)
+        cutpath.lineTo(pt2)
+        path = self.calc_path()
+        return cutpath.intersects(path)
+
+        return False
+
 
 class QLGraphicsEdgeDirect(QLGraphicsEdge):
-    def update_path(self):
+    def calc_path(self):
         path = QtGui.QPainterPath(QtCore.QPointF(*self.source_position))
         path.lineTo(*self.destination_position)
-        self.setPath(path)
+        return path
 
 
 class QDGraphicsEdgeBezier(QLGraphicsEdge):
-    def update_path(self):
+    def calc_path(self):
         distance = (self.destination_position[0] - self.source_position[0]) * 0.5
         if self.source_position[0] > self.destination_position[0]:
             distance *= -1
@@ -64,4 +72,4 @@ class QDGraphicsEdgeBezier(QLGraphicsEdge):
 
         path = QtGui.QPainterPath(QtCore.QPointF(*self.source_position))
         path.cubicTo(QtCore.QPointF(*ctl_point1), QtCore.QPointF(*ctl_point2), QtCore.QPointF(*self.destination_position))
-        self.setPath(path)
+        return path

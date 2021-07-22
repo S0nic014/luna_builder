@@ -10,6 +10,7 @@ import luna_builder.editor.node_socket as node_socket
 import luna_builder.editor.graphics_socket as graphics_socket
 import luna_builder.editor.graphics_node as graphics_node
 import luna_builder.editor.graphics_edge as graphics_edge
+import luna_builder.editor.graphics_cutline as graphics_cutline
 imp.reload(graphics_socket)
 
 
@@ -21,6 +22,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
     class EdgeMode(enumFn.Enum):
         NOOP = 1
         DRAG = 2
+        CUT = 3
 
     def __init__(self, gr_scene, parent=None):
         super(QLGraphicsView, self).__init__(parent)
@@ -34,6 +36,8 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
         self.edge_mode = QLGraphicsView.EdgeMode.NOOP
         self.last_lmb_click_pos = None
+        self.cutline = graphics_cutline.QLCutLine()
+        self.gr_scene.addItem(self.cutline)
 
         self.init_ui()
         self.setScene(self.gr_scene)
@@ -100,6 +104,11 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
                 self.drag_edge.gr_edge.set_source(pos.x(), pos.y())
             self.drag_edge.gr_edge.update()
 
+        if self.edge_mode == QLGraphicsView.EdgeMode.CUT:
+            pos = self.mapToScene(event.pos())
+            self.cutline.line_points.append(pos)
+            self.cutline.update()
+
         super(QLGraphicsView, self).mouseMoveEvent(event)
 
     def keyPressEvent(self, event):
@@ -141,6 +150,16 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             if result:
                 return
 
+        if not item:
+            self.debug_modifiers(event)
+            if event.modifiers() & QtCore.Qt.ControlModifier:
+                self.edge_mode = QLGraphicsView.EdgeMode.CUT
+                fake_event = QtGui.QMouseEvent(QtCore.QEvent.MouseButtonRelease, event.localPos(), event.screenPos(),
+                                               QtCore.Qt.LeftButton, QtCore.Qt.NoButton, event.modifiers())
+                super(QLGraphicsView, self).mouseReleaseEvent(fake_event)
+                QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.CrossCursor)
+                return
+
         super(QLGraphicsView, self).mousePressEvent(event)
 
     def left_mouse_release(self, event):
@@ -151,6 +170,14 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
                 result = self.end_edge_drag(item)
                 if result:
                     return
+
+        if self.edge_mode == QLGraphicsView.EdgeMode.CUT:
+            self.cut_intersecting_edges()
+            self.cutline.line_points = []
+            self.cutline.update()
+            QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.ArrowCursor)
+            self.edge_mode = QLGraphicsView.EdgeMode.NOOP
+            return
 
         super(QLGraphicsView, self).mouseReleaseEvent(event)
 
@@ -259,6 +286,17 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             for edge in self.gr_scene.scene.edges:
                 Logger.debug('    {0}'.format(edge))
 
+    def debug_modifiers(self, event):
+        """Helper function get string if we hold Ctrl, Shift or Alt modifier keys"""
+        out = "MODS: "
+        if event.modifiers() & QtCore.Qt.ShiftModifier:
+            out += "SHIFT "
+        if event.modifiers() & QtCore.Qt.ControlModifier:
+            out += "CTRL "
+        if event.modifiers() & QtCore.Qt.AltModifier:
+            out += "ALT "
+        Logger.debug(out)
+
     def delete_selected(self):
         selected_items = self.gr_scene.selectedItems()
         nodes_selected = [item for item in selected_items if isinstance(item, graphics_node.QLGraphicsNode)]
@@ -269,3 +307,12 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             for item in selected_items:
                 if isinstance(item, graphics_edge.QLGraphicsEdge):
                     item.edge.remove()
+
+    def cut_intersecting_edges(self):
+        for ix in range(len(self.cutline.line_points) - 1):
+            pt1 = self.cutline.line_points[ix]
+            pt2 = self.cutline.line_points[ix + 1]
+
+            for edge in self.gr_scene.scene.edges:
+                if edge.gr_edge.intersects_with(pt1, pt2):
+                    edge.remove()

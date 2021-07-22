@@ -21,6 +21,7 @@ class Socket(object):
         STRING = 2
         COMPONENT = 3
 
+    LABEL_VERTICAL_PADDING = -10.0
     DATA_COLORS = {DataType.NUMERIC: QtGui.QColor("#FFFF7700"),
                    DataType.STRING: QtGui.QColor("#FF52e220"),
                    DataType.COMPONENT: QtGui.QColor("#FF0056a6")}
@@ -30,15 +31,16 @@ class Socket(object):
         nice_id = '{0}..{1}'.format(hex(id(self))[2:5], hex(id(self))[-3:])
         return "<{0} {1}>".format(cls_name, nice_id)
 
-    def __init__(self, node, index=0, position=Position.LEFT_TOP, data_type=DataType.NUMERIC):
+    def __init__(self, node, index=0, position=Position.LEFT_TOP, data_type=DataType.NUMERIC, label='socket'):
         self.node = node
         self.index = index
-        self.posistion = position if isinstance(position, Socket.Position) else Socket.Position(position)
+        self.node_position = position if isinstance(position, Socket.Position) else Socket.Position(position)
         self.data_type = data_type if isinstance(data_type, Socket.DataType) else Socket.DataType(data_type)
 
         # Graphics
-        self.gr_socket = graphics_socket.QLGraphicsSocket(self, color=self.DATA_COLORS.get(self.data_type))
-        self.gr_socket.setPos(*self.node.get_socket_position(self.index, self.posistion))
+        self.gr_socket = graphics_socket.QLGraphicsSocket(self, label, color=self.DATA_COLORS.get(self.data_type))
+        self.gr_socket.setPos(*self.node.get_socket_position(self.index, self.node_position))
+        self.gr_socket.text_item.setPos(*self.get_label_position(self.gr_socket.text_item))
 
         # Edge
         self.edges = []
@@ -47,7 +49,21 @@ class Socket(object):
         return bool(self.edges)
 
     def get_position(self):
-        return self.node.get_socket_position(self.index, self.posistion)
+        return self.node.get_socket_position(self.index, self.node_position)
+
+    def get_label_position(self, text_item):
+        text_width = text_item.boundingRect().width()
+        if self.node_position in [Socket.Position.LEFT_TOP, Socket.Position.LEFT_BOTTOM]:
+            return [self.node.gr_node.width / 25.0, Socket.LABEL_VERTICAL_PADDING]
+        else:
+            clamped_x = -(self.node.gr_node.width / 2 + text_width) * 0.55
+            return [clamped_x, Socket.LABEL_VERTICAL_PADDING]
+
+    def get_label_width(self):
+        if self.node_position in [Socket.Position.LEFT_TOP, Socket.Position.LEFT_BOTTOM]:
+            return self.node.gr_node.width * 0.45
+        else:
+            return self.node.gr_node.width / 2 * 0.8
 
     def set_connected_edge(self, edge=None):
         if not edge:

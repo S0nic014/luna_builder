@@ -1,10 +1,8 @@
 import imp
 from luna import Logger
 import luna_builder.editor.graphics_node as graphics_node
-import luna_builder.editor.node_content as node_content
 import luna_builder.editor.node_socket as node_socket
 imp.reload(graphics_node)
-imp.reload(node_content)
 imp.reload(node_socket)
 
 
@@ -19,7 +17,6 @@ class Node(object):
         self.scene = scene
         self.title = title
 
-        self.content = node_content.QLNodeContentWidget()
         self.gr_node = graphics_node.QLGraphicsNode(self)
 
         self.scene.add_node(self)
@@ -30,11 +27,19 @@ class Node(object):
         self.inputs = []
         self.outputs = []
         for index, item in enumerate(inputs):
-            socket = node_socket.InputSocket(node=self, index=index, position=node_socket.Socket.Position.LEFT_TOP, data_type=item)
+            socket = node_socket.InputSocket(node=self,
+                                             index=index,
+                                             position=node_socket.Socket.Position.LEFT_TOP,
+                                             data_type=item,
+                                             label='input{0}'.format(index))
             self.inputs.append(socket)
 
         for index, item in enumerate(outputs):
-            socket = node_socket.OutputSocket(node=self, index=index, position=node_socket.Socket.Position.RIGHT_TOP, data_type=item)
+            socket = node_socket.OutputSocket(node=self,
+                                              index=index,
+                                              position=node_socket.Socket.Position.RIGHT_TOP,
+                                              data_type=item,
+                                              label='output{0}'.format(index))
             self.outputs.append(socket)
 
     @property

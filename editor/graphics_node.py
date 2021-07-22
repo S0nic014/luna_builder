@@ -9,7 +9,6 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         super(QLGraphicsNode, self).__init__(parent)
 
         self.node = node
-        self.content = self.node.content
 
         self.width = 180
         self.height = 240
@@ -61,10 +60,7 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         self.title_item.setTextWidth(self.width - 2 * self._padding)
 
     def init_content(self):
-        self.gr_content = QtWidgets.QGraphicsProxyWidget(self)
-        self.content.setGeometry(self.edge_size, self.title_height + self.edge_size,
-                                 self.width - 2 * self.edge_size, self.height - 2 * self.edge_size - self.title_height)
-        self.gr_content.setWidget(self.content)
+        pass
 
     def init_sockets(self):
         pass

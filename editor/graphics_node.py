@@ -106,4 +106,5 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
     # Events
     def mouseMoveEvent(self, event):
         super(QLGraphicsNode, self).mouseMoveEvent(event)
-        self.node.update_connected_edges()
+        for node in self.scene().scene.selected_nodes():
+            node.update_connected_edges()

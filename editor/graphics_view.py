@@ -44,6 +44,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+        self.setDragMode(QtWidgets.QGraphicsView.RubberBandDrag)
 
     # =========== Qt Events overrides =========== #
     def mousePressEvent(self, event):

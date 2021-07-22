@@ -14,6 +14,10 @@ class Scene:
 
         self.init_ui()
 
+    def init_ui(self):
+        self.gr_scene = graphics_scene.QLGraphicsScene(self)
+        self.gr_scene.set_scene_size(self.scene_width, self.scene_height)
+
     def add_node(self, node):
         self.nodes.append(node)
 
@@ -26,6 +30,5 @@ class Scene:
     def remove_edge(self, edge):
         self.edges.remove(edge)
 
-    def init_ui(self):
-        self.gr_scene = graphics_scene.QLGraphicsScene(self)
-        self.gr_scene.set_scene_size(self.scene_width, self.scene_height)
+    def selected_nodes(self):
+        return [node for node in self.nodes if node.gr_node.isSelected()]

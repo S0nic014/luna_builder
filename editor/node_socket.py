@@ -59,6 +59,10 @@ class Socket(object):
             Logger.debug('Removing edge {0}'.format(edge))
             self.edges.remove(edge)
 
+    def update_edges(self):
+        for edge in self.edges:
+            edge.update_positions()
+
 
 class InputSocket(Socket):
     def set_connected_edge(self, edge=None):

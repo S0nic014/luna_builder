@@ -61,6 +61,4 @@ class Node(object):
 
     def update_connected_edges(self):
         for socket in self.inputs + self.outputs:
-            if socket.has_edge():
-                for edge in socket.edges:
-                    edge.update_positions()
+            socket.update_edges()

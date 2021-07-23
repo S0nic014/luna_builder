@@ -1,13 +1,25 @@
 import imp
+import timeit
 from collections import OrderedDict
 from luna import Logger
+from luna import Config
+from luna import BuilderVars
 import luna.utils.fileFn as fileFn
+import luna_builder.editor.node_node as node_node
+import luna_builder.editor.node_edge as node_edge
 import luna_builder.editor.graphics_scene as graphics_scene
 import luna_builder.editor.node_serializable as node_serializable
 imp.reload(graphics_scene)
 
 
 class Scene(node_serializable.Serializable):
+
+    EDGE_TYPE = node_edge.Edge.Type.BEZIER
+
+    @classmethod
+    def update_edge_type(cls):
+        cls.EDGE_TYPE = node_edge.Edge.Type(Config.get(BuilderVars.edge_type, default=node_edge.Edge.Type.BEZIER.value, cached=True))
+
     def __init__(self):
         super(Scene, self).__init__()
         self.nodes = []
@@ -17,6 +29,7 @@ class Scene(node_serializable.Serializable):
         self.scene_width = 64000
         self.scene_height = 64000
 
+        self.update_edge_type()
         self.init_ui()
 
     def init_ui(self):
@@ -38,12 +51,25 @@ class Scene(node_serializable.Serializable):
     def selected_nodes(self):
         return [node for node in self.nodes if node.gr_node.isSelected()]
 
+    def clear(self):
+        while(self.nodes):
+            self.nodes[0].remove()
+
     def save_to_file(self, file_path):
         try:
             fileFn.write_json(file_path, data=self.serialize(), sort_keys=False)
             Logger.info('Saved build {0}'.format(file_path))
         except Exception:
             Logger.exception('Failed to save build')
+
+    def load_from_file(self, file_path):
+        try:
+            start_time = timeit.default_timer()
+            data = fileFn.load_json(file_path)
+            self.deserialize(data)
+            Logger.info("Rig build loaded in {0:.2f}s".format(timeit.default_timer() - start_time))
+        except Exception:
+            Logger.exception('Failed to load rig build file')
 
     def serialize(self):
         nodes, edges = [], []
@@ -61,5 +87,13 @@ class Scene(node_serializable.Serializable):
             ('edges', edges)
         ])
 
-    def deserialize(self, data, hashmap):
-        pass
+    def deserialize(self, data, hashmap={}):
+        self.clear()
+
+        # create nodes
+        for node_data in data.get('nodes'):
+            node_node.Node(self).deserialize(node_data, hashmap)
+
+        # create edges
+        for edge_data in data.get('edges'):
+            node_edge.Edge(self, None, None).deserialize(edge_data, hashmap)

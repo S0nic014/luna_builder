@@ -19,12 +19,14 @@ class Node(node_serializable.Serializable):
 
     def __init__(self, scene, title="Custom node", inputs=[], outputs=[]):
         super(Node, self).__init__()
-
+        self._title = title
         self.scene = scene
+
+        # Setup graphics
+        self.gr_node = graphics_node.QLGraphicsNode(self)
         self.title = title
 
-        self.gr_node = graphics_node.QLGraphicsNode(self)
-
+        # Add to the scene
         self.scene.add_node(self)
         self.scene.gr_scene.addItem(self.gr_node)
 
@@ -32,6 +34,8 @@ class Node(node_serializable.Serializable):
         self.socket_spacing = 22
         self.inputs = []
         self.outputs = []
+
+        # TODO: Probably turn into method
         for index, item in enumerate(inputs):
             socket = node_socket.InputSocket(node=self,
                                              index=index,
@@ -54,6 +58,15 @@ class Node(node_serializable.Serializable):
 
     def set_position(self, x, y):
         self.gr_node.setPos(x, y)
+
+    @property
+    def title(self):
+        return self._title
+
+    @title.setter
+    def title(self, value):
+        self._title = value
+        self.gr_node.title = self._title
 
     def get_socket_position(self, index, position):
         # TODO: Resize node if Y coordiante goes beyond node height
@@ -107,5 +120,33 @@ class Node(node_serializable.Serializable):
             ('outputs', outputs)
         ])
 
-    def deserialize(self, data, hashmap):
-        pass
+    def deserialize(self, data, hashmap={}):
+        self.id = data.get('id')
+        hashmap[data['id']] = self
+
+        self.set_position(data['pos_x'], data['pos_y'])
+        self.title = data.get('title')
+
+        # Sockets
+        data['inputs'].sort(key=lambda socket: socket['index'] + socket['position'] * 10000)
+        data['outputs'].sort(key=lambda socket: socket['index'] + socket['position'] * 10000)
+
+        self.inputs = []
+        self.outputs = []
+        for socket_data in data.get('inputs'):
+            new_socket = node_socket.InputSocket(self,
+                                                 index=socket_data['index'],
+                                                 position=socket_data['position'],
+                                                 data_type=socket_data['data_type'],
+                                                 label=socket_data['label'])
+            new_socket.deserialize(socket_data, hashmap)
+            self.inputs.append(new_socket)
+
+        for socket_data in data.get('outputs'):
+            new_socket = node_socket.OutputSocket(self,
+                                                  index=socket_data['index'],
+                                                  position=socket_data['position'],
+                                                  data_type=socket_data['data_type'],
+                                                  label=socket_data['label'])
+            new_socket.deserialize(socket_data, hashmap)
+            self.inputs.append(new_socket)

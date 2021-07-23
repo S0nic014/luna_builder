@@ -49,6 +49,7 @@ class NodeEditor(QtWidgets.QWidget):
         file_path = QtWidgets.QFileDialog.getOpenFileName(self, "Open rig build scene", Asset.get().build, rig_filter)[0]
         if not file_path:
             return
+        self.scene.load_from_file(file_path)
 
     def on_build_save(self):
         rig_filter = "Rig Build (*.rig)"

@@ -1,6 +1,7 @@
 import imp
 from collections import OrderedDict
 
+from luna import Logger
 import luna.utils.enumFn as enumFn
 import luna.utils.fileFn as fileFn
 import luna_builder.editor.graphics_edge as graphics_edge
@@ -10,6 +11,10 @@ imp.reload(graphics_edge)
 
 class Edge(node_serializable.Serializable):
 
+    class Type(enumFn.Enum):
+        DIRECT = 1
+        BEZIER = 2
+
     def __str__(self):
         cls_name = self.__class__.__name__
         nice_id = '{0}..{1}'.format(hex(id(self))[2:5], hex(id(self))[-3:])
@@ -18,18 +23,52 @@ class Edge(node_serializable.Serializable):
     def __init__(self, scene, start_socket, end_socket):
         super(Edge, self).__init__()
         self.scene = scene
+
         self.start_socket = start_socket
         self.end_socket = end_socket
-
-        if self.start_socket is not None:
-            self.start_socket.set_connected_edge(self)
-        if self.end_socket is not None:
-            self.end_socket.set_connected_edge(self)
-
-        self.gr_edge = graphics_edge.QDGraphicsEdgeBezier(self)
-        self.update_positions()
-        self.scene.gr_scene.addItem(self.gr_edge)
+        self.update_edge_graphics_type()
         self.scene.add_edge(self)
+
+    @property
+    def start_socket(self):
+        return self._start_socket
+
+    @start_socket.setter
+    def start_socket(self, value):
+        self._start_socket = value
+        if self._start_socket is not None:
+            self._start_socket.set_connected_edge(self)
+
+    @property
+    def end_socket(self):
+        return self._end_socket
+
+    @end_socket.setter
+    def end_socket(self, value):
+        self._end_socket = value
+        if self._end_socket is not None:
+            self._end_socket.set_connected_edge(self)
+
+    @property
+    def edge_type(self):
+        return self._edge_type
+
+    @edge_type.setter
+    def edge_type(self, value):
+        if hasattr(self, 'gr_edge') and self.gr_edge is not None:
+            self.scene.gr_scene.removeItem(self.gr_edge)
+        self._edge_type = value if isinstance(value, Edge.Type) else Edge.Type(value)
+        if self._edge_type == Edge.Type.DIRECT:
+            self.gr_edge = graphics_edge.QLGraphicsEdgeDirect(self)
+        elif self._edge_type == Edge.Type.BEZIER:
+            self.gr_edge = graphics_edge.QDGraphicsEdgeBezier(self)
+        else:
+            self.gr_edge = graphics_edge.QDGraphicsEdgeBezier(self)
+        self.scene.gr_scene.addItem(self.gr_edge)
+        self.update_positions()
+
+    def update_edge_graphics_type(self):
+        self.edge_type = self.scene.EDGE_TYPE
 
     def update_positions(self):
         if self.start_socket:
@@ -80,4 +119,7 @@ class Edge(node_serializable.Serializable):
         ])
 
     def deserialize(self, data, hashmap):
-        pass
+        self.id = data.get('id')
+        self.start_socket = hashmap[data['start']]
+        self.end_socket = hashmap[data['end']]
+        self.update_edge_graphics_type()

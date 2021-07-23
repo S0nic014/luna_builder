@@ -37,6 +37,7 @@ class Socket(node_serializable.Serializable):
     def __init__(self, node, index=0, position=Position.LEFT_TOP, data_type=DataType.NUMERIC, label='socket'):
         super(Socket, self).__init__()
 
+        self._label = label
         self.node = node
         self.index = index
         self.node_position = position if isinstance(position, Socket.Position) else Socket.Position(position)
@@ -49,6 +50,15 @@ class Socket(node_serializable.Serializable):
 
         # Edge
         self.edges = []
+
+    @property
+    def label(self):
+        return self._label
+
+    @label.setter
+    def label(self, text):
+        self._label = text
+        self.gr_socket.text_item.setPlainText(self._label)
 
     def has_edge(self):
         return bool(self.edges)
@@ -89,11 +99,13 @@ class Socket(node_serializable.Serializable):
             ('id', self.id),
             ('index', self.index),
             ('position', self.node_position.value),
-            ('data_type', self.data_type.value)
+            ('data_type', self.data_type.value),
+            ('label', self.label)
         ])
 
     def deserialize(self, data, hashmap):
-        pass
+        self.id = data.get('id')
+        hashmap[data['id']] = self
 
 
 class InputSocket(Socket):

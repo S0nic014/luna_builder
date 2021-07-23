@@ -1,13 +1,16 @@
 import imp
 from PySide2 import QtGui
+from collections import OrderedDict
 
 from luna import Logger
+import luna.utils.fileFn as fileFn
 import luna.utils.enumFn as enumFn
 import luna_builder.editor.graphics_socket as graphics_socket
+import luna_builder.editor.node_serializable as node_serializable
 imp.reload(graphics_socket)
 
 
-class Socket(object):
+class Socket(node_serializable.Serializable):
 
     class Position(enumFn.Enum):
         LEFT_TOP = 1
@@ -32,6 +35,8 @@ class Socket(object):
         return "<{0} {1}>".format(cls_name, nice_id)
 
     def __init__(self, node, index=0, position=Position.LEFT_TOP, data_type=DataType.NUMERIC, label='socket'):
+        super(Socket, self).__init__()
+
         self.node = node
         self.index = index
         self.node_position = position if isinstance(position, Socket.Position) else Socket.Position(position)
@@ -78,6 +83,17 @@ class Socket(object):
     def update_edges(self):
         for edge in self.edges:
             edge.update_positions()
+
+    def serialize(self):
+        return OrderedDict([
+            ('id', self.id),
+            ('index', self.index),
+            ('position', self.node_position.value),
+            ('data_type', self.data_type.value)
+        ])
+
+    def deserialize(self, data, hashmap):
+        pass
 
 
 class InputSocket(Socket):

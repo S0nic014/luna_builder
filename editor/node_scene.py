@@ -1,4 +1,5 @@
 import imp
+from collections import OrderedDict
 from luna import Logger
 import luna.utils.fileFn as fileFn
 import luna_builder.editor.graphics_scene as graphics_scene
@@ -45,11 +46,20 @@ class Scene(node_serializable.Serializable):
             Logger.exception('Failed to save build')
 
     def serialize(self):
-        return {
-            'id': self.id,
-            'scene_width': self.scene_width,
-            'scene_height': self.scene_height
-        }
+        nodes, edges = [], []
+        for n in self.nodes:
+            nodes.append(n.serialize())
+
+        for e in self.edges:
+            edges.append(e.serialize())
+
+        return OrderedDict([
+            ('id', self.id),
+            ('scene_width', self.scene_width),
+            ('scene_height', self.scene_height),
+            ('nodes', nodes),
+            ('edges', edges)
+        ])
 
     def deserialize(self, data, hashmap):
         pass

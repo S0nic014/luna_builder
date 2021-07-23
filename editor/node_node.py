@@ -1,12 +1,16 @@
 import imp
+from collections import OrderedDict
+
 from luna import Logger
+import luna.utils.fileFn as fileFn
 import luna_builder.editor.graphics_node as graphics_node
 import luna_builder.editor.node_socket as node_socket
+import luna_builder.editor.node_serializable as node_serializable
 imp.reload(graphics_node)
 imp.reload(node_socket)
 
 
-class Node(object):
+class Node(node_serializable.Serializable):
 
     def __str__(self):
         cls_name = self.__class__.__name__
@@ -14,6 +18,8 @@ class Node(object):
         return "<{0} {1}>".format(cls_name, nice_id)
 
     def __init__(self, scene, title="Custom node", inputs=[], outputs=[]):
+        super(Node, self).__init__()
+
         self.scene = scene
         self.title = title
 
@@ -84,3 +90,22 @@ class Node(object):
             Logger.debug('- Done.')
         except Exception:
             Logger.exception('Failed to delete node {0}'.format(self))
+
+    def serialize(self):
+        inputs, outputs = [], []
+        for socket in self.inputs:
+            inputs.append(socket.serialize())
+        for socket in self.outputs:
+            outputs.append(socket.serialize())
+
+        return OrderedDict([
+            ('id', self.id),
+            ('title', self.title),
+            ('pos_x', self.gr_node.scenePos().x()),
+            ('pos_y', self.gr_node.scenePos().y()),
+            ('inputs', inputs),
+            ('outputs', outputs)
+        ])
+
+    def deserialize(self, data, hashmap):
+        pass

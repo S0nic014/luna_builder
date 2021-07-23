@@ -1,21 +1,22 @@
 import imp
+from collections import OrderedDict
+
 import luna.utils.enumFn as enumFn
+import luna.utils.fileFn as fileFn
 import luna_builder.editor.graphics_edge as graphics_edge
+import luna_builder.editor.node_serializable as node_serializable
 imp.reload(graphics_edge)
 
 
-class Edge(object):
-
-    class Style(enumFn.Enum):
-        DIRECT = graphics_edge.QLGraphicsEdgeDirect
-        BEZIER = graphics_edge.QDGraphicsEdgeBezier
+class Edge(node_serializable.Serializable):
 
     def __str__(self):
         cls_name = self.__class__.__name__
         nice_id = '{0}..{1}'.format(hex(id(self))[2:5], hex(id(self))[-3:])
         return "<{0} {1}>".format(cls_name, nice_id)
 
-    def __init__(self, scene, start_socket, end_socket, typ=Style.BEZIER):
+    def __init__(self, scene, start_socket, end_socket):
+        super(Edge, self).__init__()
         self.scene = scene
         self.start_socket = start_socket
         self.end_socket = end_socket
@@ -25,7 +26,7 @@ class Edge(object):
         if self.end_socket is not None:
             self.end_socket.set_connected_edge(self)
 
-        self.gr_edge = typ.value(self)
+        self.gr_edge = graphics_edge.QDGraphicsEdgeBezier(self)
         self.update_positions()
         self.scene.gr_scene.addItem(self.gr_edge)
         self.scene.add_edge(self)
@@ -70,3 +71,13 @@ class Edge(object):
             return self.start_socket
         else:
             return self.end_socket
+
+    def serialize(self):
+        return OrderedDict([
+            ('id', self.id),
+            ('start', self.start_socket.id),
+            ('end', self.end_socket.id)
+        ])
+
+    def deserialize(self, data, hashmap):
+        pass

@@ -2,7 +2,6 @@ import imp
 from collections import OrderedDict
 
 from luna import Logger
-import luna.utils.fileFn as fileFn
 import luna_builder.editor.graphics_node as graphics_node
 import luna_builder.editor.node_socket as node_socket
 import luna_builder.editor.node_serializable as node_serializable
@@ -149,4 +148,4 @@ class Node(node_serializable.Serializable):
                                                   data_type=socket_data['data_type'],
                                                   label=socket_data['label'])
             new_socket.deserialize(socket_data, hashmap)
-            self.inputs.append(new_socket)
+            self.outputs.append(new_socket)

@@ -1,9 +1,8 @@
 import imp
 import timeit
 from collections import OrderedDict
+
 from luna import Logger
-from luna import Config
-from luna import BuilderVars
 import luna.utils.fileFn as fileFn
 import luna_builder.editor.node_node as node_node
 import luna_builder.editor.node_edge as node_edge
@@ -14,12 +13,6 @@ imp.reload(graphics_scene)
 
 class Scene(node_serializable.Serializable):
 
-    EDGE_TYPE = node_edge.Edge.Type.BEZIER
-
-    @classmethod
-    def update_edge_type(cls):
-        cls.EDGE_TYPE = node_edge.Edge.Type(Config.get(BuilderVars.edge_type, default=node_edge.Edge.Type.BEZIER.value, cached=True))
-
     def __init__(self):
         super(Scene, self).__init__()
         self.nodes = []
@@ -28,8 +21,8 @@ class Scene(node_serializable.Serializable):
 
         self.scene_width = 64000
         self.scene_height = 64000
+        self.edge_type = node_edge.Edge.Type.BEZIER
 
-        self.update_edge_type()
         self.init_ui()
 
     def init_ui(self):

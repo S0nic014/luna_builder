@@ -3,7 +3,6 @@ from PySide2 import QtGui
 from collections import OrderedDict
 
 from luna import Logger
-import luna.utils.fileFn as fileFn
 import luna.utils.enumFn as enumFn
 import luna_builder.editor.graphics_socket as graphics_socket
 import luna_builder.editor.node_serializable as node_serializable

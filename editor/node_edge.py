@@ -3,7 +3,6 @@ from collections import OrderedDict
 
 from luna import Logger
 import luna.utils.enumFn as enumFn
-import luna.utils.fileFn as fileFn
 import luna_builder.editor.graphics_edge as graphics_edge
 import luna_builder.editor.node_serializable as node_serializable
 imp.reload(graphics_edge)
@@ -65,19 +64,20 @@ class Edge(node_serializable.Serializable):
         else:
             self.gr_edge = graphics_edge.QDGraphicsEdgeBezier(self)
         self.scene.gr_scene.addItem(self.gr_edge)
-        self.update_positions()
+        if self.start_socket or self.end_socket:
+            self.update_positions()
 
     def update_edge_graphics_type(self):
-        self.edge_type = self.scene.EDGE_TYPE
+        self.edge_type = self.scene.edge_type
 
     def update_positions(self):
-        if self.start_socket:
+        if self.start_socket is not None:
             source_pos = self.start_socket.get_position()
             source_pos[0] += self.start_socket.node.gr_node.pos().x()
             source_pos[1] += self.start_socket.node.gr_node.pos().y()
             self.gr_edge.set_source(*source_pos)
 
-        if self.end_socket:
+        if self.end_socket is not None:
             end_pos = self.end_socket.get_position()
             end_pos[0] += self.end_socket.node.gr_node.pos().x()
             end_pos[1] += self.end_socket.node.gr_node.pos().y()

@@ -1,10 +1,14 @@
 import imp
+from luna import Logger
+import luna.utils.fileFn as fileFn
 import luna_builder.editor.graphics_scene as graphics_scene
+import luna_builder.editor.node_serializable as node_serializable
 imp.reload(graphics_scene)
 
 
-class Scene:
+class Scene(node_serializable.Serializable):
     def __init__(self):
+        super(Scene, self).__init__()
         self.nodes = []
         self.edges = []
         self.gr_scene = None  # type: graphics_scene.QLGraphicsScene
@@ -32,3 +36,20 @@ class Scene:
 
     def selected_nodes(self):
         return [node for node in self.nodes if node.gr_node.isSelected()]
+
+    def save_to_file(self, file_path):
+        try:
+            fileFn.write_json(file_path, data=self.serialize(), sort_keys=False)
+            Logger.info('Saved build {0}'.format(file_path))
+        except Exception:
+            Logger.exception('Failed to save build')
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'scene_width': self.scene_width,
+            'scene_height': self.scene_height
+        }
+
+    def deserialize(self, data, hashmap):
+        pass

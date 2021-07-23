@@ -6,9 +6,10 @@ import luna_rig.functions.asset_files as asset_files
 
 
 class FileMenu(QtWidgets.QMenu):
-    def __init__(self, workspace_widget, parent=None):
+    def __init__(self, main_dialog, parent=None):
         super(FileMenu, self).__init__("File", parent)
-        self.workspace_widget = workspace_widget
+        self.workspace_widget = main_dialog.workspace_wgt
+        self.node_editor = main_dialog.node_editor
 
         self.setTearOffEnabled(True)
         self.create_actions()
@@ -25,6 +26,8 @@ class FileMenu(QtWidgets.QMenu):
         self.save_new_skeleton_action = QtWidgets.QAction("Increment and save", self)
         self.save_skeleton_as_action = QtWidgets.QAction("Save skeleton as...", self)
         self.save_rig_as_action = QtWidgets.QAction("Save rig as...", self)
+        self.open_build_file_action = QtWidgets.QAction("Open Build...", self)
+        self.save_build_as_action = QtWidgets.QAction("Save Build As...", self)
 
     def create_connections(self):
         self.aboutToShow.connect(self.update_recent_projects)
@@ -36,10 +39,15 @@ class FileMenu(QtWidgets.QMenu):
         self.save_skeleton_as_action.triggered.connect(lambda: asset_files.save_file_as(typ="skeleton"))
         self.save_rig_as_action.triggered.connect(lambda: asset_files.save_file_as(typ="rig"))
         self.save_new_skeleton_action.triggered.connect(self.workspace_widget.update_data)
+        self.open_build_file_action.triggered.connect(self.node_editor.on_build_open)
+        self.save_build_as_action.triggered.connect(self.node_editor.on_build_save)
 
     def populate(self):
         self.addSection("Project")
         self.addMenu(self.recent_projects_menu)
+        self.addSection("Build graph")
+        self.addAction(self.open_build_file_action)
+        self.addAction(self.save_build_as_action)
         self.addSection("Skeleton")
         self.addAction(self.save_skeleton_as_action)
         self.addAction(self.save_new_skeleton_action)
@@ -67,3 +75,5 @@ class FileMenu(QtWidgets.QMenu):
         self.save_skeleton_as_action.setEnabled(is_asset_set)
         self.save_new_skeleton_action.setEnabled(is_asset_set)
         self.save_rig_as_action.setEnabled(is_asset_set)
+        self.open_build_file_action.setEnabled(is_asset_set)
+        self.save_build_as_action.setEnabled(is_asset_set)

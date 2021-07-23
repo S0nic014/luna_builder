@@ -84,7 +84,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.menu_bar.setCornerWidget(self.update_tab_btn, QtCore.Qt.TopRightCorner)
 
         # Menus
-        self.file_menu = menus.FileMenu(self.workspace_wgt)
+        self.file_menu = menus.FileMenu(self)
         self.controls_menu = menus.ControlsMenu()
         self.joints_menu = menus.JointsMenu()
         self.skin_menu = menus.SkinMenu()

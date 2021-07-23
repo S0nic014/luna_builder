@@ -3,6 +3,8 @@ from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
 
+from luna import Logger
+from luna.workspace import Asset
 import luna_builder.editor.node_scene as node_scene
 import luna_builder.editor.node_node as node_node
 import luna_builder.editor.node_socket as node_socket
@@ -41,6 +43,19 @@ class NodeEditor(QtWidgets.QWidget):
 
     def create_conections(self):
         pass
+
+    def on_build_open(self):
+        rig_filter = "Rig Build (*.rig)"
+        file_path = QtWidgets.QFileDialog.getOpenFileName(self, "Open rig build scene", Asset.get().build, rig_filter)[0]
+        if not file_path:
+            return
+
+    def on_build_save(self):
+        rig_filter = "Rig Build (*.rig)"
+        file_path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save build graph to file', Asset.get().new_build_path, rig_filter)[0]
+        if not file_path:
+            return
+        self.scene.save_to_file(file_path)
 
     def add_debug_nodes(self):
         # Test nodes

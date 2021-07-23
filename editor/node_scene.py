@@ -8,6 +8,8 @@ import luna_builder.editor.node_node as node_node
 import luna_builder.editor.node_edge as node_edge
 import luna_builder.editor.graphics_scene as graphics_scene
 import luna_builder.editor.node_serializable as node_serializable
+import luna_builder.editor.node_scene_history as scene_history
+imp.reload(scene_history)
 imp.reload(graphics_scene)
 
 
@@ -24,6 +26,7 @@ class Scene(node_serializable.Serializable):
         self.edge_type = node_edge.Edge.Type.BEZIER
 
         self.init_ui()
+        self.history = scene_history.SceneHistory(self)
 
     def init_ui(self):
         self.gr_scene = graphics_scene.QLGraphicsScene(self)

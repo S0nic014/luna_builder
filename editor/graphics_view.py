@@ -116,6 +116,19 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Delete:
             self.delete_selected()
+        elif event.key() == QtCore.Qt.Key_1:
+            self.gr_scene.scene.history.store_history('Item A')
+        elif event.key() == QtCore.Qt.Key_2:
+            self.gr_scene.scene.history.store_history('Item B')
+        elif event.key() == QtCore.Qt.Key_3:
+            self.gr_scene.scene.history.store_history('Item C')
+        elif event.key() == QtCore.Qt.Key_4:
+            self.gr_scene.scene.history.undo()
+        elif event.key() == QtCore.Qt.Key_5:
+            self.gr_scene.scene.history.redo()
+        elif event.key() == QtCore.Qt.Key_H:
+            Logger.debug('HISTORY {0}: {1}'.format(len(self.gr_scene.scene.history), self.gr_scene.scene.history.stack))
+            Logger.debug(' -- Current step: {0}'.format(self.gr_scene.scene.history.current_step))
         else:
             super(QLGraphicsView, self).keyPressEvent(event)
 

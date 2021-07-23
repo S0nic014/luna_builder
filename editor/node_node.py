@@ -33,11 +33,26 @@ class Node(node_serializable.Serializable):
         self.socket_spacing = 22
         self.inputs = []
         self.outputs = []
+        self.exec_in_socket = node_socket.InputSocket(self,
+                                                      index=0,
+                                                      position=node_socket.Socket.Position.LEFT_TOP,
+                                                      data_type=node_socket.Socket.DataType.EXEC,
+                                                      label='',
+                                                      max_connections=1)
+        self.inputs.append(self.exec_in_socket)
+
+        self.exec_out_socket = node_socket.OutputSocket(self,
+                                                        index=0,
+                                                        position=node_socket.Socket.Position.RIGHT_TOP,
+                                                        data_type=node_socket.Socket.DataType.EXEC,
+                                                        label='',
+                                                        max_connections=1)
+        self.outputs.append(self.exec_out_socket)
 
         # TODO: Probably turn into method
         for index, item in enumerate(inputs):
             socket = node_socket.InputSocket(node=self,
-                                             index=index,
+                                             index=index + 1,
                                              position=node_socket.Socket.Position.LEFT_TOP,
                                              data_type=item,
                                              label='input{0}'.format(index))
@@ -45,7 +60,7 @@ class Node(node_serializable.Serializable):
 
         for index, item in enumerate(outputs):
             socket = node_socket.OutputSocket(node=self,
-                                              index=index,
+                                              index=index + 1,
                                               position=node_socket.Socket.Position.RIGHT_TOP,
                                               data_type=item,
                                               label='output{0}'.format(index))
@@ -137,7 +152,8 @@ class Node(node_serializable.Serializable):
                                                  index=socket_data['index'],
                                                  position=socket_data['position'],
                                                  data_type=socket_data['data_type'],
-                                                 label=socket_data['label'])
+                                                 label=socket_data['label'],
+                                                 max_connections=socket_data['max_connections'])
             new_socket.deserialize(socket_data, hashmap)
             self.inputs.append(new_socket)
 
@@ -146,6 +162,7 @@ class Node(node_serializable.Serializable):
                                                   index=socket_data['index'],
                                                   position=socket_data['position'],
                                                   data_type=socket_data['data_type'],
-                                                  label=socket_data['label'])
+                                                  label=socket_data['label'],
+                                                  max_connections=socket_data['max_connections'])
             new_socket.deserialize(socket_data, hashmap)
             self.outputs.append(new_socket)

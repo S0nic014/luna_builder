@@ -6,6 +6,7 @@ from luna import Logger
 
 
 class QLGraphicsSocket(QtWidgets.QGraphicsItem):
+
     def __init__(self, socket, label, color=QtGui.QColor("#FFFF7700")):
         self.socket = socket
         super(QLGraphicsSocket, self).__init__(socket.node.gr_node)

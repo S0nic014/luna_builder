@@ -87,6 +87,7 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         painter.drawPath(path_content.simplified())
 
         # outline
+        # TODO: Paint prominent outline if exec input is connected
         path_outline = QtGui.QPainterPath()
         path_outline.addRoundedRect(0, 0, self.width, self.height, self.edge_size, self.edge_size)
         painter.setPen(self._pen_default if not self.isSelected() else self._pen_selected)

@@ -22,23 +22,26 @@ class Socket(node_serializable.Serializable):
         NUMERIC = 1
         STRING = 2
         COMPONENT = 3
+        EXEC = 4
 
     LABEL_VERTICAL_PADDING = -10.0
     DATA_COLORS = {DataType.NUMERIC: QtGui.QColor("#FFFF7700"),
                    DataType.STRING: QtGui.QColor("#FF52e220"),
-                   DataType.COMPONENT: QtGui.QColor("#FF0056a6")}
+                   DataType.COMPONENT: QtGui.QColor("#FF0056a6"),
+                   DataType.EXEC: QtGui.QColor("#FFFFFF")}
 
     def __str__(self):
         cls_name = self.__class__.__name__
         nice_id = '{0}..{1}'.format(hex(id(self))[2:5], hex(id(self))[-3:])
         return "<{0} {1}>".format(cls_name, nice_id)
 
-    def __init__(self, node, index=0, position=Position.LEFT_TOP, data_type=DataType.NUMERIC, label='socket'):
+    def __init__(self, node, index=0, position=Position.LEFT_TOP, data_type=DataType.NUMERIC, label='socket', max_connections=0):
         super(Socket, self).__init__()
 
-        self._label = label
         self.node = node
         self.index = index
+        self._label = label
+        self.max_connections = max_connections
         self.node_position = position if isinstance(position, Socket.Position) else Socket.Position(position)
         self.data_type = data_type if isinstance(data_type, Socket.DataType) else Socket.DataType(data_type)
 
@@ -83,6 +86,8 @@ class Socket(node_serializable.Serializable):
         if not edge:
             self.edges.clear()
             return
+        if self.edges and self.max_connections and len(self.edges) > self.max_connections:
+            self.edges[0].remove()
 
     def remove_edge(self, edge):
         if edge in self.edges:
@@ -99,6 +104,7 @@ class Socket(node_serializable.Serializable):
             ('index', self.index),
             ('position', self.node_position.value),
             ('data_type', self.data_type.value),
+            ('max_connections', self.max_connections),
             ('label', self.label)
         ])
 

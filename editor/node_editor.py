@@ -45,6 +45,9 @@ class NodeEditor(QtWidgets.QWidget):
         pass
 
     def on_build_open(self):
+        if not Asset.get():
+            Logger.warning('Asset is not set')
+            return
         rig_filter = "Rig Build (*.rig)"
         file_path = QtWidgets.QFileDialog.getOpenFileName(self, "Open rig build scene", Asset.get().build, rig_filter)[0]
         if not file_path:
@@ -52,6 +55,20 @@ class NodeEditor(QtWidgets.QWidget):
         self.scene.load_from_file(file_path)
 
     def on_build_save(self):
+        if not Asset.get():
+            Logger.warning('Asset is not set')
+            return
+
+        if self.scene.file_name:
+            self.scene.save_to_file(self.scene.file_name)
+        else:
+            self.on_build_save_as()
+
+    def on_build_save_as(self):
+        if not Asset.get():
+            Logger.warning('Asset is not set')
+            return
+
         rig_filter = "Rig Build (*.rig)"
         file_path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save build graph to file', Asset.get().new_build_path, rig_filter)[0]
         if not file_path:

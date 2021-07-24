@@ -19,6 +19,7 @@ class Scene(node_serializable.Serializable):
         super(Scene, self).__init__()
         self.nodes = []
         self.edges = []
+        self.file_name = None
         self.gr_scene = None  # type: graphics_scene.QLGraphicsScene
 
         self.scene_width = 64000
@@ -64,6 +65,7 @@ class Scene(node_serializable.Serializable):
         try:
             fileFn.write_json(file_path, data=self.serialize(), sort_keys=False)
             Logger.info('Saved build {0}'.format(file_path))
+            self.file_name = file_path
         except Exception:
             Logger.exception('Failed to save build')
 
@@ -74,6 +76,7 @@ class Scene(node_serializable.Serializable):
             self.deserialize(data)
             Logger.info("Rig build loaded in {0:.2f}s".format(timeit.default_timer() - start_time))
             self.history.clear()
+            self.file_name = file_path
         except Exception:
             Logger.exception('Failed to load rig build file')
 

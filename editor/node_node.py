@@ -104,17 +104,12 @@ class Node(node_serializable.Serializable):
 
     def remove(self):
         try:
-            Logger.debug('> Removing node {0}'.format(self))
-            Logger.debug('- remove all edges')
             for socket in self.inputs + self.outputs:
                 for edge in socket.edges:
                     edge.remove()
-            Logger.debug('- remove graphics node')
             self.scene.gr_scene.removeItem(self.gr_node)
             self.gr_node = None
-            Logger.debug('- remove node from the scene')
             self.scene.remove_node(self)
-            Logger.debug('- Done.')
         except Exception:
             Logger.exception('Failed to delete node {0}'.format(self))
 

@@ -91,7 +91,7 @@ class Socket(node_serializable.Serializable):
 
     def remove_edge(self, edge):
         if edge in self.edges:
-            Logger.debug('{0}: Removing edge {1}'.format(self, edge))
+            # Logger.debug('{0}: Removing edge {1}'.format(self, edge))
             self.edges.remove(edge)
 
     def update_edges(self):

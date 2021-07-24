@@ -85,6 +85,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
         # Menus
         self.file_menu = menus.FileMenu(self)
+        self.edit_menu = menus.EditMenu(self)
         self.controls_menu = menus.ControlsMenu()
         self.joints_menu = menus.JointsMenu()
         self.skin_menu = menus.SkinMenu()
@@ -94,6 +95,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
         # Populate menu bar
         self.menu_bar.addMenu(self.file_menu)
+        self.menu_bar.addMenu(self.edit_menu)
         self.menu_bar.addMenu(self.controls_menu)
         self.menu_bar.addMenu(self.joints_menu)
         self.menu_bar.addMenu(self.skin_menu)

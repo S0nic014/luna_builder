@@ -1,5 +1,3 @@
-import itertools
-from collections import deque
 from luna import Logger
 
 
@@ -31,16 +29,18 @@ class SceneHistory(object):
         if self.current_step + 1 < len(self.stack):
             self.current_step += 1
             self.restore_history()
+        else:
+            Logger.warning('No more steps to redo')
 
     def restore_history(self):
-        Logger.debug('Restoring history | \nStep: @{0} | Max: {1}'.format(self.current_step, len(self)))
+        # Logger.debug('Restoring history | \nStep: @{0} | Max: {1}'.format(self.current_step, len(self)))
         self.restore_stamp(self.stack[self.current_step])
 
     def store_history(self, description):
         if not self.enabled:
             return
 
-        Logger.debug('Storing history {0}| \nStep: @{1} | Max: {2}'.format(description, self.current_step, len(self)))
+        # Logger.debug('Storing history {0}| \nStep: @{1} | Max: {2}'.format(description, self.current_step, len(self)))
         # if the pointer (current_step) is not at the end of stack
         if self.current_step + 1 < len(self.stack):
             self.stack = self.stack[0:self.current_step + 1]
@@ -68,8 +68,6 @@ class SceneHistory(object):
         return stamp
 
     def restore_stamp(self, stamp):
-        Logger.debug('Stamp: {0}'.format(stamp))
-
         self.scene.deserialize(stamp['snapshot'])
 
         # Restore selection

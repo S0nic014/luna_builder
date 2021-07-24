@@ -133,13 +133,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         super(QLGraphicsView, self).mouseMoveEvent(event)
 
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Delete:
-            self.delete_selected()
-        elif event.key() == QtCore.Qt.Key_Z and event.modifiers() & QtCore.Qt.ControlModifier and not event.modifiers() & QtCore.Qt.ShiftModifier:
-            self.gr_scene.scene.history.undo()
-        elif event.key() == QtCore.Qt.Key_Y and event.modifiers() & QtCore.Qt.ControlModifier and not event.modifiers() & QtCore.Qt.ShiftModifier:
-            self.gr_scene.scene.history.redo()
-        elif event.key() == QtCore.Qt.Key_H:
+        if event.key() == QtCore.Qt.Key_H:
             Logger.debug(' len({0}) -- Current step: {1}'.format(len(self.scene.history), self.scene.history.current_step))
             for index, item in enumerate(self.scene.history.stack):
                 Logger.debug('# {0} -- {1}'.format(index, item.get('desc')))
@@ -249,10 +243,11 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
     def start_edge_drag(self, item):
         self.edge_mode = QLGraphicsView.EdgeMode.DRAG
         Logger.debug('Start dragging edge: {}'.format(self.edge_mode))
-        Logger.debug('Assign socket to: {0}'.format(item.socket))
         if isinstance(item.socket, node_socket.OutputSocket):
+            Logger.debug('Assign start socket to: {0}'.format(item.socket))
             self.drag_edge = node_edge.Edge(self.gr_scene.scene, item.socket, None)
         else:
+            Logger.debug('Assign end socket to: {0}'.format(item.socket))
             self.drag_edge = node_edge.Edge(self.gr_scene.scene, None, item.socket)
 
     @history('Edge created by dragging')
@@ -276,7 +271,6 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         # Set connections, update positions
         self.drag_edge.start_socket.set_connected_edge(self.drag_edge)
         self.drag_edge.end_socket.set_connected_edge(self.drag_edge)
-        Logger.debug('Edge connected: {0}'.format(self.drag_edge))
         self.drag_edge.update_positions()
         return True
 

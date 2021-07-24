@@ -12,7 +12,6 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
 
         self.node = node
         self.was_moved = False
-        Logger.debug(isinstance(self, QtCore.QObject))
 
         self.width = 180
         self.height = 240

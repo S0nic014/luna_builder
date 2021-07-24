@@ -1,4 +1,5 @@
 from luna_builder.menus.file_menu import FileMenu
+from luna_builder.menus.edit_menu import EditMenu
 from luna_builder.menus.controls_menu import ControlsMenu
 from luna_builder.menus.joints_menu import JointsMenu
 from luna_builder.menus.skin_menu import SkinMenu

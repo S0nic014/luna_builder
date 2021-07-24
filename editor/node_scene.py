@@ -83,6 +83,8 @@ class Scene(node_serializable.Serializable):
             nodes.append(n.serialize())
 
         for e in self.edges:
+            if not e.start_socket or not e.end_socket:
+                continue
             edges.append(e.serialize())
 
         return OrderedDict([

@@ -47,6 +47,15 @@ class Scene(node_serializable.Serializable):
     def selected_nodes(self):
         return [node for node in self.nodes if node.gr_node.isSelected()]
 
+    def list_node_ids(self):
+        return [node.id for node in self.nodes]
+
+    def list_edges_ids(self):
+        return [node.id for node in self.edges]
+
+    def selected_edges(self):
+        return [edge for edge in self.edges if edge.gr_edge.isSelected()]
+
     def clear(self):
         while(self.nodes):
             self.nodes[0].remove()
@@ -64,6 +73,7 @@ class Scene(node_serializable.Serializable):
             data = fileFn.load_json(file_path)
             self.deserialize(data)
             Logger.info("Rig build loaded in {0:.2f}s".format(timeit.default_timer() - start_time))
+            self.history.clear()
         except Exception:
             Logger.exception('Failed to load rig build file')
 

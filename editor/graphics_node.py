@@ -1,14 +1,18 @@
 import math
+from luna import Logger
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
 
 
 class QLGraphicsNode(QtWidgets.QGraphicsItem):
+
     def __init__(self, node, parent=None):
         super(QLGraphicsNode, self).__init__(parent)
 
         self.node = node
+        self.was_moved = False
+        Logger.debug(isinstance(self, QtCore.QObject))
 
         self.width = 180
         self.height = 240
@@ -105,3 +109,10 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         super(QLGraphicsNode, self).mouseMoveEvent(event)
         for node in self.scene().scene.selected_nodes():
             node.update_connected_edges()
+        self.was_moved = True
+
+    def mouseReleaseEvent(self, event):
+        super(QLGraphicsNode, self).mouseReleaseEvent(event)
+        if self.was_moved:
+            self.was_moved = False
+            self.node.scene.history.store_history('Node moved')

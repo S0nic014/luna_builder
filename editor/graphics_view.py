@@ -14,6 +14,21 @@ import luna_builder.editor.graphics_cutline as graphics_cutline
 imp.reload(graphics_socket)
 
 
+def history(description):
+    def inner(func):
+        def wrapper(*args, **kwargs):
+            try:
+                view = [a for a in args if isinstance(a, QLGraphicsView)][0]
+            except IndexError:
+                Logger.exception('Decorator failed to find QLGraphicsView in args')
+                raise
+            func(*args, **kwargs)
+            view.scene.history.store_history(description)
+            Logger.info('> {0}'.format(description))
+        return wrapper
+    return inner
+
+
 class QLGraphicsView(QtWidgets.QGraphicsView):
 
     # Constant settings
@@ -49,6 +64,10 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
         self.setDragMode(QtWidgets.QGraphicsView.RubberBandDrag)
+
+    @property
+    def scene(self):
+        return self.gr_scene.scene
 
     # =========== Qt Events overrides =========== #
     def mousePressEvent(self, event):
@@ -116,19 +135,15 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Delete:
             self.delete_selected()
-        elif event.key() == QtCore.Qt.Key_1:
-            self.gr_scene.scene.history.store_history('Item A')
-        elif event.key() == QtCore.Qt.Key_2:
-            self.gr_scene.scene.history.store_history('Item B')
-        elif event.key() == QtCore.Qt.Key_3:
-            self.gr_scene.scene.history.store_history('Item C')
-        elif event.key() == QtCore.Qt.Key_4:
+        elif event.key() == QtCore.Qt.Key_Z and event.modifiers() & QtCore.Qt.ControlModifier and not event.modifiers() & QtCore.Qt.ShiftModifier:
             self.gr_scene.scene.history.undo()
-        elif event.key() == QtCore.Qt.Key_5:
+        elif event.key() == QtCore.Qt.Key_Y and event.modifiers() & QtCore.Qt.ControlModifier and not event.modifiers() & QtCore.Qt.ShiftModifier:
             self.gr_scene.scene.history.redo()
         elif event.key() == QtCore.Qt.Key_H:
-            Logger.debug('HISTORY {0}: {1}'.format(len(self.gr_scene.scene.history), self.gr_scene.scene.history.stack))
-            Logger.debug(' -- Current step: {0}'.format(self.gr_scene.scene.history.current_step))
+            Logger.debug(' len({0}) -- Current step: {1}'.format(len(self.scene.history), self.scene.history.current_step))
+            for index, item in enumerate(self.scene.history.stack):
+                Logger.debug('# {0} -- {1}'.format(index, item.get('desc')))
+
         else:
             super(QLGraphicsView, self).keyPressEvent(event)
 
@@ -191,6 +206,9 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             self.edge_mode = QLGraphicsView.EdgeMode.NOOP
             return
 
+        if self.dragMode() == QLGraphicsView.RubberBandDrag:
+            self.scene.history.store_history('Selection changed')
+
         super(QLGraphicsView, self).mouseReleaseEvent(event)
 
     def right_mouse_press(self, event):
@@ -237,6 +255,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         else:
             self.drag_edge = node_edge.Edge(self.gr_scene.scene, None, item.socket)
 
+    @history('Edge created by dragging')
     def end_edge_drag(self, item):
         self.edge_mode = QLGraphicsView.EdgeMode.NOOP
         Logger.debug('End dragging edge')
@@ -309,6 +328,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             out += "ALT "
         Logger.debug(out)
 
+    @history('Item deleted')
     def delete_selected(self):
         selected_items = self.gr_scene.selectedItems()
         nodes_selected = [item for item in selected_items if isinstance(item, graphics_node.QLGraphicsNode)]
@@ -320,6 +340,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
                 if isinstance(item, graphics_edge.QLGraphicsEdge):
                     item.edge.remove()
 
+    @history('Edges cut')
     def cut_intersecting_edges(self):
         for ix in range(len(self.cutline.line_points) - 1):
             pt1 = self.cutline.line_points[ix]

@@ -9,7 +9,9 @@ import luna_builder.editor.node_edge as node_edge
 import luna_builder.editor.graphics_scene as graphics_scene
 import luna_builder.editor.node_serializable as node_serializable
 import luna_builder.editor.node_scene_history as scene_history
+import luna_builder.editor.node_scene_clipboard as scene_clipboard
 imp.reload(scene_history)
+imp.reload(scene_clipboard)
 imp.reload(graphics_scene)
 
 
@@ -28,10 +30,15 @@ class Scene(node_serializable.Serializable):
 
         self.init_ui()
         self.history = scene_history.SceneHistory(self)
+        self.clipboard = scene_clipboard.SceneClipboard(self)
 
     def init_ui(self):
         self.gr_scene = graphics_scene.QLGraphicsScene(self)
         self.gr_scene.set_scene_size(self.scene_width, self.scene_height)
+
+    @property
+    def view(self):
+        return self.gr_scene.views()[0]
 
     def add_node(self, node):
         self.nodes.append(node)
@@ -98,14 +105,16 @@ class Scene(node_serializable.Serializable):
             ('edges', edges)
         ])
 
-    def deserialize(self, data, hashmap={}):
+    def deserialize(self, data, hashmap={}, restore_id=True):
         self.clear()
-        self.id = data.get('id')
+
+        if restore_id:
+            self.id = data.get('id')
 
         # create nodes
         for node_data in data.get('nodes'):
-            node_node.Node(self).deserialize(node_data, hashmap)
+            node_node.Node(self).deserialize(node_data, hashmap, restore_id)
 
         # create edges
         for edge_data in data.get('edges'):
-            node_edge.Edge(self, None, None).deserialize(edge_data, hashmap)
+            node_edge.Edge(self, None, None).deserialize(edge_data, hashmap, restore_id=restore_id)

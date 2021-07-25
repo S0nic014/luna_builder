@@ -50,7 +50,8 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.zoom_range = [0, 10]
 
         self.edge_mode = QLGraphicsView.EdgeMode.NOOP
-        self.last_lmb_click_pos = None
+        self.last_lmb_click_pos = QtCore.QPointF(0.0, 0.0)
+        self.last_scene_mouse_pos = QtCore.QPointF(0.0, 0.0)
         self.cutline = graphics_cutline.QLCutLine()
         self.gr_scene.addItem(self.cutline)
 
@@ -115,20 +116,26 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             self.scale(zoom_factor, zoom_factor)
 
     def mouseMoveEvent(self, event):
-        if self.edge_mode == QLGraphicsView.EdgeMode.DRAG:
-            pos = self.mapToScene(event.pos())
-            # Offset X to avoid clicking on the edge
-            pos.setX(pos.x() - 1.0)
-            if self.drag_edge.start_socket:
-                self.drag_edge.gr_edge.set_destination(pos.x(), pos.y())
-            else:
-                self.drag_edge.gr_edge.set_source(pos.x(), pos.y())
-            self.drag_edge.gr_edge.update()
+        scene_pos = self.mapToScene(event.pos())
 
-        if self.edge_mode == QLGraphicsView.EdgeMode.CUT:
-            pos = self.mapToScene(event.pos())
-            self.cutline.line_points.append(pos)
-            self.cutline.update()
+        try:
+            if self.edge_mode == QLGraphicsView.EdgeMode.DRAG:
+                pos = scene_pos
+                # Offset X to avoid clicking on the edge
+                pos.setX(pos.x() - 1.0)
+                if self.drag_edge.start_socket:
+                    self.drag_edge.gr_edge.set_destination(pos.x(), pos.y())
+                else:
+                    self.drag_edge.gr_edge.set_source(pos.x(), pos.y())
+                self.drag_edge.gr_edge.update()
+
+            if self.edge_mode == QLGraphicsView.EdgeMode.CUT:
+                self.cutline.line_points.append(scene_pos)
+                self.cutline.update()
+        except Exception:
+            Logger.exception('mouseMoveEvent exception')
+
+        self.last_scene_mouse_pos = scene_pos
 
         super(QLGraphicsView, self).mouseMoveEvent(event)
 
@@ -298,6 +305,12 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             Logger.debug('  Connected edge: {0}'.format(item.socket.edges))
         elif isinstance(item, graphics_node.QLGraphicsNode):
             Logger.debug(item.node)
+            Logger.debug('-- Inputs')
+            for insocket in item.node.inputs:
+                Logger.debug(insocket)
+            Logger.debug('-- Outputs')
+            for outsocket in item.node.outputs:
+                Logger.debug(outsocket)
         elif isinstance(item, graphics_edge.QLGraphicsEdge):
             Logger.debug(item.edge)
             Logger.debug('  Start: {0}, End:{1}'.format(item.edge.start_socket, item.edge.end_socket))

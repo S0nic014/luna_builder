@@ -1,3 +1,4 @@
+import json
 from PySide2 import QtWidgets
 from luna import Logger
 
@@ -73,13 +74,28 @@ class EditMenu(QtWidgets.QMenu):
             self.node_scene.history.redo()
 
     def on_copy(self):
-        pass
+        data = self.node_scene.clipboard.serialize_selected(delete=False)
+        str_data = json.dumps(data, indent=4)
+        QtWidgets.QApplication.instance().clipboard().setText(str_data)
 
     def on_cut(self):
-        pass
+        data = self.node_scene.clipboard.serialize_selected(delete=True)
+        str_data = json.dumps(data, indent=4)
+        QtWidgets.QApplication.instance().clipboard().setText(str_data)
 
     def on_paste(self):
-        pass
+        raw_data = QtWidgets.QApplication.instance().clipboard().text()
+        try:
+            data = json.loads(raw_data)  # type: dict
+        except ValueError:
+            Logger.error('Invalid json paste data')
+            return
+
+        if 'nodes' not in data.keys():
+            Logger.warning('Clipboard JSON does not contain any nodes')
+            return
+
+        self.node_scene.clipboard.deserialize_from_clip(data)
 
     def on_delete(self):
         self.gr_view.delete_selected()

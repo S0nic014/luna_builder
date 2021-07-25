@@ -19,7 +19,7 @@ class Edge(node_serializable.Serializable):
         nice_id = '{0}..{1}'.format(hex(id(self))[2:5], hex(id(self))[-3:])
         return "<{0} {1}>".format(cls_name, nice_id)
 
-    def __init__(self, scene, start_socket, end_socket):
+    def __init__(self, scene, start_socket=None, end_socket=None):
         super(Edge, self).__init__()
         self.scene = scene
 
@@ -118,8 +118,9 @@ class Edge(node_serializable.Serializable):
             ('end', self.end_socket.id)
         ])
 
-    def deserialize(self, data, hashmap):
-        self.id = data.get('id')
+    def deserialize(self, data, hashmap, restore_id=True):
+        if restore_id:
+            self.id = data.get('id')
         self.start_socket = hashmap[data['start']]
         self.end_socket = hashmap[data['end']]
         self.update_edge_graphics_type()

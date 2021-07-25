@@ -108,8 +108,9 @@ class Socket(node_serializable.Serializable):
             ('label', self.label)
         ])
 
-    def deserialize(self, data, hashmap):
-        self.id = data.get('id')
+    def deserialize(self, data, hashmap, restore_id=True):
+        if restore_id:
+            self.id = data.get('id')
         hashmap[data['id']] = self
 
 

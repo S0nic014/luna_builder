@@ -89,10 +89,13 @@ class Socket(node_serializable.Serializable):
         if self.edges and self.max_connections and len(self.edges) > self.max_connections:
             self.edges[0].remove()
 
+    def remove_all_edges(self):
+        while self.edges:
+            self.edges[0].remove()
+        self.edges = []
+
     def remove_edge(self, edge):
-        if edge in self.edges:
-            # Logger.debug('{0}: Removing edge {1}'.format(self, edge))
-            self.edges.remove(edge)
+        self.edges.remove(edge)
 
     def update_edges(self):
         for edge in self.edges:

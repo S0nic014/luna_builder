@@ -21,6 +21,8 @@ class Edge(node_serializable.Serializable):
 
     def __init__(self, scene, start_socket=None, end_socket=None):
         super(Edge, self).__init__()
+        self._start_socket = None
+        self._end_socket = None
         self.scene = scene
 
         self.start_socket = start_socket
@@ -34,6 +36,9 @@ class Edge(node_serializable.Serializable):
 
     @start_socket.setter
     def start_socket(self, value):
+        if self._start_socket is not None:
+            self._start_socket.remove_edge(self)
+
         self._start_socket = value
         if self._start_socket is not None:
             self._start_socket.set_connected_edge(self)
@@ -44,6 +49,9 @@ class Edge(node_serializable.Serializable):
 
     @end_socket.setter
     def end_socket(self, value):
+        if self._end_socket is not None:
+            self._end_socket.remove_edge(self)
+
         self._end_socket = value
         if self._end_socket is not None:
             self._end_socket.set_connected_edge(self)
@@ -90,10 +98,6 @@ class Edge(node_serializable.Serializable):
         self.gr_edge.update()
 
     def remove_from_sockets(self):
-        if self.start_socket is not None:
-            self.start_socket.remove_edge(self)
-        if self.end_socket is not None:
-            self.end_socket.remove_edge(self)
         self.start_socket = None
         self.end_socket = None
 

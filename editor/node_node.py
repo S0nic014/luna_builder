@@ -105,8 +105,7 @@ class Node(node_serializable.Serializable):
     def remove(self):
         try:
             for socket in self.inputs + self.outputs:
-                for edge in socket.edges:
-                    edge.remove()
+                socket.remove_all_edges()
             self.scene.gr_scene.removeItem(self.gr_node)
             self.gr_node = None
             self.scene.remove_node(self)

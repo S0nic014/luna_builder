@@ -55,7 +55,8 @@ class SceneHistory(object):
 
         self.stack.append(hs)
         self.current_step += 1
-        self.scene.has_been_modified = set_modified
+        if set_modified:
+            self.scene.has_been_modified = True
 
     def create_stamp(self, description):
         sel_obj = {'nodes': [node.id for node in self.scene.selected_nodes()],

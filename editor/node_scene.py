@@ -56,11 +56,8 @@ class Scene(node_serializable.Serializable):
 
     @has_been_modified.setter
     def has_been_modified(self, value):
-        if not self._has_been_modified and value:
-            self._has_been_modified = value
-            self.signals.modified.emit()
-
         self._has_been_modified = value
+        self.signals.modified.emit()
 
     @property
     def file_name(self):
@@ -112,6 +109,7 @@ class Scene(node_serializable.Serializable):
             Logger.info('Saved build {0}'.format(file_path))
             self.file_name = file_path
             self.has_been_modified = False
+            self.signals.modified.emit()
         except Exception:
             Logger.exception('Failed to save build')
 

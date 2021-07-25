@@ -15,11 +15,17 @@ class EditMenu(QtWidgets.QMenu):
 
     @property
     def node_scene(self):
-        return self.main_dialog.node_editor.scene
+        editor = self.main_dialog.current_editor
+        if not editor:
+            return None
+        return editor.scene
 
     @property
     def gr_view(self):
-        return self.main_dialog.node_editor.gr_view
+        editor = self.main_dialog.current_editor
+        if not editor:
+            return None
+        return editor.gr_view
 
     def create_actions(self):
         self.undo_action = QtWidgets.QAction("&Undo", self)
@@ -37,6 +43,7 @@ class EditMenu(QtWidgets.QMenu):
         self.delete_action.setShortcut('Del')
 
     def create_connections(self):
+        self.main_dialog.mdi_area.subWindowActivated.connect(self.update_actions_state)
         self.aboutToShow.connect(self.update_actions_state)
         # Actions
         self.undo_action.triggered.connect(self.on_undo)
@@ -104,4 +111,5 @@ class EditMenu(QtWidgets.QMenu):
         self.node_scene.clipboard.deserialize_from_clip(data)
 
     def on_delete(self):
-        self.gr_view.delete_selected()
+        if self.gr_view:
+            self.gr_view.delete_selected()

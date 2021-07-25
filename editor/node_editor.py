@@ -24,6 +24,7 @@ class NodeEditor(QtWidgets.QWidget):
         self.add_debug_nodes()
 
     def init_ui(self):
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.setMinimumSize(200, 500)
         self.create_widgets()
         self.create_layouts()
@@ -75,8 +76,9 @@ class NodeEditor(QtWidgets.QWidget):
         rig_filter = "Rig Build (*.rig)"
         file_path = QtWidgets.QFileDialog.getOpenFileName(self, "Open rig build scene", Asset.get().build, rig_filter)[0]
         if not file_path:
-            return
+            return False
         self.scene.load_from_file(file_path)
+        return True
 
     def on_build_save(self):
         if not Asset.get():

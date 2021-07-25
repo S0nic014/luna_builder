@@ -102,6 +102,14 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.menu_bar.addMenu(self.help_menu)
 
     def create_widgets(self):
+        self.mdi_area = QtWidgets.QMdiArea()
+        self.mdi_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.mdi_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.mdi_area.setViewMode(QtWidgets.QMdiArea.TabbedView)
+        self.mdi_area.setDocumentMode(True)
+        self.mdi_area.setTabsClosable(True)
+        self.mdi_area.setTabsMovable(True)
+
         self.tab_widget = QtWidgets.QTabWidget()
         self.tab_widget.setTabPosition(self.tab_widget.East)
         self.tab_widget.setMaximumWidth(500)
@@ -109,12 +117,10 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.workspace_wgt = tab_workspace.WorkspaceWidget()
         self.tab_widget.addTab(self.workspace_wgt, self.workspace_wgt.label)
 
-        self.node_editor = node_editor.NodeEditor()
-
     def create_layouts(self):
         self.hor_layout = QtWidgets.QHBoxLayout()
         self.hor_layout.setContentsMargins(0, 0, 0, 0)
-        self.hor_layout.addWidget(self.node_editor)
+        self.hor_layout.addWidget(self.mdi_area)
         self.hor_layout.addWidget(self.tab_widget)
 
         self.main_layout = QtWidgets.QVBoxLayout(self)
@@ -125,18 +131,61 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     def create_connections(self):
         # Other
         self.update_tab_btn.clicked.connect(lambda: self.tab_widget.currentWidget().update_data())
-        self.node_editor.scene.signals.file_name_changed.connect(self.update_floating_window_title)
-        self.node_editor.scene.signals.modified.connect(self.update_floating_window_title)
 
-    def update_floating_window_title(self):
-        if not self.node_editor.scene.file_name:
+    @property
+    def current_editor(self):
+        if not self.current_window:
+            return None
+        editor = self.current_window.widget()  # type: node_editor.NodeEditor
+        return editor
+
+    @property
+    def current_window(self):
+        sub_wnd = self.mdi_area.currentSubWindow()  # type: QtWidgets.QMdiSubWindow
+        return sub_wnd
+
+    def create_mdi_child(self):
+        new_editor = node_editor.NodeEditor()
+        sub_wnd = self.mdi_area.addSubWindow(new_editor)
+        new_editor.scene.signals.file_name_changed.connect(self.update_window_titles)
+        new_editor.scene.signals.modified.connect(self.update_window_titles)
+        return sub_wnd
+
+    def update_window_titles(self):
+        if not self.current_editor:
             self.setWindowTitle(self.WINDOW_TITLE)
             return
 
-        if self.node_editor.scene.has_been_modified:
-            self.setWindowTitle('{0} - {1}*'.format(self.WINDOW_TITLE, self.node_editor.scene.file_base_name))
+        if not self.current_editor.scene.file_name:
+            self.current_window.setWindowTitle('Untitled')
+            return
+
+        if self.current_editor.scene.has_been_modified:
+            self.setWindowTitle('{0} - {1}*'.format(self.WINDOW_TITLE, self.current_editor.scene.file_base_name))
+            self.current_window.setWindowTitle(self.current_editor.scene.file_base_name + '*')
         else:
-            self.setWindowTitle('{0} - {1}'.format(self.WINDOW_TITLE, self.node_editor.scene.file_base_name))
+            self.setWindowTitle('{0} - {1}'.format(self.WINDOW_TITLE, self.current_editor.scene.file_base_name))
+            self.current_window.setWindowTitle(self.current_editor.scene.file_base_name)
+
+    def on_build_open(self):
+        sub_wnd = self.current_window if self.current_window else self.create_mdi_child()
+        sub_wnd.widget().on_build_open()
+
+    def on_build_open_tabbed(self):
+        sub_wnd = self.create_mdi_child()
+        res = sub_wnd.widget().on_build_open()
+        if not res:
+            self.mdi_area.removeSubWindow(sub_wnd)
+
+    def on_build_new(self):
+        sub_wnd = self.create_mdi_child()
+        sub_wnd.show()
+
+    def on_build_save(self):
+        self.current_editor.on_build_save()
+
+    def on_build_save_as(self):
+        self.current_editor.on_build_save_as()
 
 
 if __name__ == "__main__":

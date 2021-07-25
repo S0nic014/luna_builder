@@ -12,6 +12,9 @@ from luna.utils import pysideFn
 from luna_builder.tabs import tab_workspace
 import luna_builder.menus as menus
 import luna_builder.editor.node_editor as node_editor
+import luna_builder.editor.node_nodes_palette as node_nodes_palette
+
+imp.reload(node_nodes_palette)
 imp.reload(node_editor)
 
 
@@ -102,6 +105,9 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.menu_bar.addMenu(self.help_menu)
 
     def create_widgets(self):
+        self.splitter_pallete_mdi = QtWidgets.QSplitter()
+        self.nodes_palette = node_nodes_palette.NodesPalette()
+
         self.mdi_area = QtWidgets.QMdiArea()
         self.mdi_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.mdi_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
@@ -109,6 +115,8 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.mdi_area.setDocumentMode(True)
         self.mdi_area.setTabsClosable(True)
         self.mdi_area.setTabsMovable(True)
+        self.splitter_pallete_mdi.addWidget(self.nodes_palette)
+        self.splitter_pallete_mdi.addWidget(self.mdi_area)
 
         self.tab_widget = QtWidgets.QTabWidget()
         self.tab_widget.setTabPosition(self.tab_widget.East)
@@ -120,7 +128,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     def create_layouts(self):
         self.hor_layout = QtWidgets.QHBoxLayout()
         self.hor_layout.setContentsMargins(0, 0, 0, 0)
-        self.hor_layout.addWidget(self.mdi_area)
+        self.hor_layout.addWidget(self.splitter_pallete_mdi)
         self.hor_layout.addWidget(self.tab_widget)
 
         self.main_layout = QtWidgets.QVBoxLayout(self)
@@ -146,10 +154,22 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
     def create_mdi_child(self):
         new_editor = node_editor.NodeEditor()
-        sub_wnd = self.mdi_area.addSubWindow(new_editor)
+        sub_wnd = self.mdi_area.addSubWindow(new_editor)  # type: QtWidgets.QMdiSubWindow
+        # Signal connections
         new_editor.scene.signals.file_name_changed.connect(self.update_window_titles)
         new_editor.scene.signals.modified.connect(self.update_window_titles)
+        new_editor.signals.about_to_close.connect(self.on_sub_window_close)
         return sub_wnd
+
+    def find_mdi_child(self, file_name):
+        for window in self.mdi_area.subWindowList():
+            if window.widget().file_name == file_name:
+                return window
+        return None
+
+    def set_active_sub_window(self, window):
+        if window:
+            self.mdi_area.setActiveSubWindow(window)
 
     def update_window_titles(self):
         if not self.current_editor:
@@ -166,6 +186,15 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         else:
             self.setWindowTitle('{0} - {1}'.format(self.WINDOW_TITLE, self.current_editor.scene.file_base_name))
             self.current_window.setWindowTitle(self.current_editor.scene.file_base_name)
+
+    def on_sub_window_close(self, widget, event):
+        existing = self.find_mdi_child(widget.file_name)
+        self.mdi_area.setActiveSubWindow(existing)
+
+        if self.current_editor.maybe_save():
+            event.accept()
+        else:
+            event.ignore()
 
     def on_build_open(self):
         sub_wnd = self.current_window if self.current_window else self.create_mdi_child()

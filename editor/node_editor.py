@@ -17,9 +17,15 @@ imp.reload(node_edge)
 imp.reload(graphics_view)
 
 
+class EditorSignals(QtCore.QObject):
+    about_to_close = QtCore.Signal(QtWidgets.QWidget, QtCore.QEvent)
+
+
 class NodeEditor(QtWidgets.QWidget):
+
     def __init__(self, parent=None):
         super(NodeEditor, self).__init__(parent)
+        self.signals = EditorSignals()
         self.init_ui()
         self.add_debug_nodes()
 
@@ -45,6 +51,17 @@ class NodeEditor(QtWidgets.QWidget):
     def create_conections(self):
         pass
 
+    # ======== Properties ======== #
+    @property
+    def file_name(self):
+        return self.scene.file_name
+
+    # ======== Events ======== #
+
+    def closeEvent(self, event):
+        self.signals.about_to_close.emit(self, event)
+
+    # ======== Methods ======== #
     def is_modified(self):
         return self.scene.has_been_modified
 

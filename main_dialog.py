@@ -23,8 +23,6 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     INSTANCE = None
     MINIMUM_SIZE = [400, 500]
 
-    DEFAULT_SETTINGS = {}
-
     @classmethod
     def display(cls):
         if not cls.INSTANCE:

@@ -13,7 +13,9 @@ class QLGraphicsSocket(QtWidgets.QGraphicsItem):
 
         self.label = label
         self.radius = 6.0
+        self.empty_radius = 3.0
         self.outline_width = 1.0
+        self._color_empty = QtGui.QColor('#141413')
         self._color_background = color if isinstance(color, QtGui.QColor) else QtGui.QColor(color)
         self._color_outline = QtGui.QColor("#FF000000")
 
@@ -21,6 +23,7 @@ class QLGraphicsSocket(QtWidgets.QGraphicsItem):
         self._pen = QtGui.QPen(self._color_outline)
         self._pen.setWidthF(self.outline_width)
         self._brush = QtGui.QBrush(self._color_background)
+        self._brush_empty = QtGui.QBrush(self._color_empty)
 
         # Add text label
         self.text_item = QtWidgets.QGraphicsTextItem(self.label, parent=self)
@@ -32,6 +35,9 @@ class QLGraphicsSocket(QtWidgets.QGraphicsItem):
         painter.setBrush(self._brush)
         painter.setPen(self._pen)
         painter.drawEllipse(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius)
+        if not self.socket.has_edge():
+            painter.setBrush(self._brush_empty)
+            painter.drawEllipse(-self.empty_radius, -self.empty_radius, 2 * self.empty_radius, 2 * self.empty_radius)
 
     def boundingRect(self):
         return QtCore.QRectF(

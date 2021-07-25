@@ -74,14 +74,20 @@ class EditMenu(QtWidgets.QMenu):
             self.node_scene.history.redo()
 
     def on_copy(self):
-        data = self.node_scene.clipboard.serialize_selected(delete=False)
-        str_data = json.dumps(data, indent=4)
-        QtWidgets.QApplication.clipboard().setText(str_data)
+        try:
+            data = self.node_scene.clipboard.serialize_selected(delete=False)
+            str_data = json.dumps(data, indent=4)
+            QtWidgets.QApplication.clipboard().setText(str_data)
+        except Exception:
+            Logger.exception('Copy exception')
 
     def on_cut(self):
-        data = self.node_scene.clipboard.serialize_selected(delete=True)
-        str_data = json.dumps(data, indent=4)
-        QtWidgets.QApplication.clipboard().setText(str_data)
+        try:
+            data = self.node_scene.clipboard.serialize_selected(delete=True)
+            str_data = json.dumps(data, indent=4)
+            QtWidgets.QApplication.clipboard().setText(str_data)
+        except Exception:
+            Logger.exception('Cut exception')
 
     def on_paste(self):
         raw_data = QtWidgets.QApplication.clipboard().text()

@@ -76,15 +76,15 @@ class EditMenu(QtWidgets.QMenu):
     def on_copy(self):
         data = self.node_scene.clipboard.serialize_selected(delete=False)
         str_data = json.dumps(data, indent=4)
-        QtWidgets.QApplication.instance().clipboard().setText(str_data)
+        QtWidgets.QApplication.clipboard().setText(str_data)
 
     def on_cut(self):
         data = self.node_scene.clipboard.serialize_selected(delete=True)
         str_data = json.dumps(data, indent=4)
-        QtWidgets.QApplication.instance().clipboard().setText(str_data)
+        QtWidgets.QApplication.clipboard().setText(str_data)
 
     def on_paste(self):
-        raw_data = QtWidgets.QApplication.instance().clipboard().text()
+        raw_data = QtWidgets.QApplication.clipboard().text()
         try:
             data = json.loads(raw_data)  # type: dict
         except ValueError:

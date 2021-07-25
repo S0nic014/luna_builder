@@ -1,8 +1,8 @@
 
+import imp
 from PySide2 import QtCore
 from PySide2 import QtWidgets
 import pymel.core as pm
-import imp
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
 from luna import Logger
@@ -16,7 +16,7 @@ imp.reload(node_editor)
 
 
 class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
-    WINDOW_TITLE = "Luna builder - " + __version__
+    WINDOW_TITLE = "Luna builder v" + __version__
     DOCKED_TITLE = "Luna builder"
     UI_NAME = "lunaBuildManager"
     UI_SCRIPT = "import luna_builder\nluna_builder.MainDialog()"
@@ -125,6 +125,18 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     def create_connections(self):
         # Other
         self.update_tab_btn.clicked.connect(lambda: self.tab_widget.currentWidget().update_data())
+        self.node_editor.scene.signals.file_name_changed.connect(self.update_floating_window_title)
+        self.node_editor.scene.signals.modified.connect(self.update_floating_window_title)
+
+    def update_floating_window_title(self):
+        if not self.node_editor.scene.file_name:
+            self.setWindowTitle(self.WINDOW_TITLE)
+            return
+
+        if self.node_editor.scene.has_been_modified:
+            self.setWindowTitle('{0} - {1}*'.format(self.WINDOW_TITLE, self.node_editor.scene.file_base_name))
+        else:
+            self.setWindowTitle('{0} - {1}'.format(self.WINDOW_TITLE, self.node_editor.scene.file_base_name))
 
 
 if __name__ == "__main__":

@@ -26,9 +26,17 @@ class FileMenu(QtWidgets.QMenu):
         self.save_new_skeleton_action = QtWidgets.QAction("Increment and save", self)
         self.save_skeleton_as_action = QtWidgets.QAction("Save skeleton as...", self)
         self.save_rig_as_action = QtWidgets.QAction("Save rig as...", self)
+        # Build
+        self.new_build_action = QtWidgets.QAction('New Build...', self)
         self.open_build_file_action = QtWidgets.QAction("Open Build...", self)
         self.save_build_action = QtWidgets.QAction('Save Build', self)
         self.save_build_as_action = QtWidgets.QAction("Save Build As...", self)
+
+        # Shortcuts
+        self.new_build_action.setShortcut('Ctrl+N')
+        self.open_build_file_action.setShortcut('Ctrl+O')
+        self.save_build_action.setShortcut('Ctrl+S')
+        self.save_build_as_action.setShortcut('Ctrl+Shift+S')
 
     def create_connections(self):
         self.aboutToShow.connect(self.update_recent_projects)
@@ -40,18 +48,16 @@ class FileMenu(QtWidgets.QMenu):
         self.save_skeleton_as_action.triggered.connect(lambda: asset_files.save_file_as(typ="skeleton"))
         self.save_rig_as_action.triggered.connect(lambda: asset_files.save_file_as(typ="rig"))
         self.save_new_skeleton_action.triggered.connect(self.workspace_widget.update_data)
+        self.new_build_action.triggered.connect(self.node_editor.on_build_new)
         self.open_build_file_action.triggered.connect(self.node_editor.on_build_open)
         self.save_build_action.triggered.connect(self.node_editor.on_build_save)
         self.save_build_as_action.triggered.connect(self.node_editor.on_build_save_as)
-
-        self.open_build_file_action.setShortcut('Ctrl+O')
-        self.save_build_action.setShortcut('Ctrl+S')
-        self.save_build_as_action.setShortcut('Ctrl+Shift+S')
 
     def populate(self):
         self.addSection("Project")
         self.addMenu(self.recent_projects_menu)
         self.addSection("Build graph")
+        self.addAction(self.new_build_action)
         self.addAction(self.open_build_file_action)
         self.addAction(self.save_build_action)
         self.addAction(self.save_build_as_action)

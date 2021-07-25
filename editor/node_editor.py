@@ -44,10 +44,34 @@ class NodeEditor(QtWidgets.QWidget):
     def create_conections(self):
         pass
 
+    def is_modified(self):
+        return self.scene.has_been_modified
+
+    def maybe_save(self):
+        if not self.is_modified():
+            return True
+
+        res = QtWidgets.QMessageBox.warning(self, 'Warning: Build not saved',
+                                            'Save changes to current build?',
+                                            QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.Discard | QtWidgets.QMessageBox.Cancel)
+        if res == QtWidgets.QMessageBox.Save:
+            return self.on_build_save()
+        if res == QtWidgets.QMessageBox.Cancel:
+            return False
+        return True
+
+    def on_build_new(self):
+        if self.maybe_save():
+            self.scene.clear()
+            self.scene.file_name = None
+
     def on_build_open(self):
         if not Asset.get():
             Logger.warning('Asset is not set')
             return
+        if not self.maybe_save():
+            return
+
         rig_filter = "Rig Build (*.rig)"
         file_path = QtWidgets.QFileDialog.getOpenFileName(self, "Open rig build scene", Asset.get().build, rig_filter)[0]
         if not file_path:
@@ -59,10 +83,12 @@ class NodeEditor(QtWidgets.QWidget):
             Logger.warning('Asset is not set')
             return
 
+        res = True
         if self.scene.file_name:
             self.scene.save_to_file(self.scene.file_name)
         else:
-            self.on_build_save_as()
+            res = self.on_build_save_as()
+        return res
 
     def on_build_save_as(self):
         if not Asset.get():
@@ -72,8 +98,9 @@ class NodeEditor(QtWidgets.QWidget):
         rig_filter = "Rig Build (*.rig)"
         file_path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save build graph to file', Asset.get().new_build_path, rig_filter)[0]
         if not file_path:
-            return
+            return False
         self.scene.save_to_file(file_path)
+        return True
 
     def add_debug_nodes(self):
         # Test nodes

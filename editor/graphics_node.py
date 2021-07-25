@@ -114,4 +114,4 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         super(QLGraphicsNode, self).mouseReleaseEvent(event)
         if self.was_moved:
             self.was_moved = False
-            self.node.scene.history.store_history('Node moved')
+            self.node.scene.history.store_history('Node moved', set_modified=True)

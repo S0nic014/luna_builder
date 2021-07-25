@@ -41,7 +41,7 @@ class SceneClipboard(object):
         if delete:
             self.scene.view.delete_selected()
             # Store history
-            self.scene.history.store_history('Cut items')
+            self.scene.history.store_history('Cut items', set_modified=True)
 
         return data
 
@@ -80,4 +80,4 @@ class SceneClipboard(object):
             new_edge = node_edge.Edge(self.scene)
             new_edge.deserialize(edge_data, hashmap, restore_id=False)
 
-        self.scene.history.store_history('Paste items')
+        self.scene.history.store_history('Paste items', set_modified=True)

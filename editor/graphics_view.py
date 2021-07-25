@@ -14,7 +14,7 @@ import luna_builder.editor.graphics_cutline as graphics_cutline
 imp.reload(graphics_socket)
 
 
-def history(description):
+def history(description, set_modified=True):
     def inner(func):
         def wrapper(*args, **kwargs):
             try:
@@ -23,7 +23,7 @@ def history(description):
                 Logger.exception('Decorator failed to find QLGraphicsView in args')
                 raise
             func(*args, **kwargs)
-            view.scene.history.store_history(description)
+            view.scene.history.store_history(description, set_modified=set_modified)
             Logger.info('> {0}'.format(description))
         return wrapper
     return inner
@@ -214,7 +214,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
         # if self.dragMode() == QLGraphicsView.RubberBandDrag:
         if self.rubberband_dragging_rect:
-            self.scene.history.store_history('Selection changed')
+            self.scene.history.store_history('Selection changed', set_modified=False)
             self.rubberband_dragging_rect = False
 
         super(QLGraphicsView, self).mouseReleaseEvent(event)
@@ -264,7 +264,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             Logger.debug('Assign end socket to: {0}'.format(item.socket))
             self.drag_edge = node_edge.Edge(self.gr_scene.scene, None, item.socket)
 
-    @history('Edge created by dragging')
+    @history('Edge created by dragging', set_modified=True)
     def end_edge_drag(self, item):
         self.edge_mode = QLGraphicsView.EdgeMode.NOOP
         Logger.debug('End dragging edge')
@@ -342,7 +342,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             out += "ALT "
         Logger.debug(out)
 
-    @history('Item deleted')
+    @history('Item deleted', set_modified=True)
     def delete_selected(self):
         selected_items = self.gr_scene.selectedItems()
         nodes_selected = [item for item in selected_items if isinstance(item, graphics_node.QLGraphicsNode)]
@@ -354,7 +354,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
                 if isinstance(item, graphics_edge.QLGraphicsEdge):
                     item.edge.remove()
 
-    @history('Edges cut')
+    @history('Edges cut', set_modified=True)
     def cut_intersecting_edges(self):
         for ix in range(len(self.cutline.line_points) - 1):
             pt1 = self.cutline.line_points[ix]

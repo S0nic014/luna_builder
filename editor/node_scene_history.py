@@ -35,8 +35,9 @@ class SceneHistory(object):
     def restore_history(self):
         # Logger.debug('Restoring history | \nStep: @{0} | Max: {1}'.format(self.current_step, len(self)))
         self.restore_stamp(self.stack[self.current_step])
+        self.scene.has_been_modified = True
 
-    def store_history(self, description):
+    def store_history(self, description, set_modified=True):
         if not self.enabled:
             return
 
@@ -54,6 +55,7 @@ class SceneHistory(object):
 
         self.stack.append(hs)
         self.current_step += 1
+        self.scene.has_been_modified = set_modified
 
     def create_stamp(self, description):
         sel_obj = {'nodes': [node.id for node in self.scene.selected_nodes()],

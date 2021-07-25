@@ -15,7 +15,17 @@ class QLCutLine(QtWidgets.QGraphicsItem):
         self.setZValue(2)
 
     def boundingRect(self):
-        return QtCore.QRectF(0.0, 0.0, 1.0, 1.0)
+        return self.shape().boundingRect()
+
+    def shape(self):
+        if len(self.line_points) > 0:
+            path = QtGui.QPainterPath(self.line_points[0])
+            for pt in self.line_points[1:]:
+                path.lineTo(pt)
+        else:
+            path = QtGui.QPainterPath(QtCore.QPointF(0.0, 0.0))
+            path.lineTo(QtCore.QPointF())
+        return path
 
     def paint(self, painter, option, widget=None):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)

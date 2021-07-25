@@ -32,6 +32,12 @@ class QLGraphicsEdge(QtWidgets.QGraphicsPathItem):
     def set_destination(self, x, y):
         self.destination_position = [x, y]
 
+    def boundingRect(self):
+        return self.shape().boundingRect()
+
+    def shape(self):
+        return self.calc_path()
+
     def paint(self, painter, widget=None, options=None):
         self.setPath(self.calc_path())
 

@@ -52,6 +52,9 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.edge_mode = QLGraphicsView.EdgeMode.NOOP
         self.last_lmb_click_pos = QtCore.QPointF(0.0, 0.0)
         self.last_scene_mouse_pos = QtCore.QPointF(0.0, 0.0)
+        self.rubberband_dragging_rect = False
+
+        # Cutline
         self.cutline = graphics_cutline.QLCutLine()
         self.gr_scene.addItem(self.cutline)
 
@@ -188,6 +191,8 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
                                                QtCore.Qt.LeftButton, QtCore.Qt.NoButton, event.modifiers())
                 super(QLGraphicsView, self).mouseReleaseEvent(fake_event)
                 return
+            else:
+                self.rubberband_dragging_rect = True
 
         super(QLGraphicsView, self).mousePressEvent(event)
 
@@ -207,8 +212,10 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             self.edge_mode = QLGraphicsView.EdgeMode.NOOP
             return
 
-        if self.dragMode() == QLGraphicsView.RubberBandDrag:
+        # if self.dragMode() == QLGraphicsView.RubberBandDrag:
+        if self.rubberband_dragging_rect:
             self.scene.history.store_history('Selection changed')
+            self.rubberband_dragging_rect = False
 
         super(QLGraphicsView, self).mouseReleaseEvent(event)
 

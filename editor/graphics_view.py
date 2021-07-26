@@ -71,11 +71,20 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
         self.setDragMode(QtWidgets.QGraphicsView.RubberBandDrag)
 
+        # Enable dropping
+        self.setAcceptDrops(True)
+
     @property
     def scene(self):
         return self.gr_scene.scene
 
     # =========== Qt Events overrides =========== #
+    def dragEnterEvent(self, event):
+        self.scene.signals.item_drag_entered.emit(event)
+
+    def dropEvent(self, event):
+        self.scene.signals.item_dropped.emit(event)
+
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.MiddleButton:
             self.middle_mouse_press(event)

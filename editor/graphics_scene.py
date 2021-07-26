@@ -24,6 +24,13 @@ class QLGraphicsScene(QtWidgets.QGraphicsScene):
 
         self.setBackgroundBrush(self._color_background)
 
+    # ======== Events ========= #
+    def dragMoveEvent(self, event):
+        # Disable parent event
+        pass
+
+    # ======== Methods ========= #
+
     def set_scene_size(self, width, height):
         self.setSceneRect(-width // 2, -height // 2, width, height)
 

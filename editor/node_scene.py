@@ -24,6 +24,8 @@ class SceneSignals(QtCore.QObject):
     file_name_changed = QtCore.Signal(str)
     item_selected = QtCore.Signal()
     items_deselected = QtCore.Signal()
+    item_drag_entered = QtCore.Signal(QtCore.QEvent)
+    item_dropped = QtCore.Signal(QtCore.QEvent)
 
 
 class Scene(node_serializable.Serializable):
@@ -100,6 +102,7 @@ class Scene(node_serializable.Serializable):
         return self._last_selected_items
 
     def set_history_init_point(self):
+        Logger.debug('Store initial scene history')
         self.history.store_history(self.history.SCENE_INIT_DESC)
 
     def add_node(self, node):
@@ -145,6 +148,7 @@ class Scene(node_serializable.Serializable):
             self.signals.item_selected.emit()
         self._last_selected_items = current_selection
 
+    # ====== Cut / Copy / Paste ====== #
     def copy_selected(self):
         if not self.selected_nodes:
             Logger.warning('No nodes selected to copy')

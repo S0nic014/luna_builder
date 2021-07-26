@@ -19,16 +19,17 @@ class Socket(node_serializable.Serializable):
 
     # TODO: Class per socket type
     class DataType(enumFn.Enum):
-        NUMERIC = 1
+        EXEC = 1
         STRING = 2
-        COMPONENT = 3
-        EXEC = 4
+        NUMERIC = 3
+        COMPONENT = 4
 
     LABEL_VERTICAL_PADDING = -10.0
-    DATA_COLORS = {DataType.NUMERIC: QtGui.QColor("#FFFF7700"),
+    DATA_COLORS = {DataType.EXEC: QtGui.QColor("#FFFFFF"),
+                   DataType.NUMERIC: QtGui.QColor("#FFFF7700"),
                    DataType.STRING: QtGui.QColor("#FF52e220"),
-                   DataType.COMPONENT: QtGui.QColor("#FF0056a6"),
-                   DataType.EXEC: QtGui.QColor("#FFFFFF")}
+                   DataType.COMPONENT: QtGui.QColor("#FF0056a6")
+                   }
 
     def __str__(self):
         cls_name = self.__class__.__name__

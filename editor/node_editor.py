@@ -5,11 +5,13 @@ from PySide2 import QtWidgets
 
 from luna import Logger
 from luna.workspace import Asset
+import luna_builder.editor.editor_conf as editor_conf
 import luna_builder.editor.node_scene as node_scene
 import luna_builder.editor.node_node as node_node
 import luna_builder.editor.node_socket as node_socket
 import luna_builder.editor.node_edge as node_edge
 import luna_builder.editor.graphics_view as graphics_view
+imp.reload(editor_conf)
 imp.reload(node_scene)
 imp.reload(node_node)
 imp.reload(node_socket)
@@ -52,6 +54,8 @@ class NodeEditor(QtWidgets.QWidget):
     def create_conections(self):
         self.scene.signals.file_name_changed.connect(self.update_title)
         self.scene.signals.modified.connect(self.update_title)
+        self.scene.signals.item_drag_entered.connect(self.on_item_drag_enter)
+        self.scene.signals.item_dropped.connect(self.on_item_drop)
 
     # ======== Properties ======== #
     @property
@@ -77,7 +81,53 @@ class NodeEditor(QtWidgets.QWidget):
     def closeEvent(self, event):
         self.signals.about_to_close.emit(self, event)
 
+    # ======== Drag & Drop ======== #
+
+    def on_item_drag_enter(self, event):
+        Logger.debug('On item drag enter')
+        if event.mimeData().hasFormat(editor_conf.PALETTE_MIMETYPE):
+            event.acceptProposedAction()
+        else:
+            Logger.warning('Unsupported item: {0}'.format(event.mimeData().text()))
+            event.setAccepted(False)
+
+    def on_item_drop(self, event):
+        Logger.debug('On item drop')
+        if not event.mimeData().hasFormat(editor_conf.PALETTE_MIMETYPE):
+            Logger.warning('Unsupported item format: {0}'.format(event.mimeData().text()))
+            event.ignore()
+            return
+
+        # Retrive data from droped item
+        event_data = event.mimeData().data(editor_conf.PALETTE_MIMETYPE)
+        data_stream = QtCore.QDataStream(event_data, QtCore.QIODevice.ReadOnly)
+        pixmap = QtGui.QPixmap()
+        data_stream >> pixmap
+        op_code = data_stream.readInt32()
+        text = data_stream.readQString()
+        # Position
+        mouse_pos = event.pos()
+        scene_pos = self.scene.view.mapToScene(mouse_pos)
+
+        Logger.debug('''Dropped Item:
+                       > OP_CODE: {0}
+                       > TEXT: {1}
+                       > MOUSE POS: {2}
+                       > SCENE POS {3}'''.format(op_code, text, mouse_pos, scene_pos))
+
+        # TODO: Replace with actual dragged node
+        new_node = node_node.Node(self.scene,
+                                  title=text,
+                                  inputs=[node_socket.Socket.DataType.COMPONENT, node_socket.Socket.DataType.STRING, node_socket.Socket.DataType.NUMERIC],
+                                  outputs=[node_socket.Socket.DataType.COMPONENT, node_socket.Socket.DataType.STRING])
+        new_node.set_position(scene_pos.x(), scene_pos.y())
+        Logger.debug(new_node.gr_node)
+
+        event.setDropAction(QtCore.Qt.MoveAction)
+        event.accept()
+
     # ======== Methods ======== #
+
     def update_title(self):
         self.setWindowTitle(self.user_friendly_title)
 
@@ -142,9 +192,9 @@ class NodeEditor(QtWidgets.QWidget):
 
     def add_debug_nodes(self):
         # Test nodes
-        node1 = node_node.Node(self.scene, inputs=[1, 1, 1], outputs=[2, 2, 2])
-        node2 = node_node.Node(self.scene, inputs=[2, 2, 2], outputs=[3, 3, 3])
-        node3 = node_node.Node(self.scene, inputs=[3, 3, 3], outputs=[1, 1, 1])
+        node1 = node_node.Node(self.scene, inputs=[2, 2, 2], outputs=[3, 3, 3])
+        node2 = node_node.Node(self.scene, inputs=[3, 3, 3], outputs=[4, 4, 4])
+        node3 = node_node.Node(self.scene, inputs=[4, 4, 4], outputs=[2, 2, 2])
         node1.set_position(-350, -250)
         node2.set_position(-75, 0)
         node3.set_position(200, -150)

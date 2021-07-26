@@ -141,7 +141,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     def create_connections(self):
         # Other
         self.update_tab_btn.clicked.connect(lambda: self.tab_widget.currentWidget().update_data())
-        self.mdi_area.subWindowActivated.connect(self.update_window_titles)
+        self.mdi_area.subWindowActivated.connect(self.update_title)
 
     @property
     def current_editor(self):
@@ -155,22 +155,12 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         sub_wnd = self.mdi_area.currentSubWindow()  # type: QtWidgets.QMdiSubWindow
         return sub_wnd
 
-    @property
-    def user_friendly_title(self):
-        if not self.current_editor:
-            return ''
-
-        filename = self.current_editor.file_base_name
-        if self.current_editor.scene.has_been_modified:
-            filename += '*'
-        return filename
-
     def create_mdi_child(self):
         new_editor = node_editor.NodeEditor()
         sub_wnd = self.mdi_area.addSubWindow(new_editor)  # type: QtWidgets.QMdiSubWindow
         # Signal connections
-        new_editor.scene.signals.file_name_changed.connect(self.update_window_titles)
-        new_editor.scene.signals.modified.connect(self.update_window_titles)
+        new_editor.scene.signals.file_name_changed.connect(self.update_title)
+        new_editor.scene.signals.modified.connect(self.update_title)
         new_editor.signals.about_to_close.connect(self.on_sub_window_close)
         return sub_wnd
 
@@ -184,13 +174,12 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         if window:
             self.mdi_area.setActiveSubWindow(window)
 
-    def update_window_titles(self):
+    def update_title(self):
         if not self.current_editor:
             self.setWindowTitle(self.WINDOW_TITLE)
             return
 
-        friendly_title = self.user_friendly_title
-        self.current_window.setWindowTitle(friendly_title)
+        friendly_title = self.current_editor.user_friendly_title
         self.setWindowTitle('{0} - {1}'.format(self.WINDOW_TITLE, friendly_title))
 
     def on_sub_window_close(self, widget, event):

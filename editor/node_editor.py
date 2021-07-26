@@ -35,6 +35,7 @@ class NodeEditor(QtWidgets.QWidget):
         self.create_widgets()
         self.create_layouts()
         self.create_conections()
+        self.update_title()
 
     def create_widgets(self):
         # Graphics scene
@@ -49,7 +50,8 @@ class NodeEditor(QtWidgets.QWidget):
         self.main_layout.addWidget(self.gr_view)
 
     def create_conections(self):
-        pass
+        self.scene.signals.file_name_changed.connect(self.update_title)
+        self.scene.signals.modified.connect(self.update_title)
 
     # ======== Properties ======== #
     @property
@@ -63,12 +65,22 @@ class NodeEditor(QtWidgets.QWidget):
             return 'Untitled'
         return name
 
+    @property
+    def user_friendly_title(self):
+        filename = self.file_base_name
+        if self.scene.has_been_modified:
+            filename += '*'
+        return filename
+
     # ======== Events ======== #
 
     def closeEvent(self, event):
         self.signals.about_to_close.emit(self, event)
 
     # ======== Methods ======== #
+    def update_title(self):
+        self.setWindowTitle(self.user_friendly_title)
+
     def is_modified(self):
         return self.scene.has_been_modified
 

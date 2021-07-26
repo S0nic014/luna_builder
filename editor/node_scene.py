@@ -1,8 +1,10 @@
 import imp
+import json
 import os
 import timeit
 from collections import OrderedDict
 from PySide2 import QtCore
+from PySide2 import QtWidgets
 
 from luna import Logger
 import luna.utils.fileFn as fileFn
@@ -20,6 +22,8 @@ imp.reload(graphics_scene)
 class SceneSignals(QtCore.QObject):
     modified = QtCore.Signal()
     file_name_changed = QtCore.Signal(str)
+    item_selected = QtCore.Signal()
+    items_deselected = QtCore.Signal()
 
 
 class Scene(node_serializable.Serializable):
@@ -27,8 +31,9 @@ class Scene(node_serializable.Serializable):
     def __init__(self):
         super(Scene, self).__init__()
         self.signals = SceneSignals()
-        self._has_been_modified = False
         self._file_name = None
+        self._has_been_modified = False
+        self._last_selected_items = []
 
         self.nodes = []
         self.edges = []
@@ -41,10 +46,14 @@ class Scene(node_serializable.Serializable):
         self.init_ui()
         self.history = scene_history.SceneHistory(self)
         self.clipboard = scene_clipboard.SceneClipboard(self)
+        self.create_connections()
 
     def init_ui(self):
         self.gr_scene = graphics_scene.QLGraphicsScene(self)
         self.gr_scene.set_scene_size(self.scene_width, self.scene_height)
+
+    def create_connections(self):
+        self.gr_scene.selectionChanged.connect(self.on_selection_change)
 
     @property
     def view(self):
@@ -74,6 +83,25 @@ class Scene(node_serializable.Serializable):
             return None
         return os.path.basename(self.file_name)
 
+    @property
+    def selected_items(self):
+        return self.gr_scene.selectedItems()
+
+    @property
+    def selected_nodes(self):
+        return [node for node in self.nodes if node.gr_node.isSelected()]
+
+    @property
+    def selected_edges(self):
+        return [edge for edge in self.edges if edge.gr_edge.isSelected()]
+
+    @property
+    def last_selected_items(self):
+        return self._last_selected_items
+
+    def set_history_init_point(self):
+        self.history.store_history(self.history.SCENE_INIT_DESC)
+
     def add_node(self, node):
         self.nodes.append(node)
 
@@ -86,22 +114,77 @@ class Scene(node_serializable.Serializable):
     def remove_edge(self, edge):
         self.edges.remove(edge)
 
-    def selected_nodes(self):
-        return [node for node in self.nodes if node.gr_node.isSelected()]
-
     def list_node_ids(self):
         return [node.id for node in self.nodes]
 
     def list_edges_ids(self):
         return [node.id for node in self.edges]
 
-    def selected_edges(self):
-        return [edge for edge in self.edges if edge.gr_edge.isSelected()]
-
     def clear(self):
         while(self.nodes):
             self.nodes[0].remove()
         self.has_been_modified = False
+
+    # ====== Selection ====== #
+    def on_selection_change(self):
+        # Ignore selection update if rubberband dragging, item deletion is in progress
+        if any([self.view.rubberband_dragging_rect,
+                self.view._items_are_being_deleted]):
+            return
+
+        current_selection = self.gr_scene.selectedItems()
+        if current_selection == self.last_selected_items:
+            return
+
+        # No current selection and existing previous selection (To avoid resetting selection after cut operation)
+        if not current_selection and current_selection != self.last_selected_items:
+            self.history.store_history('Deselected everything', set_modified=False)
+            self.signals.items_deselected.emit()
+        else:
+            self.history.store_history('Selection changed', set_modified=False)
+            self.signals.item_selected.emit()
+        self._last_selected_items = current_selection
+
+    def copy_selected(self):
+        if not self.selected_nodes:
+            Logger.warning('No nodes selected to copy')
+            return
+
+        try:
+            data = self.clipboard.serialize_selected(delete=False)
+            str_data = json.dumps(data, indent=4)
+            QtWidgets.QApplication.clipboard().setText(str_data)
+        except Exception:
+            Logger.exception('Copy exception')
+
+    def cut_selected(self):
+        if not self.selected_nodes:
+            Logger.warning('No nodes selected to copy')
+            return
+
+        try:
+            data = self.clipboard.serialize_selected(delete=True)
+            str_data = json.dumps(data, indent=4)
+            QtWidgets.QApplication.clipboard().setText(str_data)
+            self._last_selected_items = []
+        except Exception:
+            Logger.exception('Cut exception')
+
+    def paste_from_clipboard(self):
+        raw_data = QtWidgets.QApplication.clipboard().text()
+        try:
+            data = json.loads(raw_data)  # type: dict
+        except ValueError:
+            Logger.error('Invalid json paste data')
+            return
+
+        if 'nodes' not in data.keys():
+            Logger.warning('Clipboard JSON does not contain any nodes')
+            return
+
+        self.clipboard.deserialize_from_clip(data)
+
+    # ====== File ====== #
 
     def save_to_file(self, file_path):
         try:
@@ -122,6 +205,7 @@ class Scene(node_serializable.Serializable):
             self.history.clear()
             self.file_name = file_path
             self.has_been_modified = False
+            self.set_history_init_point()
         except Exception:
             Logger.exception('Failed to load rig build file')
 

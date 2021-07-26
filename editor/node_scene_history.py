@@ -3,6 +3,8 @@ from luna import Logger
 
 class SceneHistory(object):
 
+    SCENE_INIT_DESC = 'SceneInit'
+
     def __len__(self):
         return len(self.stack)
 
@@ -20,6 +22,7 @@ class SceneHistory(object):
 
     def undo(self):
         if self.current_step > 0:
+            Logger.info('> Undo {0}'.format(self.stack[self.current_step]['desc']))
             self.current_step -= 1
             self.restore_history()
         else:
@@ -33,9 +36,11 @@ class SceneHistory(object):
             Logger.warning('No more steps to redo')
 
     def restore_history(self):
-        # Logger.debug('Restoring history | \nStep: @{0} | Max: {1}'.format(self.current_step, len(self)))
+        self.enabled = False
+        # Logger.debug('Restoring history | \nStep: @{0} | Stack: {1}'.format(self.current_step, len(self)))
         self.restore_stamp(self.stack[self.current_step])
         self.scene.has_been_modified = True
+        self.enabled = True
 
     def store_history(self, description, set_modified=True):
         if not self.enabled:
@@ -55,12 +60,18 @@ class SceneHistory(object):
 
         self.stack.append(hs)
         self.current_step += 1
+
+        if description != SceneHistory.SCENE_INIT_DESC:
+            Logger.info('> {0}'.format(description))
+        else:
+            set_modified = False
+
         if set_modified:
             self.scene.has_been_modified = True
 
     def create_stamp(self, description):
-        sel_obj = {'nodes': [node.id for node in self.scene.selected_nodes()],
-                   'edges': [edge.id for edge in self.scene.selected_edges()]}
+        sel_obj = {'nodes': [node.id for node in self.scene.selected_nodes],
+                   'edges': [edge.id for edge in self.scene.selected_edges]}
 
         stamp = {
             'desc': description,

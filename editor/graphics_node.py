@@ -9,38 +9,24 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
 
     def __init__(self, node, parent=None):
         super(QLGraphicsNode, self).__init__(parent)
-
         self.node = node
-        self.was_moved = False
 
-        self.width = 180
-        self.height = 240
-        self.edge_size = 10.0
-        self.title_height = 24
-        self._padding = 4.0
+        # Init flags
+        self._was_moved = False
 
-        # Fonts colors
-        self._title_color = QtCore.Qt.white
-        self._title_font = QtGui.QFont("Arial", 10)
+        self.init_sizes()
+        self.init_assets()
 
-        # Pens, Brushes
-        self._pen_default = QtGui.QPen(QtGui.QColor("#7F000000"))
-        self._pen_selected = QtGui.QPen(QtGui.QColor("#FFA637"))
-        self._brush_title = QtGui.QBrush(QtGui.QColor("#FF313131"))
-        self._brush_background = QtGui.QBrush(QtGui.QColor("#E3212121"))
+        self.init_ui()
 
-        # Init title
+    def init_ui(self):
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+
         self.init_title()
         self.title = self.node.title
-
-        # Init_sockets
         self.init_sockets()
-
-        # Init content
         self.init_content()
-
-        # Init interface
-        self.init_ui()
 
     @property
     def title(self):
@@ -51,9 +37,23 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         self._title = value
         self.title_item.setPlainText(self._title)
 
-    def init_ui(self):
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+    def init_sizes(self):
+        self.width = 180
+        self.height = 240
+        self.edge_size = 10.0
+        self.title_height = 24
+        self._padding = 4.0
+
+    def init_assets(self):
+        # Fonts colors
+        self._title_color = QtCore.Qt.white
+        self._title_font = QtGui.QFont("Arial", 10)
+
+        # Pens, Brushes
+        self._pen_default = QtGui.QPen(QtGui.QColor("#7F000000"))
+        self._pen_selected = QtGui.QPen(QtGui.QColor("#FFA637"))
+        self._brush_title = QtGui.QBrush(QtGui.QColor("#FF313131"))
+        self._brush_background = QtGui.QBrush(QtGui.QColor("#E3212121"))
 
     def init_title(self):
         self.title_item = QtWidgets.QGraphicsTextItem(self)
@@ -106,12 +106,12 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
     # Events
     def mouseMoveEvent(self, event):
         super(QLGraphicsNode, self).mouseMoveEvent(event)
-        for node in self.scene().scene.selected_nodes():
+        for node in self.scene().scene.selected_nodes:
             node.update_connected_edges()
-        self.was_moved = True
+        self._was_moved = True
 
     def mouseReleaseEvent(self, event):
         super(QLGraphicsNode, self).mouseReleaseEvent(event)
-        if self.was_moved:
-            self.was_moved = False
+        if self._was_moved:
+            self._was_moved = False
             self.node.scene.history.store_history('Node moved', set_modified=True)

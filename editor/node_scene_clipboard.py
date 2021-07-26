@@ -11,10 +11,10 @@ class SceneClipboard(object):
     def serialize_selected(self, delete=False):
         sel_nodes = []
         sel_sockets = {}
-        sel_edges = self.scene.selected_edges()  # type: list
+        sel_edges = self.scene.selected_edges  # type: list
 
         # Sort edges and nodes
-        for node in self.scene.selected_nodes():
+        for node in self.scene.selected_nodes:
             sel_nodes.append(node.serialize())
             for socket in node.inputs + node.outputs:
                 sel_sockets[socket.id] = socket
@@ -24,7 +24,6 @@ class SceneClipboard(object):
         for edge in sel_edges:
             if edge.start_socket.id not in sel_sockets or edge.end_socket.id not in sel_sockets:
                 edges_to_remove.append(edge)
-                Logger.debug('Not fully connected edge: {0}'.format(edge))
 
         for edge in edges_to_remove:
             sel_edges.remove(edge)
@@ -39,7 +38,7 @@ class SceneClipboard(object):
         ])
         # if cut -> remove selected items
         if delete:
-            self.scene.view.delete_selected()
+            self.scene.view.delete_selected(store_history=False)
             # Store history
             self.scene.history.store_history('Cut items', set_modified=True)
 

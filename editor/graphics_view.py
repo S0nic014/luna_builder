@@ -24,7 +24,6 @@ def history(description, set_modified=True):
                 raise
             func(*args, **kwargs)
             view.scene.history.store_history(description, set_modified=set_modified)
-            Logger.info('> {0}'.format(description))
         return wrapper
     return inner
 
@@ -41,6 +40,9 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
     def __init__(self, gr_scene, parent=None):
         super(QLGraphicsView, self).__init__(parent)
+
+        # Flags
+        self._items_are_being_deleted = False
 
         self.gr_scene = gr_scene
         self.zoom_in_factor = 1.25
@@ -212,10 +214,10 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             self.edge_mode = QLGraphicsView.EdgeMode.NOOP
             return
 
-        # if self.dragMode() == QLGraphicsView.RubberBandDrag:
         if self.rubberband_dragging_rect:
-            self.scene.history.store_history('Selection changed', set_modified=False)
             self.rubberband_dragging_rect = False
+            self.scene.on_selection_change()
+            return
 
         super(QLGraphicsView, self).mouseReleaseEvent(event)
 
@@ -342,17 +344,23 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             out += "ALT "
         Logger.debug(out)
 
-    @history('Item deleted', set_modified=True)
-    def delete_selected(self):
-        selected_items = self.gr_scene.selectedItems()
-        nodes_selected = [item for item in selected_items if isinstance(item, graphics_node.QLGraphicsNode)]
-        if nodes_selected:
-            for gr_node in nodes_selected:
-                gr_node.node.remove()
-        else:
-            for item in selected_items:
-                if isinstance(item, graphics_edge.QLGraphicsEdge):
-                    item.edge.remove()
+    def delete_selected(self, store_history=True):
+        self._items_are_being_deleted = True
+        try:
+            selected_items = self.gr_scene.selectedItems()
+            nodes_selected = [item for item in selected_items if isinstance(item, graphics_node.QLGraphicsNode)]
+            if nodes_selected:
+                for gr_node in nodes_selected:
+                    gr_node.node.remove()
+            else:
+                for item in selected_items:
+                    if isinstance(item, graphics_edge.QLGraphicsEdge):
+                        item.edge.remove()
+        except Exception:
+            Logger.exception('Failed to delete selected items')
+        self._items_are_being_deleted = False
+        if store_history:
+            self.scene.history.store_history('Item deleted', set_modified=True)
 
     @history('Edges cut', set_modified=True)
     def cut_intersecting_edges(self):

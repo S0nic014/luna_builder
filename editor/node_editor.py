@@ -139,3 +139,5 @@ class NodeEditor(QtWidgets.QWidget):
 
         edge1 = node_edge.Edge(self.scene, node1.outputs[0], node2.inputs[0])
         edge2 = node_edge.Edge(self.scene, node2.outputs[0], node3.inputs[0])
+
+        self.scene.set_history_init_point()

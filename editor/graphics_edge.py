@@ -2,15 +2,28 @@ from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
 
+from luna import Logger
+
 
 class QLGraphicsEdge(QtWidgets.QGraphicsPathItem):
     def __init__(self, edge, parent=None):
         super(QLGraphicsEdge, self).__init__(parent)
-
         self.edge = edge
+
+        # Init flags
+
+        # Init variables
         self.source_position = [0, 0]
         self.destination_position = [200, 100]
 
+        self.init_assets()
+        self.init_ui()
+
+    def init_ui(self):
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)
+        self.setZValue(-1)
+
+    def init_assets(self):
         # Colors and pens
         self._color = QtGui.QColor("#001000")
         self._color_selected = QtGui.QColor("#00ff00")
@@ -22,9 +35,12 @@ class QLGraphicsEdge(QtWidgets.QGraphicsPathItem):
         self._pen_selected.setWidthF(3.0)
         self._pen_dragging.setWidthF(2.0)
 
-        # Flags
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)
-        self.setZValue(-1)
+    # ======== Events ======= #
+
+    # def mouseReleaseEvent(self, event):
+    #     super(QLGraphicsEdge, self).mouseReleaseEvent(event)
+
+    # ======== Methods ======= #
 
     def set_source(self, x, y):
         self.source_position = [x, y]
@@ -61,6 +77,8 @@ class QLGraphicsEdge(QtWidgets.QGraphicsPathItem):
         return cutpath.intersects(path)
 
         return False
+
+    # ======== Slots ======= #
 
 
 class QLGraphicsEdgeDirect(QLGraphicsEdge):

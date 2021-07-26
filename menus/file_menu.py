@@ -96,5 +96,6 @@ class FileMenu(QtWidgets.QMenu):
         self.save_new_skeleton_action.setEnabled(is_asset_set)
         self.save_rig_as_action.setEnabled(is_asset_set)
         self.open_build_file_action.setEnabled(is_asset_set)
+        self.open_build_tab_action.setEnabled(is_asset_set)
         self.save_build_action.setEnabled(is_asset_set and is_current_editor)
         self.save_build_as_action.setEnabled(is_asset_set and is_current_editor)

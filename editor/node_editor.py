@@ -56,6 +56,13 @@ class NodeEditor(QtWidgets.QWidget):
     def file_name(self):
         return self.scene.file_name
 
+    @property
+    def file_base_name(self):
+        name = self.scene.file_base_name
+        if not name:
+            return 'Untitled'
+        return name
+
     # ======== Events ======== #
 
     def closeEvent(self, event):

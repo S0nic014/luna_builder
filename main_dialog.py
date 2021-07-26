@@ -87,6 +87,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         # Menus
         self.file_menu = menus.FileMenu(self)
         self.edit_menu = menus.EditMenu(self)
+        self.window_menu = menus.WindowMenu(self)
         self.controls_menu = menus.ControlsMenu()
         self.joints_menu = menus.JointsMenu()
         self.skin_menu = menus.SkinMenu()
@@ -97,6 +98,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         # Populate menu bar
         self.menu_bar.addMenu(self.file_menu)
         self.menu_bar.addMenu(self.edit_menu)
+        self.menu_bar.addMenu(self.window_menu)
         self.menu_bar.addMenu(self.controls_menu)
         self.menu_bar.addMenu(self.joints_menu)
         self.menu_bar.addMenu(self.skin_menu)
@@ -139,6 +141,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     def create_connections(self):
         # Other
         self.update_tab_btn.clicked.connect(lambda: self.tab_widget.currentWidget().update_data())
+        self.mdi_area.subWindowActivated.connect(self.update_window_titles)
 
     @property
     def current_editor(self):
@@ -151,6 +154,16 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     def current_window(self):
         sub_wnd = self.mdi_area.currentSubWindow()  # type: QtWidgets.QMdiSubWindow
         return sub_wnd
+
+    @property
+    def user_friendly_title(self):
+        if not self.current_editor:
+            return ''
+
+        filename = self.current_editor.file_base_name
+        if self.current_editor.scene.has_been_modified:
+            filename += '*'
+        return filename
 
     def create_mdi_child(self):
         new_editor = node_editor.NodeEditor()
@@ -176,16 +189,9 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
             self.setWindowTitle(self.WINDOW_TITLE)
             return
 
-        if not self.current_editor.scene.file_name:
-            self.current_window.setWindowTitle('Untitled')
-            return
-
-        if self.current_editor.scene.has_been_modified:
-            self.setWindowTitle('{0} - {1}*'.format(self.WINDOW_TITLE, self.current_editor.scene.file_base_name))
-            self.current_window.setWindowTitle(self.current_editor.scene.file_base_name + '*')
-        else:
-            self.setWindowTitle('{0} - {1}'.format(self.WINDOW_TITLE, self.current_editor.scene.file_base_name))
-            self.current_window.setWindowTitle(self.current_editor.scene.file_base_name)
+        friendly_title = self.user_friendly_title
+        self.current_window.setWindowTitle(friendly_title)
+        self.setWindowTitle('{0} - {1}'.format(self.WINDOW_TITLE, friendly_title))
 
     def on_sub_window_close(self, widget, event):
         existing = self.find_mdi_child(widget.file_name)
@@ -207,14 +213,19 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
             self.mdi_area.removeSubWindow(sub_wnd)
 
     def on_build_new(self):
-        sub_wnd = self.create_mdi_child()
-        sub_wnd.show()
+        try:
+            sub_wnd = self.create_mdi_child()
+            sub_wnd.show()
+        except Exception:
+            Logger.exception('Failed to create new build')
 
     def on_build_save(self):
-        self.current_editor.on_build_save()
+        if self.current_editor:
+            self.current_editor.on_build_save()
 
     def on_build_save_as(self):
-        self.current_editor.on_build_save_as()
+        if self.current_editor:
+            self.current_editor.on_build_save_as()
 
 
 if __name__ == "__main__":

@@ -113,6 +113,7 @@ class Node(node_serializable.Serializable):
 
         return OrderedDict([
             ('id', self.id),
+            ('type', self.as_str()),
             ('title', self.title),
             ('pos_x', self.gr_node.scenePos().x()),
             ('pos_y', self.gr_node.scenePos().y()),

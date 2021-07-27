@@ -49,8 +49,10 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         return self.node.TITLE_HEIGHT
 
     def init_sizes(self):
-        self.edge_size = 10.0
-        self._padding = 4.0
+        self.edge_roundness = 10.0
+        self.edge_padding = 10.0
+        self.title_horizontal_padding = 4.0
+        self.title_vertical_padding = 4.0
 
     def init_assets(self):
         # Fonts colors
@@ -67,8 +69,8 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         self.title_item = QtWidgets.QGraphicsTextItem(self)
         self.title_item.setDefaultTextColor(self._title_color)
         self.title_item.setFont(self._title_font)
-        self.title_item.setPos(self._padding, 0)
-        self.title_item.setTextWidth(self.width - 2 * self._padding)
+        self.title_item.setPos(self.title_horizontal_padding, 0)
+        self.title_item.setTextWidth(self.width - 2 * self.title_horizontal_padding)
 
     def init_content(self):
         pass
@@ -77,9 +79,9 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         # title
         path_title = QtGui.QPainterPath()
         path_title.setFillRule(QtCore.Qt.WindingFill)
-        path_title.addRoundedRect(0, 0, self.width, self.title_height, self.edge_size, self.edge_size)
-        path_title.addRect(0, self.title_height - self.edge_size, self.edge_size, self.edge_size)
-        path_title.addRect(self.width - self.edge_size, self.title_height - self.edge_size, self.edge_size, self.edge_size)
+        path_title.addRoundedRect(0, 0, self.width, self.title_height, self.edge_roundness, self.edge_roundness)
+        path_title.addRect(0, self.title_height - self.edge_roundness, self.edge_roundness, self.edge_roundness)
+        path_title.addRect(self.width - self.edge_roundness, self.title_height - self.edge_roundness, self.edge_roundness, self.edge_roundness)
         painter.setPen(QtCore.Qt.NoPen)
         painter.setBrush(self._brush_title)
         painter.drawPath(path_title.simplified())
@@ -87,9 +89,9 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         # content
         path_content = QtGui.QPainterPath()
         path_content.setFillRule(QtCore.Qt.WindingFill)
-        path_content.addRoundedRect(0, self.title_height, self.width, self.height - self.title_height, self.edge_size, self.edge_size)
-        path_content.addRect(0, self.title_height, self.edge_size, self.edge_size)
-        path_content.addRect(self.width - self.edge_size, self.title_height, self.edge_size, self.edge_size)
+        path_content.addRoundedRect(0, self.title_height, self.width, self.height - self.title_height, self.edge_roundness, self.edge_roundness)
+        path_content.addRect(0, self.title_height, self.edge_roundness, self.edge_roundness)
+        path_content.addRect(self.width - self.edge_roundness, self.title_height, self.edge_roundness, self.edge_roundness)
         painter.setPen(QtCore.Qt.NoPen)
         painter.setBrush(self._brush_background)
         painter.drawPath(path_content.simplified())
@@ -97,7 +99,7 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         # outline
         # TODO: Paint prominent outline if exec input is connected
         path_outline = QtGui.QPainterPath()
-        path_outline.addRoundedRect(0, 0, self.width, self.height, self.edge_size, self.edge_size)
+        path_outline.addRoundedRect(0, 0, self.width, self.height, self.edge_roundness, self.edge_roundness)
         painter.setPen(self._pen_default if not self.isSelected() else self._pen_selected)
         painter.setBrush(QtCore.Qt.NoBrush)
         painter.drawPath(path_outline.simplified())

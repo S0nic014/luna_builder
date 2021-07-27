@@ -28,7 +28,7 @@ class Node(node_serializable.Serializable):
     def __init__(self, scene, title=None, inputs=[], outputs=[]):
         super(Node, self).__init__()
         self.scene = scene
-        self._title = title if title else self.DEFAULT_TITLE
+        self._title = title if title else self.__class__.DEFAULT_TITLE
         self.inputs = []
         self.outputs = []
 
@@ -50,14 +50,10 @@ class Node(node_serializable.Serializable):
 
     def init_sockets(self, inputs=[], outputs=[], reset=False):
         if reset:
-            if hasattr(self, 'inputs') and hasattr(self, 'outputs'):
-                for socket in self.inputs + self.outputs:
-                    self.scene.gr_scene.removeItem(socket.gr_socket)
-                self.inputs = []
-                self.outputs = []
+            self.remove_existing_sockets()
 
         # Create new sockets
-        if self.IS_EXEC and self.AUTO_INIT_EXECS:
+        if self.__class__.IS_EXEC and self.__class__.AUTO_INIT_EXECS:
             self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)
             self.exec_out_socket = self.add_output(editor_conf.DataType.EXEC, max_connections=1)
         else:
@@ -68,6 +64,13 @@ class Node(node_serializable.Serializable):
 
         for datatype in outputs:
             self.add_output(datatype, label=None, value=None)
+
+    def remove_existing_sockets(self):
+        if hasattr(self, 'inputs') and hasattr(self, 'outputs'):
+            for socket in self.inputs + self.outputs:
+                self.scene.gr_scene.removeItem(socket.gr_socket)
+            self.inputs = []
+            self.outputs = []
 
     # ======= Properties ======= #
 
@@ -95,19 +98,32 @@ class Node(node_serializable.Serializable):
     def get_new_output_index(self):
         return len(self.outputs)
 
-    def get_socket_position(self, index, position):
-        # TODO: Resize node if Y coordiante goes beyond node height
-        if position in (node_socket.Socket.Position.LEFT_TOP, node_socket.Socket.Position.LEFT_BOTTOM):
+    def get_socket_position(self, index, position, count_on_this_side=1):
+        if position in (node_socket.Socket.Position.LEFT_TOP, node_socket.Socket.Position.LEFT_CENTER, node_socket.Socket.Position.LEFT_BOTTOM):
             x = 0
         else:
             x = self.gr_node.width
 
         if position in (node_socket.Socket.Position.LEFT_BOTTOM, node_socket.Socket.Position.RIGHT_BOTTOM):
             # start from top
-            y = self.gr_node.height - self.gr_node.edge_size - self.gr_node._padding - index * self.socket_spacing
-        else:
+            y = self.gr_node.height - self.gr_node.edge_roundness - self.gr_node.title_horizontal_padding - index * self.socket_spacing
+        elif position in (node_socket.Socket.Position.LEFT_CENTER, node_socket.Socket.Position.RIGHT_CENTER):
+            num_sockets = count_on_this_side
+            node_height = self.gr_node.height
+            top_offset = self.gr_node.title_height + 2 * self.gr_node.title_vertical_padding + self.gr_node.edge_padding
+            available_height = node_height - top_offset
+
+            total_height_of_all_sockets = num_sockets * self.socket_spacing
+
+            y = top_offset + available_height / 2.0 + (index - 0.5) * self.socket_spacing
+            if num_sockets > 1:
+                y -= self.socket_spacing * (num_sockets - 1) / 2
+
+        elif position in (node_socket.Socket.Position.LEFT_TOP, node_socket.Socket.Position.RIGHT_TOP):
             # start from bottom
-            y = self.gr_node.title_height + self.gr_node._padding + self.gr_node.edge_size + index * self.socket_spacing
+            y = self.gr_node.title_height + self.gr_node.title_horizontal_padding + self.gr_node.edge_roundness + index * self.socket_spacing
+        else:
+            y = 0
 
         return [x, y]
 
@@ -134,7 +150,6 @@ class Node(node_serializable.Serializable):
 
         return OrderedDict([
             ('id', self.id),
-            ('type', self.as_str()),
             ('title', self.title),
             ('pos_x', self.gr_node.scenePos().x()),
             ('pos_y', self.gr_node.scenePos().y()),
@@ -151,8 +166,11 @@ class Node(node_serializable.Serializable):
         self.title = data.get('title')
 
         # Sockets
+        self.remove_existing_sockets()
         data['inputs'].sort(key=lambda socket: socket['index'] + socket['position'] * 10000)
         data['outputs'].sort(key=lambda socket: socket['index'] + socket['position'] * 10000)
+        num_inputs = len(data['inputs'])
+        num_outputs = len(data['outputs'])
 
         self.inputs = []
         self.outputs = []
@@ -164,17 +182,21 @@ class Node(node_serializable.Serializable):
                                                  data_type=data_type,
                                                  label=socket_data['label'],
                                                  max_connections=socket_data['max_connections'],
-                                                 value=socket_data.get('value', editor_conf.DataType.get_type(data_type)['default']))
+                                                 value=socket_data.get('value', editor_conf.DataType.get_type(data_type)['default']),
+                                                 count_on_this_side=num_inputs)
             new_socket.deserialize(socket_data, hashmap, restore_id=restore_id)
             self.inputs.append(new_socket)
 
         for socket_data in data.get('outputs'):
+            data_type = socket_data['data_type']
             new_socket = node_socket.OutputSocket(self,
                                                   index=socket_data['index'],
                                                   position=socket_data['position'],
-                                                  data_type=socket_data['data_type'],
+                                                  data_type=data_type,
                                                   label=socket_data['label'],
-                                                  max_connections=socket_data['max_connections'])
+                                                  max_connections=socket_data['max_connections'],
+                                                  value=socket_data.get('value', editor_conf.DataType.get_type(data_type)['default']),
+                                                  count_on_this_side=num_outputs)
             new_socket.deserialize(socket_data, hashmap, restore_id=restore_id)
             self.outputs.append(new_socket)
 
@@ -182,11 +204,12 @@ class Node(node_serializable.Serializable):
     def add_input(self, data_type, label=None, value=None, *args, **kwargs):
         socket = node_socket.InputSocket(self,
                                          index=self.get_new_input_index(),
-                                         position=Node.INPUT_POSITION,
+                                         position=self.__class__.INPUT_POSITION,
                                          data_type=data_type,
                                          label=label,
                                          max_connections=1,
                                          value=value,
+                                         count_on_this_side=self.get_new_input_index(),
                                          *args,
                                          **kwargs)
         self.inputs.append(socket)
@@ -195,11 +218,12 @@ class Node(node_serializable.Serializable):
     def add_output(self, data_type, label=None, max_connections=0, value=None, *args, **kwargs):
         socket = node_socket.OutputSocket(self,
                                           index=self.get_new_output_index(),
-                                          position=Node.OUTPUT_POSITION,
+                                          position=self.__class__.OUTPUT_POSITION,
                                           data_type=data_type,
                                           label=label,
                                           max_connections=max_connections,
                                           value=value,
+                                          count_on_this_side=self.get_new_output_index(),
                                           *args,
                                           **kwargs)
         self.outputs.append(socket)

@@ -14,9 +14,11 @@ class Socket(node_serializable.Serializable):
 
     class Position(enumFn.Enum):
         LEFT_TOP = 1
-        LEFT_BOTTOM = 2
-        RIGHT_TOP = 3
-        RIGHT_BOTTOM = 4
+        LEFT_CENTER = 2
+        LEFT_BOTTOM = 3
+        RIGHT_TOP = 4
+        RIGHT_CENTER = 5
+        RIGHT_BOTTOM = 6
 
     LABEL_VERTICAL_PADDING = -10.0
 
@@ -32,7 +34,8 @@ class Socket(node_serializable.Serializable):
                  data_type=editor_conf.DataType.NUMERIC,
                  label=None,
                  max_connections=0,
-                 value=None):
+                 value=None,
+                 count_on_this_side=0):
         super(Socket, self).__init__()
 
         self.node = node
@@ -41,12 +44,12 @@ class Socket(node_serializable.Serializable):
         self.data_type = editor_conf.DataType.get_type(data_type) if isinstance(data_type, int) else data_type
         self._label = label if label else self.data_type.get('label')
         self.max_connections = max_connections
+        self.count_on_this_side = count_on_this_side
         self._value = self.data_type.get('default') if value is None else value
 
         # Graphics
         self.gr_socket = graphics_socket.QLGraphicsSocket(self)
-        self.gr_socket.setPos(*self.node.get_socket_position(self.index, self.node_position))
-        self.gr_socket.text_item.setPos(*self.get_label_position(self.gr_socket.text_item))
+        self.set_position()
 
         # Edge
         self.edges = []
@@ -85,8 +88,12 @@ class Socket(node_serializable.Serializable):
     def has_edge(self):
         return bool(self.edges)
 
+    def set_position(self):
+        self.gr_socket.setPos(*self.node.get_socket_position(self.index, self.node_position, self.count_on_this_side))
+        self.gr_socket.text_item.setPos(*self.get_label_position(self.gr_socket.text_item))
+
     def get_position(self):
-        return self.node.get_socket_position(self.index, self.node_position)
+        return self.node.get_socket_position(self.index, self.node_position, self.count_on_this_side)
 
     def get_label_position(self, text_item):
         text_width = text_item.boundingRect().width()

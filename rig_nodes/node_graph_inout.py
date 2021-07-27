@@ -10,6 +10,7 @@ class GraphInputNode(luna_node.LunaNode):
     HEIGHT = 80
     CATEGORY = 'Utils'
     UNIQUE = True
+    OUTPUT_POSITION = 5
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         self.exec_in_socket = None
@@ -24,6 +25,7 @@ class GraphOutputNode(luna_node.LunaNode):
     HEIGHT = 80
     CATEGORY = 'Utils'
     UNIQUE = True
+    INPUT_POSITION = 2
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)

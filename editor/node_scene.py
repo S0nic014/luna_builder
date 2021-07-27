@@ -8,6 +8,7 @@ from PySide2 import QtWidgets
 
 from luna import Logger
 import luna.utils.fileFn as fileFn
+import luna_builder.editor.editor_conf as editor_conf
 import luna_builder.editor.node_node as node_node
 import luna_builder.editor.node_edge as node_edge
 import luna_builder.editor.graphics_scene as graphics_scene
@@ -213,6 +214,14 @@ class Scene(node_serializable.Serializable):
         except Exception:
             Logger.exception('Failed to load rig build file')
 
+    @classmethod
+    def get_class_from_node_data(cls, node_data):
+        node_id = node_data.get('node_id')
+        if not node_id:
+            return node_node.Node
+        else:
+            return editor_conf.get_node_class_from_id(node_id)
+
     def serialize(self):
         nodes, edges = [], []
         for n in self.nodes:
@@ -239,7 +248,7 @@ class Scene(node_serializable.Serializable):
 
         # create nodes
         for node_data in data.get('nodes'):
-            node_node.Node(self).deserialize(node_data, hashmap, restore_id=restore_id)
+            self.get_class_from_node_data(node_data)(self).deserialize(node_data, hashmap, restore_id=restore_id)
 
         # create edges
         for edge_data in data.get('edges'):

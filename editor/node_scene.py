@@ -243,4 +243,4 @@ class Scene(node_serializable.Serializable):
 
         # create edges
         for edge_data in data.get('edges'):
-            node_edge.Edge(self, None, None).deserialize(edge_data, hashmap, restore_id=restore_id)
+            node_edge.Edge(self, start_socket=None, end_socket=None).deserialize(edge_data, hashmap, restore_id=restore_id)

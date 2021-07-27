@@ -14,6 +14,9 @@ class Node(node_serializable.Serializable):
 
     SIZE = (180, 240)
     TITLE_HEIGHT = 24
+    IS_EXEC = True
+    INPUT_POSITION = node_socket.Socket.Position.LEFT_TOP.value
+    OUTPUT_POSITION = node_socket.Socket.Position.RIGHT_TOP.value
 
     def __str__(self):
         cls_name = self.__class__.__name__
@@ -23,33 +26,49 @@ class Node(node_serializable.Serializable):
     def __init__(self, scene, title="Custom node", inputs=[], outputs=[]):
         super(Node, self).__init__()
         self.scene = scene
-        self.socket_spacing = 22
         self._title = title
+        self.inputs = []
+        self.outputs = []
 
-        # Setup graphics
-        self.gr_node = graphics_node.QLGraphicsNode(self)
+        self.init_settings()
+        self.init_inner_objects()
 
         # Add to the scene
         self.scene.add_node(self)
         self.scene.gr_scene.addItem(self.gr_node)
+        # Sockets
+        self.init_sockets(inputs=inputs, outputs=outputs)
 
-        # Create sockets
-        self.inputs = []
-        self.outputs = []
+    def init_settings(self):
+        self.socket_spacing = 22
 
-        # EXEC sockets
-        self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)
-        self.exec_out_socket = self.add_output(editor_conf.DataType.EXEC, max_connections=1)
+    def init_inner_objects(self):
+        # Setup graphics
+        self.gr_node = graphics_node.QLGraphicsNode(self)
 
-        # Test sockets
-        # TODO: Remove after tests
-        for index, item in enumerate(inputs):
-            self.add_input(item, None, None)
+    def init_sockets(self, inputs=[], outputs=[], reset=False):
+        if reset:
+            if hasattr(self, 'inputs') and hasattr(self, 'outputs'):
+                for socket in self.inputs + self.outputs:
+                    self.scene.gr_scene.removeItem(socket.gr_socket)
+                self.inputs = []
+                self.outputs = []
 
-        for index, item in enumerate(outputs):
-            self.add_output(item, None, None)
+        # Create new sockets
+        if self.IS_EXEC:
+            self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)
+            self.exec_out_socket = self.add_output(editor_conf.DataType.EXEC, max_connections=1)
+        else:
+            self.exec_in_socket = self.exec_out_socket = None
+
+        for datatype in inputs:
+            self.add_input(datatype, label=None, value=None)
+
+        for datatype in outputs:
+            self.add_output(datatype, label=None, value=None)
 
     # ======= Properties ======= #
+
     @property
     def position(self):
         return self.gr_node.pos()
@@ -161,7 +180,7 @@ class Node(node_serializable.Serializable):
     def add_input(self, data_type, label=None, value=None, *args, **kwargs):
         socket = node_socket.InputSocket(self,
                                          index=self.get_new_input_index(),
-                                         position=node_socket.Socket.Position.LEFT_TOP,
+                                         position=Node.INPUT_POSITION,
                                          data_type=data_type,
                                          label=label,
                                          max_connections=1,
@@ -174,7 +193,7 @@ class Node(node_serializable.Serializable):
     def add_output(self, data_type, label=None, max_connections=0, value=None, *args, **kwargs):
         socket = node_socket.OutputSocket(self,
                                           index=self.get_new_output_index(),
-                                          position=node_socket.Socket.Position.RIGHT_TOP,
+                                          position=Node.OUTPUT_POSITION,
                                           data_type=data_type,
                                           label=label,
                                           max_connections=max_connections,

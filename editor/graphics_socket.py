@@ -7,16 +7,15 @@ from luna import Logger
 
 class QLGraphicsSocket(QtWidgets.QGraphicsItem):
 
-    def __init__(self, socket, label, color=QtGui.QColor("#FFFF7700")):
+    def __init__(self, socket):
         self.socket = socket
         super(QLGraphicsSocket, self).__init__(socket.node.gr_node)
 
-        self.label = label
         self.radius = 6.0
         self.empty_radius = 3.0
         self.outline_width = 1.0
         self._color_empty = QtGui.QColor('#141413')
-        self._color_background = color if isinstance(color, QtGui.QColor) else QtGui.QColor(color)
+        self._color_background = self.socket.data_type.get('color')
         self._color_outline = QtGui.QColor("#FF000000")
 
         # Pen, brush
@@ -26,7 +25,7 @@ class QLGraphicsSocket(QtWidgets.QGraphicsItem):
         self._brush_empty = QtGui.QBrush(self._color_empty)
 
         # Add text label
-        self.text_item = QtWidgets.QGraphicsTextItem(self.label, parent=self)
+        self.text_item = QtWidgets.QGraphicsTextItem(self.socket.label, parent=self)
         self.text_item.setTextWidth(self.socket.get_label_width())
         if self.socket.node_position in [self.socket.Position.RIGHT_TOP, self.socket.Position.RIGHT_BOTTOM]:
             self.align_text_right()

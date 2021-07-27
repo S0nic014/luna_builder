@@ -5,6 +5,7 @@ from PySide2 import QtWidgets
 
 from luna import Logger
 import luna.utils.enumFn as enumFn
+import luna_builder.editor.editor_conf as editor_conf
 import luna_builder.editor.node_edge as node_edge
 import luna_builder.editor.node_socket as node_socket
 import luna_builder.editor.graphics_socket as graphics_socket
@@ -311,7 +312,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             return False
 
         # Data types missmatch
-        if item.socket.data_type != assigned_socket.data_type:
+        if item.socket.data_type.get('index') != assigned_socket.data_type.get('index'):
             Logger.warning('Can\'t connect data types {0} and {1}'.format(item.socket.data_type, assigned_socket.data_type))
             return False
 
@@ -320,6 +321,8 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
     def log_scene_objects(self, item):
         if isinstance(item, graphics_socket.QLGraphicsSocket):
             Logger.debug(item.socket)
+            Logger.debug('  DataType: {0}, Value: {1}'.format(editor_conf.DataType.get_type(item.socket.data_type.get('index'), name_only=True),
+                                                              item.socket.value))
             Logger.debug('  Connected edge: {0}'.format(item.socket.edges))
         elif isinstance(item, graphics_node.QLGraphicsNode):
             Logger.debug(item.node)

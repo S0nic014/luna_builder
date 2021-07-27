@@ -118,8 +118,8 @@ class NodeEditor(QtWidgets.QWidget):
         # TODO: Replace with actual dragged node
         new_node = node_node.Node(self.scene,
                                   title=text,
-                                  inputs=[node_socket.Socket.DataType.COMPONENT, node_socket.Socket.DataType.STRING, node_socket.Socket.DataType.NUMERIC],
-                                  outputs=[node_socket.Socket.DataType.COMPONENT, node_socket.Socket.DataType.STRING])
+                                  inputs=[editor_conf.DataType.COMPONENT, editor_conf.DataType.STRING, editor_conf.DataType.NUMERIC],
+                                  outputs=[editor_conf.DataType.COMPONENT, editor_conf.DataType.STRING])
         new_node.set_position(scene_pos.x(), scene_pos.y())
         Logger.debug(new_node.gr_node)
 

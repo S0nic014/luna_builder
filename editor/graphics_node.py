@@ -37,11 +37,20 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         self._title = value
         self.title_item.setPlainText(self._title)
 
+    @property
+    def width(self):
+        return self.node.SIZE[0]
+
+    @property
+    def height(self):
+        return self.node.SIZE[1]
+
+    @property
+    def title_height(self):
+        return self.node.TITLE_HEIGHT
+
     def init_sizes(self):
-        self.width = 180
-        self.height = 240
         self.edge_size = 10.0
-        self.title_height = 24
         self._padding = 4.0
 
     def init_assets(self):

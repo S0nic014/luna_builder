@@ -4,6 +4,7 @@ from collections import OrderedDict
 
 from luna import Logger
 import luna.utils.enumFn as enumFn
+import luna_builder.editor.editor_conf as editor_conf
 import luna_builder.editor.graphics_socket as graphics_socket
 import luna_builder.editor.node_serializable as node_serializable
 imp.reload(graphics_socket)
@@ -17,42 +18,40 @@ class Socket(node_serializable.Serializable):
         RIGHT_TOP = 3
         RIGHT_BOTTOM = 4
 
-    # TODO: Class per socket type
-    class DataType(enumFn.Enum):
-        EXEC = 1
-        STRING = 2
-        NUMERIC = 3
-        COMPONENT = 4
-
     LABEL_VERTICAL_PADDING = -10.0
-    DATA_COLORS = {DataType.EXEC: QtGui.QColor("#FFFFFF"),
-                   DataType.NUMERIC: QtGui.QColor("#FFFF7700"),
-                   DataType.STRING: QtGui.QColor("#FF52e220"),
-                   DataType.COMPONENT: QtGui.QColor("#FF0056a6")
-                   }
 
     def __str__(self):
         cls_name = self.__class__.__name__
         nice_id = '{0}..{1}'.format(hex(id(self))[2:5], hex(id(self))[-3:])
         return "<{0} {1}>".format(cls_name, nice_id)
 
-    def __init__(self, node, index=0, position=Position.LEFT_TOP, data_type=DataType.NUMERIC, label='socket', max_connections=0):
+    def __init__(self,
+                 node,
+                 index=0,
+                 position=Position.LEFT_TOP,
+                 data_type=editor_conf.DataType.NUMERIC,
+                 label=None,
+                 max_connections=0,
+                 value=None):
         super(Socket, self).__init__()
 
         self.node = node
         self.index = index
-        self._label = label
-        self.max_connections = max_connections
         self.node_position = position if isinstance(position, Socket.Position) else Socket.Position(position)
-        self.data_type = data_type if isinstance(data_type, Socket.DataType) else Socket.DataType(data_type)
+        self.data_type = editor_conf.DataType.get_type(data_type) if isinstance(data_type, int) else data_type
+        self._label = label if label else self.data_type.get('label')
+        self.max_connections = max_connections
+        self._value = self.data_type.get('default') if value is None else value
 
         # Graphics
-        self.gr_socket = graphics_socket.QLGraphicsSocket(self, label, color=self.DATA_COLORS.get(self.data_type))
+        self.gr_socket = graphics_socket.QLGraphicsSocket(self)
         self.gr_socket.setPos(*self.node.get_socket_position(self.index, self.node_position))
         self.gr_socket.text_item.setPos(*self.get_label_position(self.gr_socket.text_item))
 
         # Edge
         self.edges = []
+
+    # ===== Properties ===== #
 
     @property
     def label(self):
@@ -62,6 +61,16 @@ class Socket(node_serializable.Serializable):
     def label(self, text):
         self._label = text
         self.gr_socket.text_item.setPlainText(self._label)
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+
+    # ===== Methods ===== #
 
     def has_edge(self):
         return bool(self.edges)
@@ -107,9 +116,10 @@ class Socket(node_serializable.Serializable):
             ('id', self.id),
             ('index', self.index),
             ('position', self.node_position.value),
-            ('data_type', self.data_type.value),
+            ('data_type', self.data_type.get('index')),
             ('max_connections', self.max_connections),
-            ('label', self.label)
+            ('label', self.label),
+            ('value', self.value)
         ])
 
     def deserialize(self, data, hashmap, restore_id=True):
@@ -119,6 +129,7 @@ class Socket(node_serializable.Serializable):
 
 
 class InputSocket(Socket):
+
     def set_connected_edge(self, edge=None):
         super(InputSocket, self).set_connected_edge(edge=edge)
         if self.edges and edge not in self.edges:

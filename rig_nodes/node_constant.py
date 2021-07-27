@@ -3,10 +3,11 @@ import luna_builder.rig_nodes.luna_node as luna_node
 
 
 class ConstantNode(luna_node.LunaNode):
+    ID = 2
     IS_EXEC = False
     HEIGHT = 80
     DEFAULT_TITLE = 'Constant'
-    ID = 'x001'
+    CATEGORY = 'Utils'
 
     def __init__(self, scene, title=None, inputs=[], outputs=[], data_type=editor_conf.DataType.NUMERIC):
         self.data_type = data_type

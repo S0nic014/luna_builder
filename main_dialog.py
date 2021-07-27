@@ -13,9 +13,7 @@ from luna_builder.tabs import tab_workspace
 import luna_builder.menus as menus
 import luna_builder.editor.node_editor as node_editor
 import luna_builder.editor.node_nodes_palette as node_nodes_palette
-import luna_builder.editor.editor_conf as editor_conf
 
-imp.reload(editor_conf)
 imp.reload(node_editor)
 imp.reload(node_nodes_palette)
 
@@ -67,7 +65,6 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         # Workspace control
         self.workspaceControlName = "{0}WorkspaceControl".format(self.UI_NAME)
         pysideFn.add_widget_to_layout(self, self.workspaceControlName)
-        # editor_conf.load_plugins()
 
         # UI setup
         self.create_actions()
@@ -96,7 +93,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.skin_menu = menus.SkinMenu()
         self.blendshapes_menu = menus.BlendshapesMenu()
         self.rig_menu = menus.RigMenu()
-        self.help_menu = menus.HelpMenu()
+        self.help_menu = menus.HelpMenu(self)
 
         # Populate menu bar
         self.menu_bar.addMenu(self.file_menu)
@@ -144,6 +141,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     def create_connections(self):
         # Other
         self.update_tab_btn.clicked.connect(lambda: self.tab_widget.currentWidget().update_data())
+        self.update_tab_btn.clicked.connect(self.nodes_palette.update_node_tree)
         self.mdi_area.subWindowActivated.connect(self.update_title)
 
     @property

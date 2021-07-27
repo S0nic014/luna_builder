@@ -25,7 +25,6 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
 
         self.init_title()
         self.title = self.node.title
-        self.init_sockets()
         self.init_content()
 
     @property
@@ -72,9 +71,6 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         self.title_item.setTextWidth(self.width - 2 * self._padding)
 
     def init_content(self):
-        pass
-
-    def init_sockets(self):
         pass
 
     def paint(self, painter, option, widget=None):

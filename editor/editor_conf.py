@@ -90,6 +90,10 @@ class InvalidNodeRegistration(ConfException):
     pass
 
 
+class NodeIDNotFound(ConfException):
+    pass
+
+
 # Plugins
 NODE_REGISTER = {}
 
@@ -100,6 +104,13 @@ def register_node(node_id, node_class):
         raise InvalidNodeRegistration
     NODE_REGISTER[node_id] = node_class
     Logger.debug('Registered node {0}::{1}'.format(node_id, node_class))
+
+
+def get_node_class_from_id(node_id):
+    if node_id not in NODE_REGISTER:
+        Logger.error('Node ID {0} was not found in register'.format(node_id))
+        raise NodeIDNotFound
+    return NODE_REGISTER[node_id]
 
 
 def load_plugins():
@@ -120,6 +131,11 @@ def load_plugins():
         except Exception:
             Logger.exception('Failed to register')
     Logger.info('Successfully loaded {0} plugins'.format(success_count))
+
+
+def reload_plugins():
+    NODE_REGISTER.clear()
+    load_plugins()
 
 
 if __name__ == '__main__':

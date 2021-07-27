@@ -3,12 +3,12 @@ import luna_builder.rig_nodes.luna_node as luna_node
 
 
 class GraphInputNode(luna_node.LunaNode):
-    ID = 'x004'
+    ID = 3
     IS_EXEC = True
     AUTO_INIT_EXECS = False
     DEFAULT_TITLE = 'Input'
     HEIGHT = 80
-    CATEGORY = None
+    CATEGORY = 'Utils'
     UNIQUE = True
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
@@ -17,12 +17,12 @@ class GraphInputNode(luna_node.LunaNode):
 
 
 class GraphOutputNode(luna_node.LunaNode):
-    ID = 'x005'
+    ID = 4
     IS_EXEC = True
     AUTO_INIT_EXECS = False
     DEFAULT_TITLE = 'Output'
     HEIGHT = 80
-    CATEGORY = None
+    CATEGORY = 'Utils'
     UNIQUE = True
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):

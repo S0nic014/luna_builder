@@ -3,11 +3,12 @@ import luna_builder.rig_nodes.luna_node as luna_node
 
 
 class BranchNode(luna_node.LunaNode):
+    ID = 1
     IS_EXEC = True
     AUTO_INIT_EXECS = False
     DEFAULT_TITLE = 'Branch'
+    CATEGORY = 'Utils'
     HEIGHT = 100
-    ID = 'x002'
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)

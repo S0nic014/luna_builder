@@ -3,10 +3,11 @@ import luna_builder.rig_nodes.luna_node as luna_node
 
 
 class SequenceNode(luna_node.LunaNode):
-    ID = 'x003'
+    ID = 5
     IS_EXEC = True
     AUTO_INIT_EXECS = False
     DEFAULT_TITLE = 'Sequence'
+    CATEGORY = 'Utils'
     HEIGHT = 180
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):

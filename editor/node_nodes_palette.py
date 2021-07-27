@@ -18,8 +18,7 @@ class NodesPalette(QtWidgets.QGroupBox):
         self.create_layouts()
         self.create_connections()
 
-        # TODO: Replace with actual node items
-        self.add_test_items()
+        self.update_node_tree()
 
     def create_widgets(self):
         self.nodes_tree = QLDragTreeWidget()
@@ -29,39 +28,27 @@ class NodesPalette(QtWidgets.QGroupBox):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.main_layout)
 
-        # self.main_layout.addWidget(self.nodes_list)
         self.main_layout.addWidget(self.nodes_tree)
 
     def create_connections(self):
         pass
 
-    def add_test_items(self):
-        for category in ['components', 'utils']:
-            self.nodes_tree.add_category(category)
+    def update_node_tree(self):
+        self.nodes_tree.clear()
+        self.add_registered_nodes()
 
-        Logger.debug(editor_conf.NODE_REGISTER)
-
-        self.nodes_tree.add_node_item('Character', category='components', icon_name='body.png', op_code=1)
-        self.nodes_tree.add_node_item('Simple', category='components', icon_name='body.png', op_code=2)
-        self.nodes_tree.add_node_item('FKIK Component', category='components', icon_name='body.png', op_code=3)
-        self.nodes_tree.add_node_item('FK Component', category='components', icon_name='body.png', op_code=4)
-        self.nodes_tree.add_node_item('IK Component', category='components', icon_name='body.png', op_code=5)
-        self.nodes_tree.add_node_item('FKIK Spine', category='components', icon_name='body.png', op_code=6)
-        self.nodes_tree.add_node_item('Hand', category='components', icon_name='body.png', op_code=7)
-        self.nodes_tree.add_node_item('Foot', category='components', icon_name='body.png', op_code=8)
-        self.nodes_tree.add_node_item('Eye', category='components', icon_name='body.png', op_code=9)
-        self.nodes_tree.add_node_item('Lips', category='components', icon_name='body.png', op_code=10)
-        self.nodes_tree.add_node_item('IkStretch', category='components', icon_name='body.png', op_code=11)
-        self.nodes_tree.add_node_item('Corrective', category='components', icon_name='body.png', op_code=12)
-        self.nodes_tree.add_node_item('Ribbon', category='components', icon_name='body.png', op_code=13)
-        self.nodes_tree.add_node_item('FK Dynamics', category='components', icon_name='body.png', op_code=14)
-        self.nodes_tree.add_node_item('Wire Component', category='components', icon_name='body.png', op_code=15)
+    def add_registered_nodes(self):
+        keys = list(editor_conf.NODE_REGISTER.keys())
+        keys.sort()
+        for node_id in keys:
+            node_class = editor_conf.NODE_REGISTER[node_id]
+            self.nodes_tree.add_node_item(node_id, node_class.DEFAULT_TITLE, category=node_class.CATEGORY, icon_name=node_class.ICON)
 
 
 class QLDragTreeWidget(QtWidgets.QTreeWidget):
 
     PIXMAP_ROLE = QtCore.Qt.UserRole
-    OP_CODE_ROLE = QtCore.Qt.UserRole + 1
+    NODE_ID_ROLE = QtCore.Qt.UserRole + 1
 
     def __init__(self, parent=None):
         super(QLDragTreeWidget, self).__init__(parent)
@@ -71,7 +58,7 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         self.setColumnCount(1)
         self.setHeaderHidden(True)
 
-    def add_node_item(self, label_text, category='Undefiend', icon_name=None, op_code=0):
+    def add_node_item(self, node_id, label_text, category='Undefiend', icon_name=None):
         if not icon_name:
             icon_name = os.path.join(directories.FALLBACK_IMG_PATH, 'noNodeIcon.png')
         else:
@@ -91,7 +78,7 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         item.setSizeHint(0, QtCore.QSize(32, 32))
         # Setup item
         item.setData(0, QLDragTreeWidget.PIXMAP_ROLE, pixmap)
-        item.setData(0, QLDragTreeWidget.OP_CODE_ROLE, op_code)
+        item.setData(0, QLDragTreeWidget.NODE_ID_ROLE, node_id)
 
     def add_category(self, name, expanded=True):
         tree_item = QtWidgets.QTreeWidgetItem(self)
@@ -103,14 +90,14 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         Logger.debug('Palette::startDrag')
         try:
             item = self.currentItem()  # type: QtWidgets.QTreeWidgetItem
-            op_code = item.data(0, QLDragTreeWidget.OP_CODE_ROLE)
+            node_id = item.data(0, QLDragTreeWidget.NODE_ID_ROLE)
             pixmap = QtGui.QPixmap(item.data(0, QLDragTreeWidget.PIXMAP_ROLE))
 
             # Pack item data
             item_data = QtCore.QByteArray()
             data_stream = QtCore.QDataStream(item_data, QtCore.QIODevice.WriteOnly)
             data_stream << pixmap
-            data_stream.writeInt32(op_code)
+            data_stream.writeInt32(node_id)
             data_stream.writeQString(item.text(0))
 
             # Create mime data
@@ -123,7 +110,7 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
             drag.setHotSpot(QtCore.QPoint(pixmap.width() / 2, pixmap.height() / 2))
             drag.setPixmap(pixmap)
 
-            Logger.debug('Dragging item <{0}>, {1}'.format(op_code, item))
+            Logger.debug('Dragging item <{0}>, {1}'.format(node_id, item))
             drag.exec_(QtCore.Qt.MoveAction)
 
         except Exception:

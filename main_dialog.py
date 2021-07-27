@@ -13,9 +13,11 @@ from luna_builder.tabs import tab_workspace
 import luna_builder.menus as menus
 import luna_builder.editor.node_editor as node_editor
 import luna_builder.editor.node_nodes_palette as node_nodes_palette
+import luna_builder.editor.editor_conf as editor_conf
 
-imp.reload(node_nodes_palette)
+imp.reload(editor_conf)
 imp.reload(node_editor)
+imp.reload(node_nodes_palette)
 
 
 class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
@@ -65,6 +67,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         # Workspace control
         self.workspaceControlName = "{0}WorkspaceControl".format(self.UI_NAME)
         pysideFn.add_widget_to_layout(self, self.workspaceControlName)
+        # editor_conf.load_plugins()
 
         # UI setup
         self.create_actions()

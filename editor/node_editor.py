@@ -8,15 +8,25 @@ from luna.workspace import Asset
 import luna_builder.editor.editor_conf as editor_conf
 import luna_builder.editor.node_scene as node_scene
 import luna_builder.editor.node_node as node_node
-import luna_builder.editor.node_socket as node_socket
-import luna_builder.editor.node_edge as node_edge
 import luna_builder.editor.graphics_view as graphics_view
-imp.reload(editor_conf)
-imp.reload(node_scene)
-imp.reload(node_node)
-imp.reload(node_socket)
-imp.reload(node_edge)
-imp.reload(graphics_view)
+
+# FIXME: TEST NODE IMPORTS
+# import luna_builder.rig_nodes.base_component_nodes as component_nodes
+# import luna_builder.rig_nodes.node_constant as node_constant
+# import luna_builder.rig_nodes.node_sequence as node_sequence
+# import luna_builder.rig_nodes.node_branch as node_branch
+
+# # imp.reload(editor_conf)
+# # imp.reload(node_scene)
+# # imp.reload(node_node)
+# # imp.reload(node_socket)
+# # imp.reload(node_edge)
+# # imp.reload(graphics_view)
+
+# imp.reload(component_nodes)
+# imp.reload(node_constant)
+# imp.reload(node_sequence)
+# imp.reload(node_branch)
 
 
 class EditorSignals(QtCore.QObject):
@@ -29,7 +39,7 @@ class NodeEditor(QtWidgets.QWidget):
         super(NodeEditor, self).__init__(parent)
         self.signals = EditorSignals()
         self.init_ui()
-        # self.add_debug_nodes()
+        self.add_debug_nodes()
 
     def init_ui(self):
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
@@ -192,14 +202,19 @@ class NodeEditor(QtWidgets.QWidget):
 
     def add_debug_nodes(self):
         # Test nodes
-        node1 = node_node.Node(self.scene, inputs=[2, 2, 2], outputs=[3, 3, 3])
-        node2 = node_node.Node(self.scene, inputs=[3, 3, 3], outputs=[4, 4, 4])
-        node3 = node_node.Node(self.scene, inputs=[4, 4, 4], outputs=[2, 2, 2])
-        node1.set_position(-350, -250)
-        node2.set_position(-75, 0)
-        node3.set_position(200, -150)
+        # node1 = node_node.Node(self.scene, inputs=[2, 2, 2], outputs=[3, 3, 3])
+        # node2 = node_node.Node(self.scene, inputs=[3, 3, 3], outputs=[4, 4, 4])
+        # node3 = node_node.Node(self.scene, inputs=[4, 4, 4], outputs=[2, 2, 2])
+        # node1.set_position(-350, -250)
+        # node2.set_position(-75, 0)
+        # node3.set_position(200, -150)
 
-        edge1 = node_edge.Edge(self.scene, node1.outputs[0], node2.inputs[0])
-        edge2 = node_edge.Edge(self.scene, node2.outputs[0], node3.inputs[0])
+        # edge1 = node_edge.Edge(self.scene, node1.outputs[0], node2.inputs[0])
+        # edge2 = node_edge.Edge(self.scene, node2.outputs[0], node3.inputs[0])
+        # comp1 = component_nodes.ComponentNode(self.scene)
+        # anim_comp1 = component_nodes.AnimComponentNode(self.scene)
+        # const1 = node_constant.ConstantNode(self.scene, data_type=editor_conf.DataType.STRING)
+        # seq1 = node_sequence.SequenceNode(self.scene)
+        # branch1 = node_branch.BranchNode(self.scene)
 
         self.scene.set_history_init_point()

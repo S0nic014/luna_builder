@@ -39,11 +39,11 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
 
     @property
     def width(self):
-        return self.node.SIZE[0]
+        return self.node.WIDTH
 
     @property
     def height(self):
-        return self.node.SIZE[1]
+        return self.node.HEIGHT
 
     @property
     def title_height(self):

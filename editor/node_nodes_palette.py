@@ -39,8 +39,10 @@ class NodesPalette(QtWidgets.QGroupBox):
         for category in ['components', 'utils']:
             self.nodes_tree.add_category(category)
 
-        self.nodes_tree.add_node_item('Character', category='components', icon_name='body.png', op_code=editor_conf.NODE_REGISTER.get('Character Component'))
-        self.nodes_tree.add_node_item('Simple', category='components', icon_name='body.png', op_code=editor_conf.NODE_REGISTER.get('Simple Component'))
+        Logger.debug(editor_conf.NODE_REGISTER)
+
+        self.nodes_tree.add_node_item('Character', category='components', icon_name='body.png', op_code=1)
+        self.nodes_tree.add_node_item('Simple', category='components', icon_name='body.png', op_code=2)
         self.nodes_tree.add_node_item('FKIK Component', category='components', icon_name='body.png', op_code=3)
         self.nodes_tree.add_node_item('FK Component', category='components', icon_name='body.png', op_code=4)
         self.nodes_tree.add_node_item('IK Component', category='components', icon_name='body.png', op_code=5)

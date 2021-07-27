@@ -7,14 +7,16 @@ import luna_builder.editor.graphics_node as graphics_node
 import luna_builder.editor.node_socket as node_socket
 import luna_builder.editor.node_serializable as node_serializable
 imp.reload(graphics_node)
-imp.reload(node_socket)
 
 
 class Node(node_serializable.Serializable):
 
-    SIZE = (180, 240)
+    WIDTH = 180
+    HEIGHT = 240
     TITLE_HEIGHT = 24
+    DEFAULT_TITLE = 'Custom Node'
     IS_EXEC = True
+    AUTO_INIT_EXECS = True
     INPUT_POSITION = node_socket.Socket.Position.LEFT_TOP.value
     OUTPUT_POSITION = node_socket.Socket.Position.RIGHT_TOP.value
 
@@ -23,10 +25,10 @@ class Node(node_serializable.Serializable):
         nice_id = '{0}..{1}'.format(hex(id(self))[2:5], hex(id(self))[-3:])
         return "<{0} {1}>".format(cls_name, nice_id)
 
-    def __init__(self, scene, title="Custom node", inputs=[], outputs=[]):
+    def __init__(self, scene, title=None, inputs=[], outputs=[]):
         super(Node, self).__init__()
         self.scene = scene
-        self._title = title
+        self._title = title if title else self.DEFAULT_TITLE
         self.inputs = []
         self.outputs = []
 
@@ -55,7 +57,7 @@ class Node(node_serializable.Serializable):
                 self.outputs = []
 
         # Create new sockets
-        if self.IS_EXEC:
+        if self.IS_EXEC and self.AUTO_INIT_EXECS:
             self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)
             self.exec_out_socket = self.add_output(editor_conf.DataType.EXEC, max_connections=1)
         else:
@@ -202,3 +204,10 @@ class Node(node_serializable.Serializable):
                                           **kwargs)
         self.outputs.append(socket)
         return socket
+
+    def get_value(self, socket_name):
+        socket = getattr(self, socket_name)
+        if not isinstance(socket, node_socket.Socket):
+            Logger.error('Socket {0} does not exist.'.format(socket_name))
+            raise AttributeError
+        return socket.value

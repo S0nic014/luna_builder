@@ -40,7 +40,7 @@ class AnimComponentNode(ComponentNode):
         super(AnimComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
         # Override types
         self.out_self.data_type = editor_conf.DataType.ANIM_COMPONENT
-        self.in_meta_parent.data_type = editor_conf.DataType.ANIM_COMPONENT
+        self.in_meta_parent.data_type = self.out_meta_parent.data_type = editor_conf.DataType.ANIM_COMPONENT
 
         # Override values
         self.in_name.value = 'anim_component'

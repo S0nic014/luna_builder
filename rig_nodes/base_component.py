@@ -41,6 +41,9 @@ class AnimComponentNode(ComponentNode):
         # FIXME: Change DataType.COMPONENT to DataType.CHARACTER
         self.out_character = self.add_output(editor_conf.DataType.COMPONENT, label='Character')
         self.out_hooks_list = self.add_output(editor_conf.DataType.LIST, label='Hooks List')
+        self.out_controls = self.add_output(editor_conf.DataType.LIST, label='Controls')
+        self.out_bind_joints = self.add_output(editor_conf.DataType.LIST, label='Bind Joints')
+        self.out_ctl_chain = self.add_output(editor_conf.DataType.LIST, label='Ctl Chain')
 
     def init_out_hooks_sockets(self):
         pass

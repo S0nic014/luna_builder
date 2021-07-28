@@ -12,7 +12,7 @@ import luna_builder.editor.graphics_socket as graphics_socket
 import luna_builder.editor.graphics_node as graphics_node
 import luna_builder.editor.graphics_edge as graphics_edge
 import luna_builder.editor.graphics_cutline as graphics_cutline
-imp.reload(graphics_socket)
+imp.reload(node_socket)
 
 
 def history(description, set_modified=True):
@@ -311,9 +311,9 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             Logger.warning('Can\'t connect two sockets of the same type')
             return False
 
-        # Data types missmatch
-        if item.socket.data_type.get('index') != assigned_socket.data_type.get('index'):
-            Logger.warning('Can\'t connect data types {0} and {1}'.format(item.socket.data_type, assigned_socket.data_type))
+        # Data type class of source socket is not subclass of destination socket
+        if not issubclass(assigned_socket.data_class, item.socket.data_class):
+            Logger.warning('Can\'t connect data types {0} and {1}'.format(item.socket.data_class, assigned_socket.data_class))
             return False
 
         return True
@@ -321,8 +321,8 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
     def log_scene_objects(self, item):
         if isinstance(item, graphics_socket.QLGraphicsSocket):
             Logger.debug(item.socket)
-            Logger.debug('  DataType: {0}, Value: {1}'.format(editor_conf.DataType.get_type(item.socket.data_type.get('index'), name_only=True),
-                                                              item.socket.value))
+            Logger.debug('  Data Class: {0}'.format(item.socket.data_class))
+            Logger.debug('  Value: {0}'.format(item.socket.value))
             Logger.debug('  Connected edge: {0}'.format(item.socket.edges))
         elif isinstance(item, graphics_node.QLGraphicsNode):
             Logger.debug(item.node)
@@ -374,7 +374,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         if store_history:
             self.scene.history.store_history('Item deleted', set_modified=True)
 
-    @history('Edges cut', set_modified=True)
+    @ history('Edges cut', set_modified=True)
     def cut_intersecting_edges(self):
         for ix in range(len(self.cutline.line_points) - 1):
             pt1 = self.cutline.line_points[ix]

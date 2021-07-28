@@ -1,9 +1,9 @@
 import luna_rig
 import luna_builder.editor.editor_conf as editor_conf
-import luna_builder.rig_nodes.node_component as node_component
+import luna_builder.rig_nodes.base_component as base_component
 
 
-class FKIKComponentNode(node_component.AnimComponentNode):
+class FKIKComponentNode(base_component.AnimComponentNode):
     ID = 9
     IS_EXEC = True
     ICON = 'ikfk.png'
@@ -16,6 +16,7 @@ class FKIKComponentNode(node_component.AnimComponentNode):
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(FKIKComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+
         self.in_name = self.out_name = 'fkik_component'
         self.in_start_joint = self.add_input(editor_conf.DataType.STRING, label='Start Joint', value=None)
         self.in_end_joint = self.add_input(editor_conf.DataType.STRING, label='End Joint', value=None)

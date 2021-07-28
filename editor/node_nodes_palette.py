@@ -36,11 +36,14 @@ class NodesPalette(QtWidgets.QGroupBox):
     def update_node_tree(self):
         self.nodes_tree.clear()
         self.add_registered_nodes()
+        self.add_registered_functions()
 
     def add_registered_nodes(self):
         keys = list(editor_conf.NODE_REGISTER.keys())
         keys.sort()
         for node_id in keys:
+            if node_id == editor_conf.FUNC_NODE_ID:
+                continue
             node_class = editor_conf.NODE_REGISTER[node_id]
             palette_label = node_class.PALETTE_LABEL if hasattr(node_class, 'PALETTE_LABEL') else node_class.DEFAULT_TITLE
             self.nodes_tree.add_node_item(node_id, palette_label, category=node_class.CATEGORY, icon_name=node_class.ICON)

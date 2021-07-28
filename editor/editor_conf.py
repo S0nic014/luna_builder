@@ -17,7 +17,7 @@ class DataType(object):
     EXEC = {'index': 0,
             'color': QtGui.QColor("#FFFFFF"),
             'label': '',
-            'class': None,
+            'class': type(None),
             'default': None}
     STRING = {'index': 1,
               'color': QtGui.QColor("#FF52e220"),
@@ -135,23 +135,28 @@ def register_function(func, source_datatype, inputs_dict={}, outputs_dict={}, ni
         dt_name = DataType.get_type(dt_index, name_only=True) if dt_index else None
 
     is_property = isinstance(func, property)
-
-    # Store function in register
+    # Create register signature
     if source_datatype:
-        if is_property and func.fget:
-            signature = "{0}.{1}_getter".format(source_datatype.get('class').__name__, func.fget.__name__)
-        elif is_property and func.fset:
-            signature = "{0}.{1}_setter".format(source_datatype.get('class').__name__, func.fset.__name__)
-        signature = "{0}.{1}".format(source_datatype.get('class').__name__, func.__name__)
+        src_class = source_datatype.get('class')
+        if src_class:
+            if is_property and func.fget:
+                signature = "{0}.{1}.{2}_getter".format(src_class.__module__, src_class.__name__, func.fget.__name__)
+            elif is_property and func.fset:
+                signature = "{0}.{1}.{2}_setter".format(src_class.__module__, src_class.__name__, func.fset.__name__)
+        else:
+            signature = "{0}.{1}".format(src_class.__module__, func.__name__)
     else:
-        signature = func.__name__
+        signature = "{0}.{1}".format(func.__module__, func.__name__)
 
+    # Create function description
     func_dict = {'ref': func,
                  'inputs': inputs_dict,
                  'outputs': outputs_dict,
                  'doc': docstring,
                  'icon': icon,
                  'property': isinstance(func, property)}
+
+    # Store function in the register
     if dt_index not in FUNCTION_REGISTER:
         FUNCTION_REGISTER[dt_index] = {}
     FUNCTION_REGISTER[dt_index][signature] = func_dict
@@ -166,15 +171,26 @@ def get_node_class_from_id(node_id):
     return NODE_REGISTER[node_id]
 
 
-def get_functions_from_datatype(datatype):
+def get_functions_map_from_datatype(datatype):
     func_map = FUNCTION_REGISTER.get(datatype['index'])  # type: dict
     return func_map
+
+
+def get_function_from_signature(signature):
+    for dt_func_map in FUNCTION_REGISTER.values():
+        if signature in dt_func_map:
+            return dt_func_map[signature]
+    return None
 
 
 def load_plugins():
     Logger.info('Loading rig editor plugins...')
     success_count = 0
+    # !LOAD Base component class first, to avoid 'obj must be an instance or subtype of type' Error
+    # base_comp_plugin = os.path.join(directories.EDITOR_PLUGINS_PATH, 'base_component.py')
+    # plugin_files = [base_comp_plugin]
     plugin_files = []
+
     for file_name in os.listdir(directories.EDITOR_PLUGINS_PATH):
         if file_name.endswith('.py') and file_name.startswith('node_'):
             plugin_files.append(os.path.join(directories.EDITOR_PLUGINS_PATH, file_name))

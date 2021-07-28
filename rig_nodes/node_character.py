@@ -1,9 +1,9 @@
 import luna_rig
 import luna_builder.editor.editor_conf as editor_conf
-import luna_builder.rig_nodes.node_component as node_component
+import luna_builder.rig_nodes.base_component as base_component
 
 
-class CharacterNode(node_component.ComponentNode):
+class CharacterNode(base_component.ComponentNode):
     ID = 7
     IS_EXEC = True
     ICON = 'bindpose.png'
@@ -16,6 +16,7 @@ class CharacterNode(node_component.ComponentNode):
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(CharacterNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+        self.out_self.data_type = editor_conf.DataType.CHARACTER
         self.in_name.value = 'character'
         self.in_tag = self.out_tag = 'character'
 
@@ -29,3 +30,4 @@ class CharacterNode(node_component.ComponentNode):
 
 def register_plugin():
     editor_conf.register_node(CharacterNode.ID, CharacterNode)
+    base_component.register_plugin()

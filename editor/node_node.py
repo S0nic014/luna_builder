@@ -48,7 +48,7 @@ class Node(node_serializable.Serializable):
         # Setup graphics
         self.gr_node = graphics_node.QLGraphicsNode(self)
 
-    def init_sockets(self, inputs=[], outputs=[], reset=False):
+    def init_sockets(self, inputs=[], outputs=[], reset=True):
         if reset:
             self.remove_existing_sockets()
 

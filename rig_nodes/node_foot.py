@@ -1,9 +1,9 @@
 import luna_rig
 import luna_builder.editor.editor_conf as editor_conf
-import luna_builder.rig_nodes.node_component as node_component
+import luna_builder.rig_nodes.base_component as base_component
 
 
-class FootComponentNode(node_component.AnimComponentNode):
+class FootComponentNode(base_component.AnimComponentNode):
     ID = 10
     IS_EXEC = True
     ICON = None

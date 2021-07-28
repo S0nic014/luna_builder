@@ -83,6 +83,10 @@ class Socket(node_serializable.Serializable):
         if hasattr(self, 'gr_socket'):
             self.gr_socket._color_background = self._data_type.get('color')
 
+    @property
+    def data_class(self):
+        return self.data_type.get('class')
+
     # ===== Methods ===== #
 
     def has_edge(self):

@@ -113,6 +113,9 @@ class NodeEditor(QtWidgets.QWidget):
 
         try:
             new_node = editor_conf.get_node_class_from_id(node_id)(self.scene)
+            if node_id == editor_conf.FUNC_NODE_ID:
+                new_node.func_signature = func_signature
+
             new_node.set_position(scene_pos.x(), scene_pos.y())
             self.scene.history.store_history('Created Node {0}'.format(new_node.as_str(name_only=True)))
         except Exception:

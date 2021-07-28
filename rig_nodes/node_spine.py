@@ -1,9 +1,9 @@
 import luna_rig
 import luna_builder.editor.editor_conf as editor_conf
-import luna_builder.rig_nodes.node_component as node_component
+import luna_builder.rig_nodes.base_component as base_component
 
 
-class SpineNode(node_component.AnimComponentNode):
+class SpineNode(base_component.AnimComponentNode):
     ID = None
     IS_EXEC = True
     ICON = 'body.png'

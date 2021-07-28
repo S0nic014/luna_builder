@@ -1,9 +1,9 @@
 import luna_rig
 import luna_builder.editor.editor_conf as editor_conf
-import luna_builder.rig_nodes.base_component as base_component
+import luna_builder.rig_nodes.node_component as node_component
 
 
-class CharacterNode(base_component.ComponentNode):
+class CharacterNode(node_component.ComponentNode):
     ID = 7
     IS_EXEC = True
     ICON = 'bindpose.png'

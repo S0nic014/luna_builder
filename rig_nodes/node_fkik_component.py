@@ -1,9 +1,9 @@
 import luna_rig
 import luna_builder.editor.editor_conf as editor_conf
-import luna_builder.rig_nodes.base_component as base_component
+import luna_builder.rig_nodes.node_component as node_component
 
 
-class FKIKComponentNode(base_component.AnimComponentNode):
+class FKIKComponentNode(node_component.AnimComponentNode):
     ID = 9
     IS_EXEC = True
     ICON = 'ikfk.png'
@@ -30,6 +30,9 @@ class FKIKComponentNode(base_component.AnimComponentNode):
         self.out_param_controls = self.add_output(editor_conf.DataType.LIST, label='Param Control')
         self.out_fk_controls = self.add_output(editor_conf.DataType.LIST, label='FK Controls')
         self.out_ik_handle = self.add_output(editor_conf.DataType.PYNODE, label='IK Handle')
+
+    def execute(self):
+        pass
 
 
 def register_plugin():

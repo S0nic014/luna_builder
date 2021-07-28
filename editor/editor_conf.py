@@ -60,6 +60,11 @@ class DataType(object):
                       'label': 'AnimComponent',
                       'class': luna_rig.AnimComponent,
                       'default': None}
+    CHARACTER = {'index': 9,
+                 'color': QtGui.QColor("#FF0056a6"),
+                 'label': 'Character',
+                 'class': luna_rig.components.Character,
+                 'default': None}
 
     @classmethod
     def register_datatype(cls, type_name, color, label='custom_data', type_class=None, default_value=None):
@@ -73,6 +78,9 @@ class DataType(object):
 
     @classmethod
     def get_type(cls, index, name_only=False):
+        if index == -1:
+            return None
+
         try:
             type_name = [dt for dt, desc in cls.__dict__.items() if isinstance(desc, dict) and desc.get('index') == index][0]
         except IndexError:
@@ -102,7 +110,11 @@ class NodeIDNotFound(ConfException):
 
 
 # Plugins
+FUNC_NODE_ID = 100
+
 NODE_REGISTER = {}
+
+FUNCTION_REGISTER = {}
 
 
 def register_node(node_id, node_class):
@@ -113,11 +125,50 @@ def register_node(node_id, node_class):
     Logger.debug('Registered node {0}::{1}'.format(node_id, node_class))
 
 
+def register_function(func, source_datatype, inputs_dict={}, outputs_dict={}, nice_name=None, docstring='', icon='func.png'):
+    # Get datatype index if source_datatype is not int
+    if not isinstance(source_datatype, int):
+        if not source_datatype:
+            dt_index = -1
+        else:
+            dt_index = source_datatype.get('index')
+        dt_name = DataType.get_type(dt_index, name_only=True) if dt_index else None
+
+    is_property = isinstance(func, property)
+
+    # Store function in register
+    if source_datatype:
+        if is_property and func.fget:
+            signature = "{0}.{1}_getter".format(source_datatype.get('class').__name__, func.fget.__name__)
+        elif is_property and func.fset:
+            signature = "{0}.{1}_setter".format(source_datatype.get('class').__name__, func.fset.__name__)
+        signature = "{0}.{1}".format(source_datatype.get('class').__name__, func.__name__)
+    else:
+        signature = func.__name__
+
+    func_dict = {'ref': func,
+                 'inputs': inputs_dict,
+                 'outputs': outputs_dict,
+                 'doc': docstring,
+                 'icon': icon,
+                 'property': isinstance(func, property)}
+    if dt_index not in FUNCTION_REGISTER:
+        FUNCTION_REGISTER[dt_index] = {}
+    FUNCTION_REGISTER[dt_index][signature] = func_dict
+    Logger.debug('Registered function for datatype {0} ({1}):'.format(dt_name, dt_index))
+    Logger.debug('>    {0}: {1}\n'.format(signature, func_dict))
+
+
 def get_node_class_from_id(node_id):
     if node_id not in NODE_REGISTER:
         Logger.error('Node ID {0} was not found in register'.format(node_id))
         raise NodeIDNotFound
     return NODE_REGISTER[node_id]
+
+
+def get_functions_from_datatype(datatype):
+    func_map = FUNCTION_REGISTER.get(datatype['index'])  # type: dict
+    return func_map
 
 
 def load_plugins():
@@ -142,6 +193,7 @@ def load_plugins():
 
 def reload_plugins():
     NODE_REGISTER.clear()
+    FUNCTION_REGISTER.clear()
     load_plugins()
 
 

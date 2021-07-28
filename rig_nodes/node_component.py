@@ -41,14 +41,27 @@ class AnimComponentNode(ComponentNode):
         self.in_name.value = 'anim_component'
 
         # FIXME: Change DataType.COMPONENT to DataType.CHARACTER
-        self.in_character = self.add_input(editor_conf.DataType.COMPONENT, label='Character')
+        self.in_character = self.add_input(editor_conf.DataType.CHARACTER, label='Character')
         self.in_hook = self.add_input(editor_conf.DataType.NUMERIC, label='In Hook')
         self.in_hook.value = None
 
         # FIXME: Change DataType.COMPONENT to DataType.CHARACTER
-        self.out_character = self.add_output(editor_conf.DataType.COMPONENT, label='Character')
+        self.out_character = self.add_output(editor_conf.DataType.CHARACTER, label='Character')
         self.out_in_hook = self.add_output(editor_conf.DataType.PYNODE, label='In Hook')
         self.out_hooks_list = self.add_output(editor_conf.DataType.LIST, label='Hooks List')
         self.out_controls = self.add_output(editor_conf.DataType.LIST, label='Controls')
         self.out_bind_joints = self.add_output(editor_conf.DataType.LIST, label='Bind Joints')
         self.out_ctl_chain = self.add_output(editor_conf.DataType.LIST, label='Ctl Chain')
+
+
+def register_plugin():
+    editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.character,
+                                  editor_conf.DataType.ANIM_COMPONENT,
+                                  inputs_dict={'AnimComponent': editor_conf.DataType.ANIM_COMPONENT},
+                                  outputs_dict={'Character': editor_conf.DataType.CHARACTER},
+                                  nice_name='Get Character')
+    editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.in_hook_index,
+                                  editor_conf.DataType.ANIM_COMPONENT,
+                                  inputs_dict={'AnimComponent': editor_conf.DataType.ANIM_COMPONENT},
+                                  outputs_dict={'Hook Index': editor_conf.DataType.NUMERIC},
+                                  nice_name='Get In Hook Index')

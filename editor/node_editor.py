@@ -98,16 +98,18 @@ class NodeEditor(QtWidgets.QWidget):
         pixmap = QtGui.QPixmap()
         data_stream >> pixmap
         node_id = data_stream.readInt32()
+        func_signature = data_stream.readQString()
         text = data_stream.readQString()
         # Position
         mouse_pos = event.pos()
         scene_pos = self.scene.view.mapToScene(mouse_pos)
 
         Logger.debug('''Dropped Item:
-                       > NODE_ID: {0}
-                       > TEXT: {1}
-                       > MOUSE POS: {2}
-                       > SCENE POS {3}'''.format(node_id, text, mouse_pos, scene_pos))
+                       > NODE_ID: {node_id}
+                       > FUNC: {func_signature}
+                       > TEXT: {text}
+                       > MOUSE POS: {mouse_pos}
+                       > SCENE POS {scene_pos}'''.format(node_id=node_id, func_signature=func_signature, text=text, mouse_pos=mouse_pos, scene_pos=scene_pos))
 
         try:
             new_node = editor_conf.get_node_class_from_id(node_id)(self.scene)

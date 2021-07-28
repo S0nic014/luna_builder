@@ -60,10 +60,9 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
 
     def add_node_item(self, node_id, label_text, category='Undefiend', icon_name=None):
         if not icon_name:
-            icon_name = os.path.join(directories.FALLBACK_IMG_PATH, 'noNodeIcon.png')
-        else:
-            icon_name = os.path.join(directories.ICONS_PATH, icon_name)
-        pixmap = QtGui.QPixmap(icon_name)
+            icon_name = 'func.png'
+        icon_path = os.path.join(directories.ICONS_PATH, icon_name)
+        pixmap = QtGui.QPixmap(icon_path)
 
         # Find paren
         parent_item = self.findItems(category, QtCore.Qt.MatchContains)

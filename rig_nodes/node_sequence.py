@@ -5,6 +5,7 @@ import luna_builder.rig_nodes.luna_node as luna_node
 class SequenceNode(luna_node.LunaNode):
     ID = 5
     IS_EXEC = True
+    ICON = 'sequence.png'
     AUTO_INIT_EXECS = False
     DEFAULT_TITLE = 'Sequence'
     CATEGORY = 'Utils'

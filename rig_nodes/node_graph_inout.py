@@ -6,6 +6,7 @@ class GraphInputNode(luna_node.LunaNode):
     ID = 3
     IS_EXEC = True
     AUTO_INIT_EXECS = False
+    ICON = 'input.png'
     DEFAULT_TITLE = 'Input'
     HEIGHT = 80
     CATEGORY = 'Utils'
@@ -21,6 +22,7 @@ class GraphOutputNode(luna_node.LunaNode):
     ID = 4
     IS_EXEC = True
     AUTO_INIT_EXECS = False
+    ICON = 'output.png'
     DEFAULT_TITLE = 'Output'
     HEIGHT = 80
     CATEGORY = 'Utils'

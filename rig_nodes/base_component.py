@@ -16,7 +16,7 @@ class ComponentNode(luna_node.LunaNode):
 
         # Outputs
         # Inputs
-        self.out_component = self.add_output(editor_conf.DataType.COMPONENT, label='Component', value=None)
+        self.out_self = self.add_output(editor_conf.DataType.COMPONENT, label='Self', value=None)
         self.out_meta_parent = self.add_output(editor_conf.DataType.COMPONENT, label='Parent', value=None)
         self.out_meta_childrent = self.add_output(editor_conf.DataType.LIST, label='Children')
         self.out_side = self.add_output(editor_conf.DataType.STRING, label='Side', value='c')

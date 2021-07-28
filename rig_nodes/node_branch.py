@@ -6,6 +6,7 @@ class BranchNode(luna_node.LunaNode):
     ID = 1
     IS_EXEC = True
     AUTO_INIT_EXECS = False
+    ICON = 'branch.png'
     DEFAULT_TITLE = 'Branch'
     CATEGORY = 'Utils'
     HEIGHT = 100

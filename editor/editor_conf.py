@@ -3,6 +3,7 @@ import imp
 
 from PySide2 import QtGui
 
+import pymel.core as pm
 from luna import Logger
 import luna_rig
 import luna.static.directories as directories
@@ -38,17 +39,23 @@ class DataType(object):
             'label': 'List',
             'class': list,
             'default': []}
-    CONTROL = {'index': 5,
+    PYNODE = {'index': 5,
+              'color': QtGui.QColor("#FF0056a6"),
+              'label': 'Scene object',
+              'class': pm.PyNode,
+              'default': None,
+              }
+    CONTROL = {'index': 6,
                'color': QtGui.QColor("#FF0056a6"),
                'label': 'Control',
                'class': luna_rig.Control,
                'default': None}
-    COMPONENT = {'index': 6,
+    COMPONENT = {'index': 7,
                  'color': QtGui.QColor("#FF0056a6"),
                  'label': 'Component',
                  'class': luna_rig.Component,
                  'default': None}
-    ANIM_COMPONENT = {'index': 7,
+    ANIM_COMPONENT = {'index': 8,
                       'color': QtGui.QColor("#FF0056a6"),
                       'label': 'AnimComponent',
                       'class': luna_rig.AnimComponent,

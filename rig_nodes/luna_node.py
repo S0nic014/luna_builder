@@ -5,7 +5,7 @@ class LunaNode(node_node.Node):
 
     ID = None
     ICON = None
-    PALETTE_LABEL = node_node.Node.DEFAULT_TITLE
+    DEFAULT_TITLE = 'Luna Node'
     UNIQUE = False
     CATEGORY = 'Utils'
 

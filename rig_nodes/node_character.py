@@ -3,7 +3,7 @@ import luna_builder.rig_nodes.base_component as base_component
 
 
 class CharacterNode(base_component.ComponentNode):
-    ID = 6
+    ID = 7
     IS_EXEC = True
     ICON = 'bindpose.png'
     HEIGHT = 320

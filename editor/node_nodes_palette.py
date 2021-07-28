@@ -42,7 +42,8 @@ class NodesPalette(QtWidgets.QGroupBox):
         keys.sort()
         for node_id in keys:
             node_class = editor_conf.NODE_REGISTER[node_id]
-            self.nodes_tree.add_node_item(node_id, node_class.DEFAULT_TITLE, category=node_class.CATEGORY, icon_name=node_class.ICON)
+            palette_label = node_class.PALETTE_LABEL if hasattr(node_class, 'PALETTE_LABEL') else node_class.DEFAULT_TITLE
+            self.nodes_tree.add_node_item(node_id, palette_label, category=node_class.CATEGORY, icon_name=node_class.ICON)
 
 
 class QLDragTreeWidget(QtWidgets.QTreeWidget):

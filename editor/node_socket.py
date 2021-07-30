@@ -1,5 +1,5 @@
 import imp
-from PySide2 import QtGui
+from PySide2 import QtCore
 from collections import OrderedDict
 
 from luna import Logger
@@ -8,6 +8,10 @@ import luna_builder.editor.editor_conf as editor_conf
 import luna_builder.editor.graphics_socket as graphics_socket
 import luna_builder.editor.node_serializable as node_serializable
 imp.reload(graphics_socket)
+
+
+class SocketSignals(QtCore.QObject):
+    value_changed = QtCore.Signal()
 
 
 class Socket(node_serializable.Serializable):
@@ -37,6 +41,7 @@ class Socket(node_serializable.Serializable):
                  value=None,
                  count_on_this_side=0):
         super(Socket, self).__init__()
+        self.signals = SocketSignals()
 
         self.node = node
         self.index = index
@@ -72,6 +77,7 @@ class Socket(node_serializable.Serializable):
     @value.setter
     def value(self, value):
         self._value = value
+        self.signals.value_changed.emit()
 
     @property
     def data_type(self):

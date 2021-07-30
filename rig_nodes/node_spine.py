@@ -24,7 +24,7 @@ class SpineNode(base_component.AnimComponentNode):
 
 class FKIKSpineNode(SpineNode):
     ID = 8
-    DEFAULT_TITLE = 'Spine (FKIK)'
+    DEFAULT_TITLE = 'FKIK Spine'
     COMPONENT_CLASS = luna_rig.components.FKIKSpineComponent
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):

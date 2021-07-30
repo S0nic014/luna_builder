@@ -15,7 +15,7 @@ class FKIKComponentNode(base_component.AnimComponentNode):
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(FKIKComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
 
-        self.in_name = self.out_name = 'fkik_component'
+        self.in_name.value = self.out_name.value = 'fkik_component'
         self.in_start_joint = self.add_input(editor_conf.DataType.STRING, label='Start Joint', value=None)
         self.in_end_joint = self.add_input(editor_conf.DataType.STRING, label='End Joint', value=None)
         self.in_ik_world_orient = self.add_input(editor_conf.DataType.BOOLEAN, label='IK World Orient', value=False)

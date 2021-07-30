@@ -67,6 +67,15 @@ class DataType(object):
                  'default': None}
 
     @classmethod
+    def list_types(cls):
+        return [(dt, desc) for dt, desc in cls.__dict__.items() if isinstance(desc, dict)]
+
+    @classmethod
+    def list_basetypes(cls, of_type):
+        basetypes = [typ for typ in cls.list_types() if issubclass(of_type, typ[1]['class'])]
+        return basetypes
+
+    @ classmethod
     def register_datatype(cls, type_name, color, label='custom_data', type_class=None, default_value=None):
         type_dict = {'index': cls._get_new_index(),
                      'color': color if isinstance(color, QtGui.QColor) else QtGui.QColor(color),
@@ -76,7 +85,7 @@ class DataType(object):
         setattr(cls, type_name, type_dict)
         Logger.info('Registered datatype: {0}'.format(type_name))
 
-    @classmethod
+    @ classmethod
     def get_type(cls, index, name_only=False):
         if index == -1:
             return None
@@ -91,7 +100,7 @@ class DataType(object):
                 return type_name
             return cls.__dict__[type_name]
 
-    @classmethod
+    @ classmethod
     def _get_new_index(cls):
         return len([mp for mp in cls.__dict__.values() if isinstance(mp, dict)])
 
@@ -186,9 +195,6 @@ def get_function_from_signature(signature):
 def load_plugins():
     Logger.info('Loading rig editor plugins...')
     success_count = 0
-    # !LOAD Base component class first, to avoid 'obj must be an instance or subtype of type' Error
-    # base_comp_plugin = os.path.join(directories.EDITOR_PLUGINS_PATH, 'base_component.py')
-    # plugin_files = [base_comp_plugin]
     plugin_files = []
 
     for file_name in os.listdir(directories.EDITOR_PLUGINS_PATH):

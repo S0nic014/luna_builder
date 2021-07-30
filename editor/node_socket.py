@@ -89,6 +89,9 @@ class Socket(node_serializable.Serializable):
 
     # ===== Methods ===== #
 
+    def set_value(self, value):
+        self.value = value
+
     def has_edge(self):
         return bool(self.edges)
 

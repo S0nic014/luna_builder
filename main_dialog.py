@@ -9,12 +9,15 @@ from luna import Logger
 from luna import __version__
 from luna.utils import pysideFn
 
-from luna_builder.tabs import tab_workspace
+import luna_builder.tabs.tab_workspace as tab_workspace
+import luna_builder.tabs.tab_attributes as tab_attributes
+
 import luna_builder.menus as menus
 import luna_builder.editor.node_editor as node_editor
 import luna_builder.editor.node_nodes_palette as node_nodes_palette
 
 imp.reload(node_editor)
+imp.reload(tab_attributes)
 imp.reload(node_nodes_palette)
 
 
@@ -125,7 +128,9 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.tab_widget.setMaximumWidth(500)
         self.tab_widget.setMinimumWidth(400)
         self.workspace_wgt = tab_workspace.WorkspaceWidget()
+        self.attrib_editor = tab_attributes.AttributesEditor(self)
         self.tab_widget.addTab(self.workspace_wgt, self.workspace_wgt.label)
+        self.tab_widget.addTab(self.attrib_editor, 'Attributes')
 
     def create_layouts(self):
         self.hor_layout = QtWidgets.QHBoxLayout()
@@ -162,6 +167,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         # Signal connections
         new_editor.scene.signals.file_name_changed.connect(self.update_title)
         new_editor.scene.signals.modified.connect(self.update_title)
+        new_editor.scene.signals.selection_changed.connect(self.attrib_editor.update_current_widget)
         new_editor.signals.about_to_close.connect(self.on_sub_window_close)
         return sub_wnd
 

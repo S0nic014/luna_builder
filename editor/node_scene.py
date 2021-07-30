@@ -27,6 +27,7 @@ class SceneSignals(QtCore.QObject):
     items_deselected = QtCore.Signal()
     item_drag_entered = QtCore.Signal(QtCore.QEvent)
     item_dropped = QtCore.Signal(QtCore.QEvent)
+    selection_changed = QtCore.Signal()
 
 
 class Scene(node_serializable.Serializable):
@@ -148,6 +149,7 @@ class Scene(node_serializable.Serializable):
             self.history.store_history('Selection changed', set_modified=False)
             self.signals.item_selected.emit()
         self._last_selected_items = current_selection
+        self.signals.selection_changed.emit()
 
     # ====== Cut / Copy / Paste ====== #
     def copy_selected(self):

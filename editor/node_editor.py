@@ -1,4 +1,5 @@
 import imp
+import json
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
@@ -98,23 +99,22 @@ class NodeEditor(QtWidgets.QWidget):
         pixmap = QtGui.QPixmap()
         data_stream >> pixmap
         node_id = data_stream.readInt32()
-        func_signature = data_stream.readQString()
-        text = data_stream.readQString()
+        json_data = json.loads(data_stream.readQString())  # type: dict
         # Position
         mouse_pos = event.pos()
         scene_pos = self.scene.view.mapToScene(mouse_pos)
 
         Logger.debug('''Dropped Item:
                        > NODE_ID: {node_id}
-                       > FUNC: {func_signature}
-                       > TEXT: {text}
+                       > DATA: {data}
                        > MOUSE POS: {mouse_pos}
-                       > SCENE POS {scene_pos}'''.format(node_id=node_id, func_signature=func_signature, text=text, mouse_pos=mouse_pos, scene_pos=scene_pos))
+                       > SCENE POS {scene_pos}'''.format(node_id=node_id, data=json_data, mouse_pos=mouse_pos, scene_pos=scene_pos))
 
         try:
             new_node = editor_conf.get_node_class_from_id(node_id)(self.scene)
             if node_id == editor_conf.FUNC_NODE_ID:
-                new_node.func_signature = func_signature
+                new_node.func_signature = json_data.get('func_signature', '')
+                new_node.title = json_data.get('title')
 
             new_node.set_position(scene_pos.x(), scene_pos.y())
             self.scene.history.store_history('Created Node {0}'.format(new_node.as_str(name_only=True)))

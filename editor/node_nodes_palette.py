@@ -1,4 +1,5 @@
 import os
+import json
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
@@ -56,12 +57,15 @@ class NodesPalette(QtWidgets.QGroupBox):
             func_signatures_list = func_map.keys()
             func_signatures_list.sort()
             for func_sign in func_signatures_list:
+                sub_category_name = editor_conf.get_class_name_from_signature(func_sign)
                 func_dict = func_map[func_sign]
                 icon_name = func_dict['icon']
+                nice_name = func_dict.get('nice_name')
+                palette_name = nice_name if nice_name else func_sign
                 self.nodes_tree.add_node_item(editor_conf.FUNC_NODE_ID,
-                                              func_sign,
+                                              palette_name,
                                               func_signature=func_sign,
-                                              category='Functions',
+                                              category='Functions/{0}'.format(sub_category_name),
                                               icon_name=icon_name)
 
 
@@ -85,9 +89,11 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         icon_path = os.path.join(directories.ICONS_PATH, icon_name)
         pixmap = QtGui.QPixmap(icon_path)
 
-        # Find paren
-        parent_item = self.findItems(category, QtCore.Qt.MatchContains)
-        parent_item = parent_item[0] if parent_item else self.add_category(category)
+        # Find parent
+        category_path = category.split('/')
+        parent_item = self
+        for category_name in category_path:
+            parent_item = self.get_category(category_name, parent=parent_item)
 
         # Setup item
         item = QtWidgets.QTreeWidgetItem()
@@ -100,12 +106,20 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         item.setData(0, QLDragTreeWidget.PIXMAP_ROLE, pixmap)
         item.setData(0, QLDragTreeWidget.NODE_ID_ROLE, node_id)
         item.setData(0, QLDragTreeWidget.FUNCTION_DT_ID, func_signature)
+        return item
 
-    def add_category(self, name, expanded=True):
-        tree_item = QtWidgets.QTreeWidgetItem(self)
+    def add_category(self, name, expanded=True, parent=None):
+        if not parent:
+            parent = self
+        tree_item = QtWidgets.QTreeWidgetItem(parent)
         tree_item.setText(0, name.capitalize())
         tree_item.setExpanded(True)
         return tree_item
+
+    def get_category(self, name, expanded=True, parent=None):
+        found_items = self.findItems(name, QtCore.Qt.MatchContains | QtCore.Qt.MatchRecursive, 0)
+        item = found_items[0] if found_items else self.add_category(name, expanded=expanded, parent=parent)
+        return item
 
     def startDrag(self, event):
         Logger.debug('Palette::startDrag')
@@ -115,13 +129,18 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
             func_signature = item.data(0, QLDragTreeWidget.FUNCTION_DT_ID)
             pixmap = QtGui.QPixmap(item.data(0, QLDragTreeWidget.PIXMAP_ROLE))
 
-            # Pack item data
+            # Pack data to json
+            json_data = {
+                'title': item.text(0),
+                'func_signature': func_signature
+            }
+
+            # Pack data to data stream
             item_data = QtCore.QByteArray()
             data_stream = QtCore.QDataStream(item_data, QtCore.QIODevice.WriteOnly)
             data_stream << pixmap
             data_stream.writeInt32(node_id)
-            data_stream.writeQString(func_signature)
-            data_stream.writeQString(item.text(0))
+            data_stream.writeQString(json.dumps(json_data))
 
             # Create mime data
             mime_data = QtCore.QMimeData()

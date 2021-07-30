@@ -9,7 +9,7 @@ class LoggerNode(luna_node.LunaNode):
     ICON = 'func.png'
     AUTO_INIT_EXECS = True
     DEFAULT_TITLE = 'Log'
-    CATEGORY = 'Functions'
+    CATEGORY = 'Utils'
     HEIGHT = 180
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):

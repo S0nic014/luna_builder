@@ -9,7 +9,23 @@ import luna_rig
 import luna.static.directories as directories
 
 
+# ====== CONSTANTS ======== #
 PALETTE_MIMETYPE = 'luna/x-item'
+FUNC_NODE_ID = 100
+
+# ====== EXCEPTIONS ======== #
+
+
+class ConfException(Exception):
+    pass
+
+
+class InvalidNodeRegistration(ConfException):
+    pass
+
+
+class NodeIDNotFound(ConfException):
+    pass
 
 
 class DataType(object):
@@ -105,22 +121,7 @@ class DataType(object):
         return len([mp for mp in cls.__dict__.values() if isinstance(mp, dict)])
 
 
-# Exceptions
-class ConfException(Exception):
-    pass
-
-
-class InvalidNodeRegistration(ConfException):
-    pass
-
-
-class NodeIDNotFound(ConfException):
-    pass
-
-
-# Plugins
-FUNC_NODE_ID = 100
-
+# ========== REGISTERS =========== #
 NODE_REGISTER = {}
 
 FUNCTION_REGISTER = {}
@@ -134,6 +135,14 @@ def register_node(node_id, node_class):
     Logger.debug('Registered node {0}::{1}'.format(node_id, node_class))
 
 
+def get_node_class_from_id(node_id):
+    if node_id not in NODE_REGISTER:
+        Logger.error('Node ID {0} was not found in register'.format(node_id))
+        raise NodeIDNotFound
+    return NODE_REGISTER[node_id]
+
+
+# ========== FUNCTIONS =========== #
 def register_function(func, source_datatype, inputs_dict={}, outputs_dict={}, nice_name=None, docstring='', icon='func.png'):
     # Get datatype index if source_datatype is not int
     if not isinstance(source_datatype, int):
@@ -163,6 +172,7 @@ def register_function(func, source_datatype, inputs_dict={}, outputs_dict={}, ni
                  'outputs': outputs_dict,
                  'doc': docstring,
                  'icon': icon,
+                 'nice_name': nice_name,
                  'property': isinstance(func, property)}
 
     # Store function in the register
@@ -171,13 +181,6 @@ def register_function(func, source_datatype, inputs_dict={}, outputs_dict={}, ni
     FUNCTION_REGISTER[dt_index][signature] = func_dict
     Logger.debug('Registered function for datatype {0} ({1}):'.format(dt_name, dt_index))
     Logger.debug('>    {0}: {1}\n'.format(signature, func_dict))
-
-
-def get_node_class_from_id(node_id):
-    if node_id not in NODE_REGISTER:
-        Logger.error('Node ID {0} was not found in register'.format(node_id))
-        raise NodeIDNotFound
-    return NODE_REGISTER[node_id]
 
 
 def get_functions_map_from_datatype(datatype):
@@ -192,6 +195,11 @@ def get_function_from_signature(signature):
     return None
 
 
+def get_class_name_from_signature(signature):
+    return signature.split('.')[-2]
+
+
+# ========== PLUGINS =========== #
 def load_plugins():
     Logger.info('Loading rig editor plugins...')
     success_count = 0
@@ -216,8 +224,4 @@ def load_plugins():
 def reload_plugins():
     NODE_REGISTER.clear()
     FUNCTION_REGISTER.clear()
-    load_plugins()
-
-
-if __name__ == '__main__':
     load_plugins()

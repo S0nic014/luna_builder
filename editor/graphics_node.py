@@ -42,7 +42,7 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
 
     @property
     def height(self):
-        return self.node.HEIGHT
+        return self.node.max_height_of_sockets() + self.title_height + self.lower_padding
 
     @property
     def title_height(self):
@@ -53,6 +53,7 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         self.edge_padding = 10.0
         self.title_horizontal_padding = 4.0
         self.title_vertical_padding = 4.0
+        self.lower_padding = 8.0
 
     def init_assets(self):
         # Fonts colors

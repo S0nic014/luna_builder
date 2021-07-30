@@ -113,8 +113,6 @@ class Node(node_serializable.Serializable):
             top_offset = self.gr_node.title_height + 2 * self.gr_node.title_vertical_padding + self.gr_node.edge_padding
             available_height = node_height - top_offset
 
-            total_height_of_all_sockets = num_sockets * self.socket_spacing
-
             y = top_offset + available_height / 2.0 + (index - 0.5) * self.socket_spacing
             if num_sockets > 1:
                 y -= self.socket_spacing * (num_sockets - 1) / 2
@@ -126,6 +124,12 @@ class Node(node_serializable.Serializable):
             y = 0
 
         return [x, y]
+
+    def max_height_of_sockets(self):
+        min_size = 30
+        max_inputs = len(self.inputs) * self.socket_spacing
+        max_outputs = len(self.outputs) * self.socket_spacing
+        return max(max_inputs, max_outputs, min_size)
 
     def update_connected_edges(self):
         for socket in self.inputs + self.outputs:

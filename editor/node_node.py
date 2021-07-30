@@ -235,3 +235,9 @@ class Node(node_serializable.Serializable):
             Logger.error('Socket {0} does not exist.'.format(socket_name))
             raise AttributeError
         return socket.value
+
+    def list_non_exec_inputs(self):
+        return [socket for socket in self.inputs if socket.data_type != editor_conf.DataType.EXEC]
+
+    def list_non_exec_outputs(self):
+        return [socket for socket in self.outputs if socket.data_type != editor_conf.DataType.EXEC]

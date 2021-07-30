@@ -32,6 +32,11 @@ class FunctionNode(luna_node.LunaNode):
     def func_signature(self):
         return self._func_signature
 
+    @property
+    def func_ref(self):
+        reference = self.func_signature.get('ref') if self.func_signature else None  # type: function
+        return reference
+
     @func_signature.setter
     def func_signature(self, value):
         self.set_signature_without_reinit(value)
@@ -57,7 +62,16 @@ class FunctionNode(luna_node.LunaNode):
         self.set_signature_without_reinit(data.get('func_signature'))
 
     def execute(self):
-        pass
+        attr_values = [socket.value for socket in self.list_non_exec_inputs()]
+        func_result = self.func_ref(attr_values)
+        for index, out_socket in enumerate(self.list_non_exec_outputs()):
+            try:
+                out_socket.value = func_result[index]
+            except IndexError:
+                Logger.error('Missing return result for function {0}, at index {1}'.format(self.func_ref, index))
+            except Exception:
+                Logger.error('Function Node execute exception.')
+                raise
 
 
 def register_plugin():

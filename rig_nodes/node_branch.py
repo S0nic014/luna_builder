@@ -9,7 +9,6 @@ class BranchNode(luna_node.LunaNode):
     ICON = 'branch.png'
     DEFAULT_TITLE = 'Branch'
     CATEGORY = 'Utils'
-    HEIGHT = 100
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)

@@ -26,7 +26,6 @@ class QLGraphicsSocket(QtWidgets.QGraphicsItem):
 
         # Add text label
         self.text_item = QtWidgets.QGraphicsTextItem(self.socket.label, parent=self)
-        self.text_item.setTextWidth(self.socket.get_label_width())
         if self.socket.node_position in [self.socket.Position.RIGHT_TOP, self.socket.Position.RIGHT_BOTTOM]:
             self.align_text_right()
 

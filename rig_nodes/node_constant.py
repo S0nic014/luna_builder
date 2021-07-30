@@ -5,7 +5,6 @@ import luna_builder.rig_nodes.luna_node as luna_node
 class ConstantNode(luna_node.LunaNode):
     ID = 2
     IS_EXEC = False
-    HEIGHT = 80
     DEFAULT_TITLE = 'Constant'
     CATEGORY = 'Utils'
 

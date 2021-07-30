@@ -33,7 +33,6 @@ class ComponentNode(luna_node.LunaNode):
 class AnimComponentNode(ComponentNode):
 
     DEFAULT_TITLE = 'Anim Component'
-    HEIGHT = 260
     COMPONENT_CLASS = luna_rig.AnimComponent
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):

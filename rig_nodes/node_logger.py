@@ -10,7 +10,6 @@ class LoggerNode(luna_node.LunaNode):
     AUTO_INIT_EXECS = True
     DEFAULT_TITLE = 'Log'
     CATEGORY = 'Utils'
-    HEIGHT = 180
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(LoggerNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)

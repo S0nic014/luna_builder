@@ -10,8 +10,6 @@ class FunctionNode(luna_node.LunaNode):
     AUTO_INIT_EXECS = True
     DEFAULT_TITLE = 'Function'
     CATEGORY = 'Functions'
-    HEIGHT = 180
-    WIDTH = 300
 
     def __init__(self, scene, title=None, inputs=[], outputs=[]):
         self._func_signature = ''

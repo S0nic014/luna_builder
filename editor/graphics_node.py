@@ -38,7 +38,7 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
 
     @property
     def width(self):
-        return self.node.WIDTH
+        return self.node.max_width_of_socket_labels()
 
     @property
     def height(self):

@@ -49,7 +49,7 @@ class Socket(node_serializable.Serializable):
 
         # Graphics
         self.gr_socket = graphics_socket.QLGraphicsSocket(self)
-        self.set_position()
+        self.update_positions()
 
         # Edge
         self.edges = []
@@ -92,26 +92,22 @@ class Socket(node_serializable.Serializable):
     def has_edge(self):
         return bool(self.edges)
 
-    def set_position(self):
+    def update_positions(self):
         self.gr_socket.setPos(*self.node.get_socket_position(self.index, self.node_position, self.count_on_this_side))
-        self.gr_socket.text_item.setPos(*self.get_label_position(self.gr_socket.text_item))
+        self.gr_socket.text_item.setPos(*self.get_label_position())
 
     def get_position(self):
         return self.node.get_socket_position(self.index, self.node_position, self.count_on_this_side)
 
-    def get_label_position(self, text_item):
-        text_width = text_item.boundingRect().width()
+    def get_label_position(self):
+        text_width = self.gr_socket.text_item.boundingRect().width()
         if self.node_position in [Socket.Position.LEFT_TOP, Socket.Position.LEFT_BOTTOM]:
             return [self.node.gr_node.width / 25.0, Socket.LABEL_VERTICAL_PADDING]
         else:
-            clamped_x = -(self.node.gr_node.width / 2 + text_width) * 0.55
-            return [clamped_x, Socket.LABEL_VERTICAL_PADDING]
+            return [-text_width - self.node.gr_node.width / 25, Socket.LABEL_VERTICAL_PADDING]
 
     def get_label_width(self):
-        if self.node_position in [Socket.Position.LEFT_TOP, Socket.Position.LEFT_BOTTOM]:
-            return self.node.gr_node.width * 0.45
-        else:
-            return self.node.gr_node.width / 2 * 0.8
+        return self.gr_socket.text_item.boundingRect().width()
 
     def set_connected_edge(self, edge=None):
         if not edge:

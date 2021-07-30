@@ -7,8 +7,6 @@ class CharacterNode(base_component.ComponentNode):
     ID = 7
     IS_EXEC = True
     ICON = 'bindpose.png'
-    HEIGHT = 330
-    WIDTH = 240
     DEFAULT_TITLE = 'Character'
     CATEGORY = 'Components'
     UNIQUE = True

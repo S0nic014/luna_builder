@@ -9,7 +9,6 @@ class SequenceNode(luna_node.LunaNode):
     AUTO_INIT_EXECS = False
     DEFAULT_TITLE = 'Sequence'
     CATEGORY = 'Utils'
-    HEIGHT = 180
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)

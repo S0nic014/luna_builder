@@ -7,7 +7,6 @@ class ScriptNode(luna_node.LunaNode):
     IS_EXEC = True
     AUTO_INIT_EXECS = True
     ICON = 'python.png'
-    HEIGHT = 80
     DEFAULT_TITLE = 'Script'
     PALETTE_LABEL = 'Script (Python)'
     CATEGORY = 'Utils'

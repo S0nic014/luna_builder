@@ -11,8 +11,6 @@ imp.reload(graphics_node)
 
 class Node(node_serializable.Serializable):
 
-    WIDTH = 180
-    HEIGHT = 240
     TITLE_HEIGHT = 24
     DEFAULT_TITLE = 'Custom Node'
     IS_EXEC = True
@@ -131,9 +129,26 @@ class Node(node_serializable.Serializable):
         max_outputs = len(self.outputs) * self.socket_spacing
         return max(max_inputs, max_outputs, min_size)
 
+    def max_width_of_socket_labels(self):
+        min_width = 180
+        max_outputs = 0
+        max_inputs = 0
+
+        input_widths = [socket.get_label_width() for socket in self.inputs] or [0, 0]
+        output_widths = [socket.get_label_width() for socket in self.outputs] or [0, 0]
+
+        max_inputs = max(input_widths)
+        max_outputs = max(output_widths)
+
+        return max(max_inputs + max_outputs, min_width)
+
     def update_connected_edges(self):
         for socket in self.inputs + self.outputs:
             socket.update_edges()
+
+    def update_socket_positions(self):
+        for socket in self.outputs + self.inputs:
+            socket.update_positions()
 
     def remove(self):
         try:
@@ -203,6 +218,7 @@ class Node(node_serializable.Serializable):
                                                   count_on_this_side=num_outputs)
             new_socket.deserialize(socket_data, hashmap, restore_id=restore_id)
             self.outputs.append(new_socket)
+        self.update_socket_positions()
 
     # Creation methods
     def add_input(self, data_type, label=None, value=None, *args, **kwargs):
@@ -217,6 +233,7 @@ class Node(node_serializable.Serializable):
                                          *args,
                                          **kwargs)
         self.inputs.append(socket)
+        self.update_socket_positions()
         return socket
 
     def add_output(self, data_type, label=None, max_connections=0, value=None, *args, **kwargs):
@@ -231,6 +248,7 @@ class Node(node_serializable.Serializable):
                                           *args,
                                           **kwargs)
         self.outputs.append(socket)
+        self.update_socket_positions()
         return socket
 
     def get_value(self, socket_name):

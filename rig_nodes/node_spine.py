@@ -7,8 +7,6 @@ class SpineNode(base_component.AnimComponentNode):
     ID = None
     IS_EXEC = True
     ICON = 'body.png'
-    HEIGHT = 320
-    WIDTH = 240
     DEFAULT_TITLE = 'Spine'
     CATEGORY = 'Components'
     UNIQUE = False
@@ -26,7 +24,6 @@ class SpineNode(base_component.AnimComponentNode):
 
 class FKIKSpineNode(SpineNode):
     ID = 8
-    HEIGHT = 600
     DEFAULT_TITLE = 'Spine (FKIK)'
     COMPONENT_CLASS = luna_rig.components.FKIKSpineComponent
 

@@ -7,8 +7,6 @@ class FKIKComponentNode(base_component.AnimComponentNode):
     ID = 9
     IS_EXEC = True
     ICON = 'ikfk.png'
-    HEIGHT = 500
-    WIDTH = 240
     DEFAULT_TITLE = 'FKIK'
     CATEGORY = 'Components'
     UNIQUE = False

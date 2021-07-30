@@ -7,8 +7,6 @@ class FootComponentNode(base_component.AnimComponentNode):
     ID = 10
     IS_EXEC = True
     ICON = None
-    HEIGHT = 370
-    WIDTH = 240
     DEFAULT_TITLE = 'Foot'
     CATEGORY = 'Components'
     UNIQUE = False
@@ -22,7 +20,7 @@ class FootComponentNode(base_component.AnimComponentNode):
         self.in_end_joint = self.add_input(editor_conf.DataType.STRING, label='End Joint', value=None)
         self.in_rv_chain = self.add_input(editor_conf.DataType.STRING, label='Reverse Chain', value=None)
         self.in_foot_loc_grp = self.add_input(editor_conf.DataType.STRING, label='Foot Locators Group', value=None)
-        self.in_roll_axis = self.add_input(editor_conf.DataType.STRING, label='Foot Locators Group', value='ry')
+        self.in_roll_axis = self.add_input(editor_conf.DataType.STRING, label='Rotate Axis', value='ry')
 
         self.out_roll_axis = self.add_output(editor_conf.DataType.STRING, label='Foot Locators Group', value=self.in_roll_axis.value)
         self.out_fk_control = self.add_output(editor_conf.DataType.CONTROL, label='FK Control', value=None)

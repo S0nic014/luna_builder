@@ -162,7 +162,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             for index, item in enumerate(self.scene.history.stack):
                 Logger.debug('# {0} -- {1}'.format(index, item.get('desc')))
         elif event.key() == QtCore.Qt.Key_K:
-            creator_dialog = node_context_menus.NodeCreatorWidget(self, parent=self)
+            creator_dialog = node_context_menus.NodeCreatorDialog(self, parent=self)
             creator_dialog.move(QtGui.QCursor.pos())
             creator_dialog.exec_()
         else:

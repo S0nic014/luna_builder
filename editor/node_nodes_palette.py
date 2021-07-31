@@ -24,9 +24,22 @@ class NodesPalette(QtWidgets.QGroupBox):
         self.update_node_tree()
 
     def create_widgets(self):
+        self.completer = QtWidgets.QCompleter()
+        self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.completer.setModelSorting(QtWidgets.QCompleter.CaseInsensitivelySortedModel)
+
         self.search_line = QtWidgets.QLineEdit()
         self.search_line.setPlaceholderText('Search')
+        self.search_line.setCompleter(self.completer)
         self.nodes_tree = QLDragTreeWidget(self)
+        # self.nodes_tree.setModel(self.completer.completionModel())
+
+    def create_model(self):
+
+        all_items = self.nodes_tree.findItems("*", QtCore.Qt.MatchWrap | QtCore.Qt.MatchWildcard | QtCore.Qt.MatchRecursive)
+        item_labels = [item.text(0) for item in all_items]
+        # item_labels.sort(key=str.lower)
+        self.completer.setModel(QtGui.QStringListModel(item_labels))
 
     def create_layouts(self):
         self.main_layout = QtWidgets.QVBoxLayout()
@@ -37,10 +50,11 @@ class NodesPalette(QtWidgets.QGroupBox):
         self.main_layout.addWidget(self.nodes_tree)
 
     def create_connections(self):
-        pass
+        self.search_line.textChanged.connect(self.completer.setCompletionPrefix)
 
     def update_node_tree(self):
         self.nodes_tree.populate()
+        self.create_model()
 
 
 class QLDragTreeWidget(QtWidgets.QTreeWidget):

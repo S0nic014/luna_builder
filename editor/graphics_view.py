@@ -5,7 +5,6 @@ from PySide2 import QtWidgets
 
 from luna import Logger
 import luna.utils.enumFn as enumFn
-import luna_builder.editor.editor_conf as editor_conf
 import luna_builder.editor.node_edge as node_edge
 import luna_builder.editor.node_socket as node_socket
 import luna_builder.editor.graphics_socket as graphics_socket
@@ -165,6 +164,10 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
     # =========== Handling button presses =========== #
     def middle_mouse_press(self, event):
+        item = self.get_item_at_click(event)
+        if event.modifiers() & QtCore.Qt.ControlModifier:
+            self.log_scene_objects(item)
+
         releaseEvent = QtGui.QMouseEvent(QtCore.QEvent.MouseButtonRelease, event.localPos(), event.screenPos(),
                                          QtCore.Qt.LeftButton, QtCore.Qt.NoButton, event.modifiers())
         super(QLGraphicsView, self).mouseReleaseEvent(releaseEvent)
@@ -233,10 +236,6 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
     def right_mouse_press(self, event):
         super(QLGraphicsView, self).mousePressEvent(event)
-
-        item = self.get_item_at_click(event)
-        if event.modifiers() & QtCore.Qt.ControlModifier:
-            self.log_scene_objects(item)
 
     def right_mouse_release(self, event):
         super(QLGraphicsView, self).mouseReleaseEvent(event)

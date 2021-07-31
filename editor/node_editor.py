@@ -9,7 +9,9 @@ from luna.workspace import Asset
 import luna_builder.editor.editor_conf as editor_conf
 import luna_builder.editor.node_scene as node_scene
 import luna_builder.editor.graphics_view as graphics_view
+import luna_builder.editor.node_context_menus as context_menus
 
+imp.reload(context_menus)
 imp.reload(node_scene)
 imp.reload(graphics_view)
 
@@ -79,21 +81,20 @@ class NodeEditor(QtWidgets.QWidget):
     def contextMenuEvent(self, event):
         try:
             item = self.scene.get_item_at(event.pos())
-            if hasattr(item, 'node') or hasattr(item, 'socket'):
+            if hasattr(item, 'node') or hasattr(item, 'socket') or not item:
                 self.handle_node_context_menu(event)
             elif hasattr(item, 'edge'):
                 self.handle_edge_context_menu(event)
-            else:
-                self.handle_new_node_context_menu(event)
 
             return super(NodeEditor, self).contextMenuEvent(event)
         except Exception:
-            Logger.debug('ContextMenuEvent exception')
+            Logger.exception('ContextMenuEvent exception')
 
     # ======== Context menus ======== #
 
     def handle_node_context_menu(self, event):
-        pass
+        ctx_menu = context_menus.NodeContextMenu(self)
+        ctx_menu.exec_(self.mapToGlobal(event.pos()))
 
     def handle_edge_context_menu(self, event):
         pass

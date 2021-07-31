@@ -16,7 +16,7 @@ class CharacterNode(base_component.ComponentNode):
         super(CharacterNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
         self.out_self.data_type = editor_conf.DataType.CHARACTER
         self.in_name.value = 'character'
-        self.in_tag = self.out_tag = 'character'
+        self.in_tag.value = self.out_tag.value = 'character'
 
         self.out_root_control = self.add_output(editor_conf.DataType.CONTROL, label='Root Control')
         self.out_deform_rig = self.add_output(editor_conf.DataType.PYNODE, label='Deformation Rig')

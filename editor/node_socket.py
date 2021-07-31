@@ -58,6 +58,10 @@ class Socket(node_serializable.Serializable):
 
         # Edge
         self.edges = []
+        self.create_connections()
+
+    def create_connections(self):
+        pass
 
     # ===== Properties ===== #
 
@@ -94,6 +98,13 @@ class Socket(node_serializable.Serializable):
         return self.data_type.get('class')
 
     # ===== Methods ===== #
+    def list_connections(self):
+        result = []
+        for edge in self.edges:
+            for socket in [edge.start_socket, edge.end_socket]:
+                if socket != self:
+                    result.append(socket)
+        return result
 
     def set_value(self, value):
         self.value = value
@@ -162,9 +173,24 @@ class InputSocket(Socket):
             self.edges[0].remove()
         self.edges = [edge]
 
+    def update_mathching_outputs(self):
+        for output in self.node.outputs:
+            if output.label.lower() == self.label.lower():
+                output.value = self.value
+
+    def create_connections(self):
+        self.signals.value_changed.connect(self.update_mathching_outputs)
+
 
 class OutputSocket(Socket):
+    def create_connections(self):
+        self.signals.value_changed.connect(self.update_connected_inputs)
+
     def set_connected_edge(self, edge=None):
         super(OutputSocket, self).set_connected_edge(edge=edge)
         if edge not in self.edges:
             self.edges.append(edge)
+
+    def update_connected_inputs(self):
+        for socket in self.list_connections():
+            socket.value = self.value

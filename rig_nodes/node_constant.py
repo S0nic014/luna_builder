@@ -13,6 +13,8 @@ class ConstantNode(luna_node.LunaNode):
         super(ConstantNode, self).__init__(scene, title=title, inputs=inputs, outputs=outputs)
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
+        self.in_value = self.add_input(self.data_type, label='Value', value=None)
+        self.in_value.gr_socket.hide()
         self.out_value = self.add_output(self.data_type, label='Value', value=None)
 
     def set_data_type(self, typ):
@@ -24,8 +26,7 @@ class ConstantNode(luna_node.LunaNode):
         data_dict['data_type'] = self.data_type.get('index')
         return data_dict
 
-    def deserialize(self, data, hashmap={}, restore_id=True):
-        super(ConstantNode, self).deserialize(data, hashmap=hashmap, restore_id=restore_id)
+    def post_deserilization(self, data):
         self.data_type = editor_conf.DataType.get_type(data.get('data_type'))
 
 

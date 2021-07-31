@@ -56,8 +56,7 @@ class FunctionNode(luna_node.LunaNode):
         res['func_signature'] = self.func_signature
         return res
 
-    def deserialize(self, data, hashmap={}, restore_id=True):
-        super(FunctionNode, self).deserialize(data, hashmap=hashmap, restore_id=restore_id)
+    def post_deserilization(self, data):
         self.set_signature_without_reinit(data.get('func_signature'))
 
     def execute(self):

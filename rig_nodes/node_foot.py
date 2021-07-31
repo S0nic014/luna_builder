@@ -15,7 +15,7 @@ class FootComponentNode(base_component.AnimComponentNode):
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(FootComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
         self.in_name.value = self.out_name.value = 'foot'
-        self.in_tag = self.out_tag = 'body'
+        self.in_tag.value = self.out_tag.value = 'body'
         self.in_start_joint = self.add_input(editor_conf.DataType.STRING, label='Start Joint', value=None)
         self.in_end_joint = self.add_input(editor_conf.DataType.STRING, label='End Joint', value=None)
         self.in_rv_chain = self.add_input(editor_conf.DataType.STRING, label='Reverse Chain', value=None)

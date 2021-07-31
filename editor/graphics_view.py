@@ -298,6 +298,9 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.drag_edge.start_socket.set_connected_edge(self.drag_edge)
         self.drag_edge.end_socket.set_connected_edge(self.drag_edge)
         self.drag_edge.update_positions()
+
+        # Set input value
+        self.drag_edge.end_socket.value = self.drag_edge.start_socket.value
         return True
 
     def is_connection_possible(self, item):

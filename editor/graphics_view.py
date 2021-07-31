@@ -45,6 +45,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
         # Flags
         self._items_are_being_deleted = False
+        self.drag_edge = None
 
         self.gr_scene = gr_scene
         self.zoom_in_factor = 1.25

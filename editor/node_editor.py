@@ -136,16 +136,7 @@ class NodeEditor(QtWidgets.QWidget):
                        > MOUSE POS: {mouse_pos}
                        > SCENE POS {scene_pos}'''.format(node_id=node_id, data=json_data, mouse_pos=mouse_pos, scene_pos=scene_pos))
 
-        try:
-            new_node = editor_conf.get_node_class_from_id(node_id)(self.scene)
-            if node_id == editor_conf.FUNC_NODE_ID:
-                new_node.func_signature = json_data.get('func_signature', '')
-                new_node.title = json_data.get('title')
-
-            new_node.set_position(scene_pos.x(), scene_pos.y())
-            self.scene.history.store_history('Created Node {0}'.format(new_node.as_str(name_only=True)))
-        except Exception:
-            Logger.exception('Failed to instansiate dropped node')
+        self.scene.spawn_node_from_data(node_id, json_data, scene_pos)
 
         event.setDropAction(QtCore.Qt.MoveAction)
         event.accept()

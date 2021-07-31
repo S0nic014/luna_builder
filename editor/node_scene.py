@@ -236,6 +236,8 @@ class Scene(node_serializable.Serializable):
         except Exception:
             Logger.exception('Failed to load rig build file')
 
+    # Creation
+
     @ classmethod
     def get_class_from_node_data(cls, node_data):
         node_id = node_data.get('node_id')
@@ -243,6 +245,19 @@ class Scene(node_serializable.Serializable):
             return node_node.Node
         else:
             return editor_conf.get_node_class_from_id(node_id)
+
+    def spawn_node_from_data(self, node_id, json_data, position):
+        try:
+            new_node = editor_conf.get_node_class_from_id(node_id)(self)
+            if node_id == editor_conf.FUNC_NODE_ID:
+                new_node.func_signature = json_data.get('func_signature', '')
+                new_node.title = json_data.get('title')
+
+            new_node.set_position(position.x(), position.y())
+            self.history.store_history('Created Node {0}'.format(new_node.as_str(name_only=True)))
+            return new_node
+        except Exception:
+            Logger.exception('Failed to instance node')
 
     def serialize(self):
         nodes, edges = [], []

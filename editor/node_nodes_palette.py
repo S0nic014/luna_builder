@@ -10,8 +10,10 @@ import luna_builder.editor.editor_conf as editor_conf
 
 
 class NodesPalette(QtWidgets.QGroupBox):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, icon_size=32):
         super(NodesPalette, self).__init__('Nodes Palette', parent)
+
+        self.icon_size = QtCore.QSize(icon_size, icon_size)
 
         self.setMinimumWidth(190)
 
@@ -22,51 +24,23 @@ class NodesPalette(QtWidgets.QGroupBox):
         self.update_node_tree()
 
     def create_widgets(self):
-        self.nodes_tree = QLDragTreeWidget()
+        self.search_line = QtWidgets.QLineEdit()
+        self.search_line.setPlaceholderText('Search')
+        self.nodes_tree = QLDragTreeWidget(self)
 
     def create_layouts(self):
         self.main_layout = QtWidgets.QVBoxLayout()
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.main_layout)
 
+        self.main_layout.addWidget(self.search_line)
         self.main_layout.addWidget(self.nodes_tree)
 
     def create_connections(self):
         pass
 
     def update_node_tree(self):
-        self.nodes_tree.clear()
-        self.add_registered_nodes()
-        self.add_registered_functions()
-
-    def add_registered_nodes(self):
-        keys = list(editor_conf.NODE_REGISTER.keys())
-        keys.sort()
-        for node_id in keys:
-            if node_id == editor_conf.FUNC_NODE_ID:
-                continue
-            node_class = editor_conf.NODE_REGISTER[node_id]
-            palette_label = node_class.PALETTE_LABEL if hasattr(node_class, 'PALETTE_LABEL') else node_class.DEFAULT_TITLE
-            self.nodes_tree.add_node_item(node_id, palette_label, category=node_class.CATEGORY, icon_name=node_class.ICON)
-
-    def add_registered_functions(self):
-        keys = list(editor_conf.FUNCTION_REGISTER.keys())
-        keys.sort()
-        for datatype_id in keys:
-            func_map = editor_conf.FUNCTION_REGISTER[datatype_id]
-            func_signatures_list = func_map.keys()
-            func_signatures_list.sort()
-            for func_sign in func_signatures_list:
-                sub_category_name = editor_conf.get_class_name_from_signature(func_sign)
-                func_dict = func_map[func_sign]
-                icon_name = func_dict['icon']
-                nice_name = func_dict.get('nice_name')
-                palette_name = nice_name if nice_name else func_sign
-                self.nodes_tree.add_node_item(editor_conf.FUNC_NODE_ID,
-                                              palette_name,
-                                              func_signature=func_sign,
-                                              category='Functions/{0}'.format(sub_category_name),
-                                              icon_name=icon_name)
+        self.nodes_tree.populate()
 
 
 class QLDragTreeWidget(QtWidgets.QTreeWidget):
@@ -75,9 +49,11 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
     NODE_ID_ROLE = QtCore.Qt.UserRole + 1
     FUNCTION_DT_ID = QtCore.Qt.UserRole + 2
 
-    def __init__(self, parent=None):
+    def __init__(self, nodes_palette, parent=None):
         super(QLDragTreeWidget, self).__init__(parent)
-        self.setIconSize(QtCore.QSize(32, 32))
+        self.nodes_palette = nodes_palette
+
+        self.setIconSize(self.nodes_palette.icon_size)
         self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.setDragEnabled(True)
         self.setColumnCount(1)
@@ -101,7 +77,7 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)
         item.setText(0, label_text)
         item.setIcon(0, QtGui.QIcon(pixmap))
-        item.setSizeHint(0, QtCore.QSize(32, 32))
+        item.setSizeHint(0, self.nodes_palette.icon_size)
         # Setup item
         item.setData(0, QLDragTreeWidget.PIXMAP_ROLE, pixmap)
         item.setData(0, QLDragTreeWidget.NODE_ID_ROLE, node_id)
@@ -121,19 +97,22 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         item = found_items[0] if found_items else self.add_category(name, expanded=expanded, parent=parent)
         return item
 
+    def get_item_json_data(self, item):
+        json_data = {
+            'title': item.text(0),
+            'func_signature': item.data(0, QLDragTreeWidget.FUNCTION_DT_ID)
+        }
+        return json_data
+
     def startDrag(self, event):
         Logger.debug('Palette::startDrag')
         try:
             item = self.currentItem()  # type: QtWidgets.QTreeWidgetItem
             node_id = item.data(0, QLDragTreeWidget.NODE_ID_ROLE)
-            func_signature = item.data(0, QLDragTreeWidget.FUNCTION_DT_ID)
             pixmap = QtGui.QPixmap(item.data(0, QLDragTreeWidget.PIXMAP_ROLE))
 
             # Pack data to json
-            json_data = {
-                'title': item.text(0),
-                'func_signature': func_signature
-            }
+            json_data = self.get_item_json_data(item)
 
             # Pack data to data stream
             item_data = QtCore.QByteArray()
@@ -157,3 +136,37 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
 
         except Exception:
             Logger.exception('Palette drag exception')
+
+    def populate(self):
+        self.clear()
+        self.add_registered_nodes()
+        self.add_registered_functions()
+
+    def add_registered_nodes(self):
+        keys = list(editor_conf.NODE_REGISTER.keys())
+        keys.sort()
+        for node_id in keys:
+            if node_id == editor_conf.FUNC_NODE_ID:
+                continue
+            node_class = editor_conf.NODE_REGISTER[node_id]
+            palette_label = node_class.PALETTE_LABEL if hasattr(node_class, 'PALETTE_LABEL') else node_class.DEFAULT_TITLE
+            self.add_node_item(node_id, palette_label, category=node_class.CATEGORY, icon_name=node_class.ICON)
+
+    def add_registered_functions(self):
+        keys = list(editor_conf.FUNCTION_REGISTER.keys())
+        keys.sort()
+        for datatype_id in keys:
+            func_map = editor_conf.FUNCTION_REGISTER[datatype_id]
+            func_signatures_list = func_map.keys()
+            func_signatures_list.sort()
+            for func_sign in func_signatures_list:
+                sub_category_name = editor_conf.get_class_name_from_signature(func_sign)
+                func_dict = func_map[func_sign]
+                icon_name = func_dict['icon']
+                nice_name = func_dict.get('nice_name')
+                palette_name = nice_name if nice_name else func_sign
+                self.add_node_item(editor_conf.FUNC_NODE_ID,
+                                   palette_name,
+                                   func_signature=func_sign,
+                                   category='Functions/{0}'.format(sub_category_name),
+                                   icon_name=icon_name)

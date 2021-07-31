@@ -251,6 +251,22 @@ class Node(node_serializable.Serializable):
         self.update_socket_positions()
         return socket
 
+    def find_first_input_with_label(self, text):
+        result = None
+        for socket in self.inputs:
+            if socket.label == text:
+                result = socket
+                break
+        return result
+
+    def find_first_input_of_datatype(self, datatype):
+        result = None
+        for socket in self.inputs:
+            if issubclass(socket.data_class, datatype.get('class', type(None))):
+                result = socket
+                break
+        return result
+
     def get_value(self, socket_name):
         socket = getattr(self, socket_name)
         if not isinstance(socket, node_socket.Socket):

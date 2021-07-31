@@ -11,7 +11,9 @@ import luna_builder.editor.graphics_socket as graphics_socket
 import luna_builder.editor.graphics_node as graphics_node
 import luna_builder.editor.graphics_edge as graphics_edge
 import luna_builder.editor.graphics_cutline as graphics_cutline
+import luna_builder.editor.node_context_menus as node_context_menus
 imp.reload(node_socket)
+imp.reload(node_context_menus)
 
 
 def history(description, set_modified=True):
@@ -158,7 +160,10 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             Logger.debug(' len({0}) -- Current step: {1}'.format(len(self.scene.history), self.scene.history.current_step))
             for index, item in enumerate(self.scene.history.stack):
                 Logger.debug('# {0} -- {1}'.format(index, item.get('desc')))
-
+        elif event.key() == QtCore.Qt.Key_K:
+            creator_dialog = node_context_menus.NodeCreatorWidget(self, parent=self)
+            creator_dialog.move(QtGui.QCursor.pos())
+            creator_dialog.exec_()
         else:
             super(QLGraphicsView, self).keyPressEvent(event)
 
@@ -275,10 +280,13 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             Logger.debug('Assign end socket to: {0}'.format(item.socket))
             self.drag_edge = node_edge.Edge(self.gr_scene.scene, None, item.socket)
 
-    @history('Edge created by dragging', set_modified=True)
+    @ history('Edge created by dragging', set_modified=True)
     def end_edge_drag(self, item):
         self.edge_mode = QLGraphicsView.EdgeMode.NOOP
         Logger.debug('End dragging edge')
+        if isinstance(item, node_socket.Socket):
+            item = item.gr_socket
+
         if not isinstance(item, graphics_socket.QLGraphicsSocket) or not self.is_connection_possible(item):
             Logger.debug("Canceling edge dragging")
             self.drag_edge.remove()
@@ -300,6 +308,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
         # Set input value
         self.drag_edge.end_socket.value = self.drag_edge.start_socket.value
+        self.drag_edge = None
         return True
 
     def is_connection_possible(self, item):

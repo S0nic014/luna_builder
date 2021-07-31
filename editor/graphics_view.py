@@ -235,8 +235,8 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         super(QLGraphicsView, self).mousePressEvent(event)
 
         item = self.get_item_at_click(event)
-
-        self.log_scene_objects(item)
+        if event.modifiers() & QtCore.Qt.ControlModifier:
+            self.log_scene_objects(item)
 
     def right_mouse_release(self, event):
         super(QLGraphicsView, self).mouseReleaseEvent(event)

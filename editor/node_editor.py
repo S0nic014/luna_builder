@@ -76,6 +76,31 @@ class NodeEditor(QtWidgets.QWidget):
     def closeEvent(self, event):
         self.signals.about_to_close.emit(self, event)
 
+    def contextMenuEvent(self, event):
+        try:
+            item = self.scene.get_item_at(event.pos())
+            if hasattr(item, 'node') or hasattr(item, 'socket'):
+                self.handle_node_context_menu(event)
+            elif hasattr(item, 'edge'):
+                self.handle_edge_context_menu(event)
+            else:
+                self.handle_new_node_context_menu(event)
+
+            return super(NodeEditor, self).contextMenuEvent(event)
+        except Exception:
+            Logger.debug('ContextMenuEvent exception')
+
+    # ======== Context menus ======== #
+
+    def handle_node_context_menu(self, event):
+        pass
+
+    def handle_edge_context_menu(self, event):
+        pass
+
+    def handle_new_node_context_menu(self, event):
+        pass
+
     # ======== Drag & Drop ======== #
 
     def on_item_drag_enter(self, event):

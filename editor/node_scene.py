@@ -45,7 +45,7 @@ class Scene(node_serializable.Serializable):
 
         self.scene_width = 64000
         self.scene_height = 64000
-        self.edge_type = node_edge.Edge.Type.BEZIER
+        self._edge_type = node_edge.Edge.Type.BEZIER
 
         self.init_ui()
         self.history = scene_history.SceneHistory(self)
@@ -59,47 +59,60 @@ class Scene(node_serializable.Serializable):
     def create_connections(self):
         self.gr_scene.selectionChanged.connect(self.on_selection_change)
 
+    @ property
+    def edge_type(self):
+        return self._edge_type
+
+    @ edge_type.setter
+    def edge_type(self, value):
+        self._edge_type = value
+        self.update_edge_types()
+
     @property
+    def edge_type_index(self):
+        return list(node_edge.Edge.Type).index(self.edge_type) + 1
+
+    @ property
     def view(self):
         return self.gr_scene.views()[0]
 
-    @property
+    @ property
     def has_been_modified(self):
         return self._has_been_modified
 
-    @has_been_modified.setter
+    @ has_been_modified.setter
     def has_been_modified(self, value):
         self._has_been_modified = value
         self.signals.modified.emit()
 
-    @property
+    @ property
     def file_name(self):
         return self._file_name
 
-    @file_name.setter
+    @ file_name.setter
     def file_name(self, value):
         self._file_name = value
         self.signals.file_name_changed.emit(self._file_name)
 
-    @property
+    @ property
     def file_base_name(self):
         if not self.file_name:
             return None
         return os.path.basename(self.file_name)
 
-    @property
+    @ property
     def selected_items(self):
         return self.gr_scene.selectedItems()
 
-    @property
+    @ property
     def selected_nodes(self):
         return [node for node in self.nodes if node.gr_node.isSelected()]
 
-    @property
+    @ property
     def selected_edges(self):
         return [edge for edge in self.edges if edge.gr_edge.isSelected()]
 
-    @property
+    @ property
     def last_selected_items(self):
         return self._last_selected_items
 
@@ -125,10 +138,17 @@ class Scene(node_serializable.Serializable):
     def list_edges_ids(self):
         return [node.id for node in self.edges]
 
+    def get_item_at(self, position):
+        return self.view.itemAt(position)
+
     def clear(self):
         while(self.nodes):
             self.nodes[0].remove()
         self.has_been_modified = False
+
+    def update_edge_types(self):
+        for edge in self.edges:
+            edge.update_edge_graphics_type()
 
     # ====== Selection ====== #
     def on_selection_change(self):
@@ -216,7 +236,7 @@ class Scene(node_serializable.Serializable):
         except Exception:
             Logger.exception('Failed to load rig build file')
 
-    @classmethod
+    @ classmethod
     def get_class_from_node_data(cls, node_data):
         node_id = node_data.get('node_id')
         if not node_id:
@@ -239,7 +259,8 @@ class Scene(node_serializable.Serializable):
             ('scene_width', self.scene_width),
             ('scene_height', self.scene_height),
             ('nodes', nodes),
-            ('edges', edges)
+            ('edges', edges),
+            ('edge_type', self.edge_type_index)
         ])
 
     def deserialize(self, data, hashmap={}, restore_id=True):
@@ -255,3 +276,5 @@ class Scene(node_serializable.Serializable):
         # create edges
         for edge_data in data.get('edges'):
             node_edge.Edge(self, start_socket=None, end_socket=None).deserialize(edge_data, hashmap, restore_id=restore_id)
+
+        self.edge_type = node_edge.Edge.Type(data.get('edge_type', 1))

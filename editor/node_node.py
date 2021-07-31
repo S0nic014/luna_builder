@@ -185,6 +185,9 @@ class Node(node_serializable.Serializable):
     def set_invalid(self, value=True):
         self._is_invalid = value
 
+    def execute(self):
+        pass
+
     # ========= Serialization methods ========== #
 
     def serialize(self):

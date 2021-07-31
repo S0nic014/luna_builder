@@ -27,6 +27,3 @@ class LunaNode(node_node.Node):
         self.pre_deserilization(data)
         super(LunaNode, self).deserialize(data, hashmap=hashmap, restore_id=restore_id)
         self.post_deserilization(data)
-
-    def execute(self):
-        pass

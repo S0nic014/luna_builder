@@ -6,6 +6,7 @@ import luna_builder.editor.editor_conf as editor_conf
 import luna_builder.editor.graphics_node as graphics_node
 import luna_builder.editor.node_socket as node_socket
 import luna_builder.editor.node_serializable as node_serializable
+import luna_builder.editor.node_attrib_widget as node_attrib_widget
 imp.reload(graphics_node)
 
 
@@ -15,6 +16,7 @@ class Node(node_serializable.Serializable):
     DEFAULT_TITLE = 'Custom Node'
     IS_EXEC = True
     AUTO_INIT_EXECS = True
+    ATTRIB_WIDGET = node_attrib_widget.AttribWidget
     INPUT_POSITION = node_socket.Socket.Position.LEFT_TOP.value
     OUTPUT_POSITION = node_socket.Socket.Position.RIGHT_TOP.value
 

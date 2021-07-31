@@ -32,7 +32,7 @@ class AttributesEditor(QtWidgets.QWidget):
             return
 
         node = selected[-1]
-        widget = node.INSPECTOR_WIDGET(node)
+        widget = node.ATTRIB_WIDGET(node)
         self.current_widget = widget
 
     def clear_layout(self):

@@ -2,6 +2,7 @@ from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
 from luna import Logger
+import luna_builder.editor.node_edge as node_edge
 import luna_builder.editor.node_nodes_palette as node_nodes_palette
 
 
@@ -50,16 +51,9 @@ class NodeContextMenu(QtWidgets.QMenu):
             self.scene.view.delete_selected()
 
 
-class NodeCreatorMenu(QtWidgets.QMenu):
-    def __init__(self, parent=None, edge=None):
-        super(NodeCreatorMenu, self).__init__(parent)
-        tst = QtWidgets.QAction('Test', self)
-        self.addAction(tst)
-
-
-class NodeCreatorWidget(QtWidgets.QDialog):
+class NodeCreatorDialog(QtWidgets.QDialog):
     def __init__(self, view, parent=None, edge=None):
-        super(NodeCreatorWidget, self).__init__(parent)
+        super(NodeCreatorDialog, self).__init__(parent)
         self.view = view
         self.scene = view.scene
 
@@ -95,8 +89,14 @@ class NodeCreatorWidget(QtWidgets.QDialog):
 
         # Connect dragging edge
         if self.view.drag_edge and self.view.drag_edge.start_socket:
-            socket_to_connect = new_node.find_first_input_with_label(self.view.drag_edge.start_socket.label)
+            start_socket = self.view.drag_edge.start_socket
+            start_node = self.view.drag_edge.start_socket.node
+            socket_to_connect = new_node.find_first_input_with_label(start_socket.label)
             if not socket_to_connect:
-                socket_to_connect = new_node.find_first_input_of_datatype(self.view.drag_edge.start_socket.data_type)
+                socket_to_connect = new_node.find_first_input_of_datatype(start_socket.data_type)
+            # Find exec sockets to connect
+            if start_node.exec_out_socket and not start_node.exec_out_socket.has_edge() and new_node.exec_in_socket:
+                node_edge.Edge(self.scene, start_socket=start_node.exec_out_socket, end_socket=new_node.exec_in_socket)
+            # Finish dragging
             self.view.end_edge_drag(socket_to_connect)
         self.close()

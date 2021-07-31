@@ -5,7 +5,7 @@ import luna_builder.rig_nodes.luna_node as luna_node
 class ConstantNode(luna_node.LunaNode):
     IS_EXEC = False
     DEFAULT_TITLE = 'Constant'
-    CATEGORY = 'Utils'
+    CATEGORY = 'Constants'
     CONSTANT_DATA_TYPE = None
 
     def __init__(self, scene, title=None, inputs=[], outputs=[]):

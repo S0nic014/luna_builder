@@ -28,9 +28,13 @@ class ComponentNode(luna_node.LunaNode):
         self.out_side = self.add_output(editor_conf.DataType.STRING, label='Side', value='c')
         self.out_name = self.add_output(editor_conf.DataType.STRING, label='Name', value='component')
         self.out_tag = self.add_output(editor_conf.DataType.STRING, label='Tag', value='')
+        self.update_node_title()
+
+    def create_connections(self):
+        self.in_name.signals.value_changed.connect(self.update_node_title)
+        self.in_side.signals.value_changed.connect(self.update_node_title)
 
     def update_node_title(self):
-        # TODO: Find a way to connect to input update
         self.title = "{0} - {1} ({2})".format(self.DEFAULT_TITLE, self.in_name.value, self.in_side.value)
 
 

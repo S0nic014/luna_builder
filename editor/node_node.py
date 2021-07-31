@@ -43,6 +43,7 @@ class Node(node_serializable.Serializable):
         self.scene.gr_scene.addItem(self.gr_node)
         # Sockets
         self.init_sockets(inputs=inputs, outputs=outputs)
+        self.create_connections()
 
     def init_settings(self):
         self.socket_spacing = 22
@@ -67,6 +68,9 @@ class Node(node_serializable.Serializable):
 
         for datatype in outputs:
             self.add_output(datatype, label=None, value=None)
+
+    def create_connections(self):
+        pass
 
     def remove_existing_sockets(self):
         if hasattr(self, 'inputs') and hasattr(self, 'outputs'):

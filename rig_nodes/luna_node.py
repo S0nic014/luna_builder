@@ -50,7 +50,7 @@ class AttribWidget(QtWidgets.QWidget):
                     Logger.error('Failed to create attribute field: {0}::{1}'.format(socket, socket.data_class))
                 if widget:
                     # Store in the map and add to layout
-                    self.fields_map[socket.label] = (socket, widget)
+                    self.store_in_fields_map(socket, widget)
                     self.main_layout.addRow(socket.label, widget)
                 # Signals
             except Exception:
@@ -58,6 +58,9 @@ class AttribWidget(QtWidgets.QWidget):
 
         self.update_fields()
         self.update_signal_connections()
+
+    def store_in_fields_map(self, socket, widget):
+        self.fields_map[socket.label] = (socket, widget)
 
     def update_signal_connections(self):
         for label, socket_widget_pair in self.fields_map.items():

@@ -162,7 +162,12 @@ class Socket(node_serializable.Serializable):
     def deserialize(self, data, hashmap, restore_id=True):
         if restore_id:
             self.id = data.get('id')
+        data_type = data['data_type']
+        value = data.get('value', editor_conf.DataType.get_type(data_type)['default'])
+        self.data_type = data['data_type']
+        self.value = value
         hashmap[data['id']] = self
+        return True
 
 
 class InputSocket(Socket):

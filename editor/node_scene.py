@@ -292,4 +292,4 @@ class Scene(node_serializable.Serializable):
         for edge_data in data.get('edges'):
             node_edge.Edge(self, start_socket=None, end_socket=None).deserialize(edge_data, hashmap, restore_id=restore_id)
 
-        self.edge_type = node_edge.Edge.Type(data.get('edge_type', 1))
+        self.edge_type = node_edge.Edge.Type(data.get('edge_type', 2))

@@ -30,6 +30,11 @@ class Node(node_serializable.Serializable):
         self.inputs = []
         self.outputs = []
 
+        # Evaluation
+        self._is_dirty = False
+        self._is_invalid = False
+
+        # Members init
         self.init_settings()
         self.init_inner_objects()
 
@@ -88,7 +93,7 @@ class Node(node_serializable.Serializable):
         self._title = value
         self.gr_node.title = self._title
 
-    # ======= Methods ======= #
+    # ======= Socket Utils ======= #
 
     def get_new_input_index(self):
         return len(self.inputs)
@@ -142,6 +147,7 @@ class Node(node_serializable.Serializable):
 
         return max(max_inputs + max_outputs, min_width)
 
+    # ======== Update methods ========= #
     def update_connected_edges(self):
         for socket in self.inputs + self.outputs:
             socket.update_edges()
@@ -159,6 +165,21 @@ class Node(node_serializable.Serializable):
             self.scene.remove_node(self)
         except Exception:
             Logger.exception('Failed to delete node {0}'.format(self))
+
+    # ========= Evaluation ============= #
+    def is_dirty(self):
+        return self._is_dirty
+
+    def set_dirty(self, value=True):
+        self._is_dirty = value
+
+    def is_invalid(self):
+        return self._is_invalid
+
+    def set_invalid(self, value=True):
+        self._is_invalid = value
+
+    # ========= Serialization methods ========== #
 
     def serialize(self):
         inputs, outputs = [], []
@@ -185,42 +206,41 @@ class Node(node_serializable.Serializable):
         self.title = data.get('title')
 
         # Sockets
-        self.remove_existing_sockets()
         data['inputs'].sort(key=lambda socket: socket['index'] + socket['position'] * 10000)
         data['outputs'].sort(key=lambda socket: socket['index'] + socket['position'] * 10000)
-        num_inputs = len(data['inputs'])
-        num_outputs = len(data['outputs'])
 
-        self.inputs = []
-        self.outputs = []
+        # Deserialize sockets
         for socket_data in data.get('inputs'):
-            data_type = socket_data['data_type']
-            new_socket = node_socket.InputSocket(self,
-                                                 index=socket_data['index'],
-                                                 position=socket_data['position'],
-                                                 data_type=data_type,
-                                                 label=socket_data['label'],
-                                                 max_connections=socket_data['max_connections'],
-                                                 value=socket_data.get('value', editor_conf.DataType.get_type(data_type)['default']),
-                                                 count_on_this_side=num_inputs)
-            new_socket.deserialize(socket_data, hashmap, restore_id=restore_id)
-            self.inputs.append(new_socket)
+            found = None  # type: node_socket.Socket
+            for socket in self.inputs:
+                if socket.index == socket_data['index']:
+                    found = socket
+                    break
+            if not found:
+                Logger.warning('Deserialization of socket data has not found socket with index {0}'.format(socket_data['index']))
+                Logger.debug('Missing socket data: {0}'.format(socket_data))
+                data_type = socket_data['data_type']
+                value = socket_data.get('value', editor_conf.DataType.get_type(data_type)['default'])
+                found = self.add_input(data_type, socket_data['label'], value=value)
+            found.deserialize(socket_data, hashmap, restore_id)
 
         for socket_data in data.get('outputs'):
-            data_type = socket_data['data_type']
-            new_socket = node_socket.OutputSocket(self,
-                                                  index=socket_data['index'],
-                                                  position=socket_data['position'],
-                                                  data_type=data_type,
-                                                  label=socket_data['label'],
-                                                  max_connections=socket_data['max_connections'],
-                                                  value=socket_data.get('value', editor_conf.DataType.get_type(data_type)['default']),
-                                                  count_on_this_side=num_outputs)
-            new_socket.deserialize(socket_data, hashmap, restore_id=restore_id)
-            self.outputs.append(new_socket)
+            found = None
+            for socket in self.outputs:
+                if socket.index == socket_data['index']:
+                    found = socket
+                    break
+            if found is None:
+                Logger.warning('Deserialization of socket data has not found socket with index {0}'.format(socket_data['index']))
+                Logger.debug('Missing socket data: {0}'.format(socket_data))
+                # we can create new socket for this
+                data_type = socket_data['data_type']
+                value = socket_data.get('value', editor_conf.DataType.get_type(data_type)['default'])
+                found = self.add_output(data_type, socket_data['label'], value=value)
+            found.deserialize(socket_data, hashmap, restore_id)
         self.update_socket_positions()
 
-    # Creation methods
+    # ========= Socket creation methods ========== #
     def add_input(self, data_type, label=None, value=None, *args, **kwargs):
         socket = node_socket.InputSocket(self,
                                          index=self.get_new_input_index(),
@@ -250,6 +270,8 @@ class Node(node_serializable.Serializable):
         self.outputs.append(socket)
         self.update_socket_positions()
         return socket
+
+    # ========= Socket finding/data retriving ========= #
 
     def find_first_input_with_label(self, text):
         result = None

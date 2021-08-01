@@ -191,6 +191,7 @@ class Node(node_serializable.Serializable):
     def on_dirty_change(self, state):
         if state:
             Logger.debug('{0} marked dirty'.format(self))
+        self.mark_children_dirty(state)
 
     def is_invalid(self):
         return self._is_invalid
@@ -203,8 +204,16 @@ class Node(node_serializable.Serializable):
         if state:
             Logger.debug('{0} marked invalid'.format(self))
 
-    def execute(self):
-        return 0
+    def mark_children_dirty(self, state, start_node=None):
+        if not state:
+            return
+        if start_node in self.list_children():
+            Logger.warning('Cycle')
+            return
+        for child_node in self.list_children():
+            child_node.set_dirty(state)
+            child_node.mark_children_dirty(state, start_node=self)
+            return
 
     # ========= Serialization methods ========== #
 
@@ -284,6 +293,8 @@ class Node(node_serializable.Serializable):
         return socket
 
     def add_output(self, data_type, label=None, max_connections=0, value=None, *args, **kwargs):
+        if data_type == editor_conf.DataType.EXEC:
+            max_connections = 1
         socket = node_socket.OutputSocket(self,
                                           index=self.get_new_output_index(),
                                           position=self.__class__.OUTPUT_POSITION,
@@ -297,6 +308,31 @@ class Node(node_serializable.Serializable):
         self.outputs.append(socket)
         self.update_socket_positions()
         return socket
+
+    # ========= Graph Traversal ================ #
+    def list_children(self, recursive=False):
+        children = []
+        for output in self.outputs:
+            for child_socket in output.list_connections():
+                children.append(child_socket.node)
+        if recursive:
+            for child_node in children:
+                children += child_node.list_children(recursive=True)
+
+        return children
+
+    def list_exec_children(self):
+        exec_children = []
+        for exec_out in self.list_exec_outputs():
+            exec_children += [socket.node for socket in exec_out.list_connections()]
+        return exec_children
+
+    def execute(self):
+        return 0
+
+    def exec_children(self):
+        for node in self.list_exec_children():
+            node.execute()
 
     # ========= Socket finding/data retriving ========= #
 
@@ -322,6 +358,9 @@ class Node(node_serializable.Serializable):
             Logger.error('Socket {0} does not exist.'.format(socket_name))
             raise AttributeError
         return socket.value
+
+    def list_exec_outputs(self):
+        [socket for socket in self.outputs if socket.data_type == editor_conf.DataType.EXEC]
 
     def list_non_exec_inputs(self):
         return [socket for socket in self.inputs if socket.data_type != editor_conf.DataType.EXEC]

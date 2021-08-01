@@ -80,6 +80,11 @@ class Socket(node_serializable.Serializable):
 
     @value.setter
     def value(self, value):
+        if self.data_type == editor_conf.DataType.EXEC:
+            return
+        if self._value == value:
+            return
+
         self._value = value
         self.signals.value_changed.emit()
 
@@ -102,7 +107,7 @@ class Socket(node_serializable.Serializable):
         result = []
         for edge in self.edges:
             for socket in [edge.start_socket, edge.end_socket]:
-                if socket != self:
+                if socket and socket != self:
                     result.append(socket)
         return result
 

@@ -323,6 +323,14 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             Logger.warning('Can\'t connect two sockets of the same type')
             return False
 
+        if assigned_socket.node == item.socket.node:
+            Logger.warning('Can\'t connect sockets on the same node')
+            return False
+
+        if assigned_socket.node in item.socket.node.list_children(recursive=True) or item.socket.node in assigned_socket.node.list_children():
+            Logger.warning('Can\'t create connection due to cycle')
+            return False
+
         # Data type class of source socket is not subclass of destination socket
         if not issubclass(assigned_socket.data_class, item.socket.data_class):
             Logger.warning('Can\'t connect data types {0} and {1}'.format(item.socket.data_class, assigned_socket.data_class))

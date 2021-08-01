@@ -63,7 +63,8 @@ class NodeCreatorDialog(QtWidgets.QDialog):
         self.create_connections()
 
     def create_widgets(self):
-        self.nodes_palette = node_nodes_palette.NodesPalette(icon_size=16)
+        data_type_filter = self.view.drag_edge.start_socket.data_type if self.is_dragging_from_output() else None
+        self.nodes_palette = node_nodes_palette.NodesPalette(icon_size=16, data_type_filter=data_type_filter, functions_first=True)
         self.nodes_palette.nodes_tree.setDragEnabled(False)
 
     def create_layouts(self):
@@ -74,6 +75,9 @@ class NodeCreatorDialog(QtWidgets.QDialog):
 
     def create_connections(self):
         self.nodes_palette.nodes_tree.itemClicked.connect(self.spawn_clicked_node)
+
+    def is_dragging_from_output(self):
+        return self.view.drag_edge and self.view.drag_edge.start_socket
 
     def spawn_clicked_node(self, item):
         if not item.parent():
@@ -88,7 +92,7 @@ class NodeCreatorDialog(QtWidgets.QDialog):
         new_node = self.scene.spawn_node_from_data(node_id, json_data, position)
 
         # Connect dragging edge
-        if self.view.drag_edge and self.view.drag_edge.start_socket:
+        if self.is_dragging_from_output():
             start_socket = self.view.drag_edge.start_socket
             start_node = self.view.drag_edge.start_socket.node
             socket_to_connect = new_node.find_first_input_with_label(start_socket.label)

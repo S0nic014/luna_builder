@@ -10,10 +10,12 @@ import luna_builder.editor.editor_conf as editor_conf
 
 
 class NodesPalette(QtWidgets.QGroupBox):
-    def __init__(self, parent=None, icon_size=32):
+    def __init__(self, parent=None, icon_size=32, data_type_filter=None, functions_first=False):
         super(NodesPalette, self).__init__('Nodes Palette', parent)
 
         self.icon_size = QtCore.QSize(icon_size, icon_size)
+        self.data_type_filter = data_type_filter
+        self._functions_first = functions_first
 
         self.setMinimumWidth(190)
 
@@ -21,6 +23,15 @@ class NodesPalette(QtWidgets.QGroupBox):
         self.create_layouts()
         self.create_connections()
 
+        self.update_node_tree()
+
+    @property
+    def functions_first(self):
+        return self._functions_first
+
+    @functions_first.setter
+    def functions_first(self, state):
+        self._functions_first = state
         self.update_node_tree()
 
     def create_widgets(self):
@@ -153,8 +164,12 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
 
     def populate(self):
         self.clear()
-        self.add_registered_nodes()
-        self.add_registered_functions()
+        if self.nodes_palette.functions_first:
+            self.add_registered_functions()
+            self.add_registered_nodes()
+        else:
+            self.add_registered_nodes()
+            self.add_registered_functions()
 
     def add_registered_nodes(self):
         keys = list(editor_conf.NODE_REGISTER.keys())
@@ -170,6 +185,9 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         keys = list(editor_conf.FUNCTION_REGISTER.keys())
         keys.sort()
         for datatype_id in keys:
+            if self.nodes_palette.data_type_filter:
+                if not issubclass(editor_conf.DataType.get_type(datatype_id).get('class'), self.nodes_palette.data_type_filter.get('class')):
+                    continue
             func_map = editor_conf.FUNCTION_REGISTER[datatype_id]
             func_signatures_list = func_map.keys()
             func_signatures_list.sort()

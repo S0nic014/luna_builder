@@ -24,13 +24,14 @@ class GraphExecutor(object):
         if not result:
             return
         for node in self.execution_chain():
+            Logger.debug('Executing {0}...'.format(node))
             result = node.execute()
             if result:
                 node.set_invalid(True)
                 break
             else:
                 node.set_dirty(False)
-            QtWidgets.QApplication.processEvents()
+                node.set_invalid(False)
 
     def execution_chain(self):
         input_node = self.find_input_node()

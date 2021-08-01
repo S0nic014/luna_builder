@@ -61,15 +61,20 @@ class FunctionNode(luna_node.LunaNode):
 
     def execute(self):
         attr_values = [socket.value for socket in self.list_non_exec_inputs()]
-        func_result = self.func_ref(attr_values)
+        try:
+            func_result = self.func_ref(attr_values)
+        except Exception:
+            Logger.exception('Function Node execute exception.')
+            return 1
+
+        # Set outputs
         for index, out_socket in enumerate(self.list_non_exec_outputs()):
             try:
                 out_socket.value = func_result[index]
             except IndexError:
                 Logger.error('Missing return result for function {0}, at index {1}'.format(self.func_ref, index))
-            except Exception:
-                Logger.error('Function Node execute exception.')
-                raise
+                return 1
+        return 0
 
 
 def register_plugin():

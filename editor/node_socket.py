@@ -103,6 +103,9 @@ class Socket(node_serializable.Serializable):
         return self.data_type.get('class')
 
     # ===== Methods ===== #
+    def is_runtime_data(self):
+        return any([issubclass(self.data_class, dt['class']) for dt in editor_conf.DataType.runtime_types()])
+
     def list_connections(self):
         result = []
         for edge in self.edges:
@@ -154,6 +157,11 @@ class Socket(node_serializable.Serializable):
             edge.update_positions()
 
     def serialize(self):
+        if self.is_runtime_data():
+            value = None
+        else:
+            value = self.value
+
         return OrderedDict([
             ('id', self.id),
             ('index', self.index),
@@ -161,7 +169,7 @@ class Socket(node_serializable.Serializable):
             ('data_type', self.data_type.get('index')),
             ('max_connections', self.max_connections),
             ('label', self.label),
-            ('value', self.value)
+            ('value', value)
         ])
 
     def deserialize(self, data, hashmap, restore_id=True):

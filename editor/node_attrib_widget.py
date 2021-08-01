@@ -72,6 +72,10 @@ class AttribWidget(QtWidgets.QGroupBox):
         for label, socket_widget_pair in self.fields_map.items():
             socket, widget = socket_widget_pair
             socket.signals.value_changed.connect(self.update_fields)
+            if socket.is_runtime_data():
+                continue
+
+            # Setable types
             if isinstance(widget, QtWidgets.QLineEdit):
                 widget.textChanged.connect(socket.set_value)
             elif isinstance(widget, QtWidgets.QAbstractSpinBox):
@@ -92,12 +96,15 @@ class AttribWidget(QtWidgets.QGroupBox):
             widget.setText(str(socket.value))
         elif issubclass(socket.data_class, editor_conf.DataType.CONTROL.get('class')):
             if socket.value:
-                widget.setText(str(socket.value))
+                widget.setText(str(socket.value.transform))
             else:
                 widget.clear()
         elif issubclass(socket.data_class, editor_conf.DataType.COMPONENT.get('class')):
             if socket.value:
-                widget.setText(str(socket.value))
+                if hasattr(socket, 'pynode'):
+                    widget.setText(str(socket.value.pynode.name()))
+                else:
+                    widget.setText(str(socket.value))
         else:
             Logger.error('Failed to create attribute field: {0}::{1}'.format(socket, socket.data_class))
 

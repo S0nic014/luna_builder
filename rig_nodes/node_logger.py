@@ -33,6 +33,7 @@ class LoggerNode(luna_node.LunaNode):
             Logger.warning(self.in_message.value)
         if self.in_error.value:
             Logger.error(self.in_message.value)
+        return 0
 
 
 def register_plugin():

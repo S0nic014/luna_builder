@@ -85,6 +85,10 @@ class DataType(object):
                  'default': None}
 
     @classmethod
+    def runtime_types(cls):
+        return [cls.COMPONENT, cls.LIST, cls.CONTROL, cls.PYNODE]
+
+    @classmethod
     def list_types(cls):
         return [(dt, desc) for dt, desc in cls.__dict__.items() if isinstance(desc, dict)]
 

@@ -79,10 +79,11 @@ class NodeEditor(QtWidgets.QWidget):
     # ======== Events ======== #
 
     def keyPressEvent(self, event):
-        super(NodeEditor, self).keyPressEvent(event)
         if event.key() == QtCore.Qt.Key_B and event.modifiers() & QtCore.Qt.ControlModifier:
             self.executor.debug_execution_chain()
             self.executor.execute_graph()
+        else:
+            super(NodeEditor, self).keyPressEvent(event)
 
     def closeEvent(self, event):
         self.signals.about_to_close.emit(self, event)

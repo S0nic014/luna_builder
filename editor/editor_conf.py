@@ -158,17 +158,13 @@ def register_function(func, source_datatype, inputs_dict={}, outputs_dict={}, ni
             dt_index = source_datatype.get('index')
         dt_name = DataType.get_type(dt_index, name_only=True) if dt_index else None
 
-    is_property = isinstance(func, property)
     # Create register signature
     if source_datatype:
         src_class = source_datatype.get('class')
         if src_class:
-            if is_property and func.fget:
-                signature = "{0}.{1}.{2}_getter".format(src_class.__module__, src_class.__name__, func.fget.__name__)
-            elif is_property and func.fset:
-                signature = "{0}.{1}.{2}_setter".format(src_class.__module__, src_class.__name__, func.fset.__name__)
+            signature = "{0}.{1}.{2}".format(src_class.__module__, src_class.__name__, func.__name__)
         else:
-            signature = "{0}.{1}".format(src_class.__module__, func.__name__)
+            signature = "{0}.{1}".format(func.__module__, func.__name__)
     else:
         signature = "{0}.{1}".format(func.__module__, func.__name__)
 
@@ -178,8 +174,7 @@ def register_function(func, source_datatype, inputs_dict={}, outputs_dict={}, ni
                  'outputs': outputs_dict,
                  'doc': docstring,
                  'icon': icon,
-                 'nice_name': nice_name,
-                 'property': isinstance(func, property)}
+                 'nice_name': nice_name}
 
     # Store function in the register
     if dt_index not in FUNCTION_REGISTER:

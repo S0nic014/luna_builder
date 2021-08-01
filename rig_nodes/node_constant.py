@@ -26,21 +26,15 @@ class ConstantNode(luna_node.LunaNode):
 
 
 class ConstantFloatNode(ConstantNode):
-    ID = 2
+    ID = 12
     CONSTANT_DATA_TYPE = 'NUMERIC'
     DEFAULT_TITLE = 'Number'
 
 
 class ConstantStringNode(ConstantNode):
-    ID = 12
+    ID = 13
     CONSTANT_DATA_TYPE = 'STRING'
     DEFAULT_TITLE = 'String'
-
-
-class ConstantPyNodeNode(ConstantNode):
-    ID = 13
-    CONSTANT_DATA_TYPE = 'PYNODE'
-    DEFAULT_TITLE = 'PyNode'
 
 
 class ConstantBoolNode(ConstantNode):
@@ -50,5 +44,5 @@ class ConstantBoolNode(ConstantNode):
 
 
 def register_plugin():
-    for cls in [ConstantFloatNode, ConstantStringNode, ConstantPyNodeNode, ConstantBoolNode]:
+    for cls in [ConstantFloatNode, ConstantStringNode, ConstantBoolNode]:
         editor_conf.register_node(cls.ID, cls)

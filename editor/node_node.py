@@ -362,6 +362,22 @@ class Node(node_serializable.Serializable):
                 break
         return result
 
+    def find_first_output_with_label(self, text):
+        result = None
+        for socket in self.outputs:
+            if socket.label == text:
+                result = socket
+                break
+        return result
+
+    def find_first_output_of_datatype(self, datatype):
+        result = None
+        for socket in self.outputs:
+            if issubclass(socket.data_class, datatype.get('class', type(None))):
+                result = socket
+                break
+        return result
+
     def get_value(self, socket_name):
         socket = getattr(self, socket_name)
         if not isinstance(socket, node_socket.Socket):

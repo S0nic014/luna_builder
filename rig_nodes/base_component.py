@@ -66,12 +66,12 @@ class AnimComponentNode(ComponentNode):
 
 
 def register_plugin():
-    editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.character,
+    editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.get_character,
                                   editor_conf.DataType.ANIM_COMPONENT,
                                   inputs_dict={'AnimComponent': editor_conf.DataType.ANIM_COMPONENT},
                                   outputs_dict={'Character': editor_conf.DataType.CHARACTER},
                                   nice_name='Get Character')
-    editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.in_hook_index,
+    editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.get_in_hook_index,
                                   editor_conf.DataType.ANIM_COMPONENT,
                                   inputs_dict={'AnimComponent': editor_conf.DataType.ANIM_COMPONENT},
                                   outputs_dict={'Hook Index': editor_conf.DataType.NUMERIC},

@@ -28,7 +28,7 @@ class CharacterNode(base_component.ComponentNode):
         try:
             self.component_instance = self.COMPONENT_CLASS.create(self.in_meta_parent.value, name=self.in_name.value, tag=self.in_tag.value)
             # Set outputs
-            self.out_self.value = self.component_instance.pynode
+            self.out_self.value = self.component_instance
             self.out_meta_parent.value = self.component_instance.meta_parent
             self.out_root_control.value = self.component_instance.root_control.transform
             self.out_deform_rig.value = self.component_instance.deformation_rig

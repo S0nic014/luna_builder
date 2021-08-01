@@ -38,7 +38,7 @@ class FunctionNode(luna_node.LunaNode):
 
     @property
     def func_ref(self):
-        reference = self.func_signature.get('ref') if self.func_signature else None  # type: function
+        reference = self.func_desc.get('ref') if self.func_signature else None  # type: function
         return reference
 
     def set_signature_without_reinit(self, signature):
@@ -62,13 +62,16 @@ class FunctionNode(luna_node.LunaNode):
     def execute(self):
         attr_values = [socket.value for socket in self.list_non_exec_inputs()]
         try:
-            func_result = self.func_ref(attr_values)
+            func_result = self.func_ref(*attr_values)
             Logger.debug('Function result: {0}'.format(func_result))
         except Exception:
             Logger.exception('Function Node execute exception.')
             return 1
 
         # Set outputs
+        if not isinstance(func_result, (list, tuple)):
+            func_result = [func_result]
+
         for index, out_socket in enumerate(self.list_non_exec_outputs()):
             try:
                 out_socket.value = func_result[index]

@@ -46,14 +46,14 @@ class FKIKSpineNode(SpineNode):
         try:
             self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value,
                                                                   hook=self.in_hook.value,
-                                                                  character=luna_rig.MetaNode(self.in_character.value),
+                                                                  character=self.in_character.value,
                                                                   side=self.in_side.value,
                                                                   name=self.in_name.value,
                                                                   start_joint=self.in_start_joint.value,
                                                                   end_joint=self.in_end_joint.value,
                                                                   tag=self.in_tag.value)
             # Set outputs
-            self.out_self.value = self.component_instance.pynode
+            self.out_self.value = self.component_instance
             self.out_bind_joints.value = self.component_instance.bind_joints
             self.out_controls.value = self.component_instance.controls
             self.out_chest_control.value = self.component_instance.chest_control

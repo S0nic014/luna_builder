@@ -80,7 +80,6 @@ class NodeEditor(QtWidgets.QWidget):
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_B and event.modifiers() & QtCore.Qt.ControlModifier:
-            self.executor.debug_execution_chain()
             self.executor.execute_graph()
         else:
             super(NodeEditor, self).keyPressEvent(event)

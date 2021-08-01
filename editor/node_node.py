@@ -325,12 +325,24 @@ class Node(node_serializable.Serializable):
             exec_children += [socket.node for socket in exec_out.list_connections()]
         return exec_children
 
+    def _exec(self):
+        Logger.debug('Executing {0}...'.format(self))
+        result = self.execute()
+        if result:
+            self.set_invalid(True)
+            return
+        else:
+            self.set_dirty(False)
+            self.set_invalid(False)
+        self.exec_children()
+        return self
+
     def execute(self):
         return 0
 
     def exec_children(self):
         for node in self.list_exec_children():
-            node.execute()
+            node._exec()
 
     # ========= Socket finding/data retriving ========= #
 

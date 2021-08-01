@@ -63,6 +63,7 @@ class FunctionNode(luna_node.LunaNode):
         attr_values = [socket.value for socket in self.list_non_exec_inputs()]
         try:
             func_result = self.func_ref(attr_values)
+            Logger.debug('Function result: {0}'.format(func_result))
         except Exception:
             Logger.exception('Function Node execute exception.')
             return 1

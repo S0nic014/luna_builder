@@ -16,35 +16,8 @@ class GraphExecutor(object):
             Logger.warning('More than 1 input node in the scene. Only the first one added will be executed!')
         return input_nodes[0]
 
-    def validate_graph(self):
-        return True
-
     def execute_graph(self):
-        result = self.validate_graph()
-        if not result:
-            return
-        for node in self.execution_chain():
-            Logger.debug('Executing {0}...'.format(node))
-            result = node.execute()
-            if result:
-                node.set_invalid(True)
-                break
-            else:
-                node.set_dirty(False)
-                node.set_invalid(False)
-
-    def execution_chain(self):
         input_node = self.find_input_node()
         if not input_node:
-            return []
-
-        chain = [input_node]
-        for child in input_node.list_exec_children():
-            chain.append(child)
-            chain += child.list_exec_children()
-
-        return chain
-
-    def debug_execution_chain(self):
-        for node in self.execution_chain():
-            Logger.debug(node)
+            return
+        input_node._exec()

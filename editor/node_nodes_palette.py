@@ -123,6 +123,8 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
 
     def get_category(self, name, expanded=True, parent=None):
         found_items = self.findItems(name, QtCore.Qt.MatchContains | QtCore.Qt.MatchRecursive, 0)
+        if parent is not self:
+            found_items = [item for item in found_items if item.parent() is parent]
         item = found_items[0] if found_items else self.add_category(name, expanded=expanded, parent=parent)
         return item
 

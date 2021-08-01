@@ -6,6 +6,10 @@ import luna_builder.editor.editor_conf as editor_conf
 
 
 class AttribWidget(QtWidgets.QGroupBox):
+
+    IGNORED_DATA_TYPES = [editor_conf.DataType.EXEC, editor_conf.DataType.LIST]
+    IGNORED_CLASSES = [dt['class'] for dt in IGNORED_DATA_TYPES]
+
     def __init__(self, node, parent=None):
         super(AttribWidget, self).__init__(parent)
         self.node = node
@@ -23,11 +27,13 @@ class AttribWidget(QtWidgets.QGroupBox):
 
     def init_fields(self):
         self.fields_map.clear()
-        IGNORED_DATA_TYPES = [editor_conf.DataType.EXEC, editor_conf.DataType.LIST]
-        IGNORED_CLASSES = [dt['class'] for dt in IGNORED_DATA_TYPES]
-        for socket in self.node.inputs:
+        socket_list = self.node.list_non_exec_inputs()
+        if not socket_list:
+            socket_list = self.node.list_non_exec_outputs()
+
+        for socket in socket_list:
             try:
-                if any([issubclass(socket.data_class, dt_class) for dt_class in IGNORED_CLASSES]):
+                if any([issubclass(socket.data_class, dt_class) for dt_class in self.__class__.IGNORED_CLASSES]):
                     continue
 
                 widget = None
@@ -56,12 +62,12 @@ class AttribWidget(QtWidgets.QGroupBox):
                 Logger.exception('Attribute field add exception')
 
         self.update_fields()
-        self.update_signal_connections()
+        self.create_signal_connections()
 
     def store_in_fields_map(self, socket, widget):
         self.fields_map[socket.label] = (socket, widget)
 
-    def update_signal_connections(self):
+    def create_signal_connections(self):
         for label, socket_widget_pair in self.fields_map.items():
             socket, widget = socket_widget_pair
             socket.signals.value_changed.connect(self.update_fields)

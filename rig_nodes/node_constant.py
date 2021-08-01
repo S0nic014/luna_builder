@@ -13,8 +13,6 @@ class ConstantNode(luna_node.LunaNode):
         super(ConstantNode, self).__init__(scene, title=title, inputs=inputs, outputs=outputs)
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
-        self.in_value = self.add_input(self.data_type, label='Value', value=None)
-        self.in_value.gr_socket.hide()
         self.out_value = self.add_output(self.data_type, label='Value', value=None)
 
 

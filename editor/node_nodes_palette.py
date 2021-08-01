@@ -1,5 +1,6 @@
 import os
 import json
+import pymel.core as pm
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
@@ -50,7 +51,10 @@ class NodesPalette(QtWidgets.QGroupBox):
         all_items = self.nodes_tree.findItems("*", QtCore.Qt.MatchWrap | QtCore.Qt.MatchWildcard | QtCore.Qt.MatchRecursive)
         item_labels = [item.text(0) for item in all_items]
         # item_labels.sort(key=str.lower)
-        self.completer.setModel(QtGui.QStringListModel(item_labels))
+        if int(pm.about(v=1)) < 2020:
+            self.completer.setModel(QtGui.QStringListModel(item_labels))
+        else:
+            self.completer.setModel(QtCore.QStringListModel(item_labels))
 
     def create_layouts(self):
         self.main_layout = QtWidgets.QVBoxLayout()

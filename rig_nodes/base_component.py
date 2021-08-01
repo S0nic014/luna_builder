@@ -31,6 +31,7 @@ class ComponentNode(luna_node.LunaNode):
         self.update_node_title()
 
     def create_connections(self):
+        super(ComponentNode, self).create_connections()
         self.in_name.signals.value_changed.connect(self.update_node_title)
         self.in_side.signals.value_changed.connect(self.update_node_title)
 

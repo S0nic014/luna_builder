@@ -2,6 +2,7 @@ from PySide2 import QtWidgets
 from collections import OrderedDict
 
 from luna import Logger
+import luna_builder.editor.node_socket as node_socket
 import luna_builder.editor.editor_conf as editor_conf
 
 
@@ -104,6 +105,7 @@ class AttribWidget(QtWidgets.QGroupBox):
         self.blockSignals(True)
         for label, socket_widget_pair in self.fields_map.items():
             socket, widget = socket_widget_pair
-            widget.setEnabled(not socket.has_edge())
             self.update_widget_value(socket, widget)
+            if isinstance(socket, node_socket.InputSocket):
+                widget.setEnabled(not socket.has_edge())
         self.blockSignals(False)

@@ -14,7 +14,6 @@ class ScriptNode(luna_node.LunaNode):
     def __init__(self, scene, title=None, inputs=[], outputs=[]):
         super(ScriptNode, self).__init__(scene, title=title, inputs=inputs, outputs=outputs)
         self.code = ''
-        self.execute()
 
     def execute(self):
         exec(self.code)

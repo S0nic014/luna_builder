@@ -185,6 +185,7 @@ class InputSocket(Socket):
 
     def create_connections(self):
         self.signals.value_changed.connect(self.update_mathching_outputs)
+        self.signals.value_changed.connect(self.node.set_dirty)
 
 
 class OutputSocket(Socket):

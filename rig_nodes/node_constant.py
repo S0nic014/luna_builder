@@ -5,6 +5,7 @@ import luna_builder.rig_nodes.luna_node as luna_node
 class ConstantNode(luna_node.LunaNode):
     IS_EXEC = False
     DEFAULT_TITLE = 'Constant'
+    STATUS_ICON = False
     CATEGORY = 'Constants'
     CONSTANT_DATA_TYPE = None
 
@@ -17,6 +18,7 @@ class ConstantNode(luna_node.LunaNode):
         self.out_value = self.add_output(self.data_type, label='Value', value=None)
 
     def create_connections(self):
+        super(ConstantNode, self).create_connections()
         self.out_value.signals.value_changed.connect(self.update_title)
 
     def update_title(self):

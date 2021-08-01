@@ -1,4 +1,5 @@
 import imp
+from PySide2 import QtCore
 from collections import OrderedDict
 
 from luna import Logger
@@ -8,6 +9,11 @@ import luna_builder.editor.node_socket as node_socket
 import luna_builder.editor.node_serializable as node_serializable
 import luna_builder.editor.node_attrib_widget as node_attrib_widget
 imp.reload(graphics_node)
+
+
+class NodeSignals(QtCore.QObject):
+    dirty_changed = QtCore.Signal(bool)
+    invalid_changed = QtCore.Signal(bool)
 
 
 class Node(node_serializable.Serializable):
@@ -28,6 +34,7 @@ class Node(node_serializable.Serializable):
     def __init__(self, scene, title=None, inputs=[], outputs=[]):
         super(Node, self).__init__()
         self.scene = scene
+        self.signals = NodeSignals()
         self._title = title if title else self.__class__.DEFAULT_TITLE
         self.inputs = []
         self.outputs = []
@@ -38,7 +45,7 @@ class Node(node_serializable.Serializable):
 
         # Members init
         self.init_settings()
-        self.init_inner_objects()
+        self.init_inner_classes()
 
         # Add to the scene
         self.scene.add_node(self)
@@ -50,7 +57,7 @@ class Node(node_serializable.Serializable):
     def init_settings(self):
         self.socket_spacing = 22
 
-    def init_inner_objects(self):
+    def init_inner_classes(self):
         # Setup graphics
         self.gr_node = graphics_node.QLGraphicsNode(self)
 
@@ -72,7 +79,8 @@ class Node(node_serializable.Serializable):
             self.add_output(datatype, label=None, value=None)
 
     def create_connections(self):
-        pass
+        self.signals.dirty_changed.connect(self.on_dirty_change)
+        self.signals.invalid_changed.connect(self.on_invalid_change)
 
     def remove_existing_sockets(self):
         if hasattr(self, 'inputs') and hasattr(self, 'outputs'):
@@ -178,15 +186,25 @@ class Node(node_serializable.Serializable):
 
     def set_dirty(self, value=True):
         self._is_dirty = value
+        self.signals.dirty_changed.emit(self._is_dirty)
+
+    def on_dirty_change(self, state):
+        if state:
+            Logger.debug('{0} marked dirty'.format(self))
 
     def is_invalid(self):
         return self._is_invalid
 
     def set_invalid(self, value=True):
         self._is_invalid = value
+        self.signals.invalid_changed.emit(self._is_invalid)
+
+    def on_invalid_change(self, state):
+        if state:
+            Logger.debug('{0} marked invalid'.format(self))
 
     def execute(self):
-        pass
+        return 0
 
     # ========= Serialization methods ========== #
 

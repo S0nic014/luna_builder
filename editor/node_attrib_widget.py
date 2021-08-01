@@ -46,8 +46,6 @@ class AttribWidget(QtWidgets.QGroupBox):
                     widget = QtWidgets.QCheckBox()
                 # elif issubclass(socket.data_class, editor_conf.DataType.LIST.get('class')):
                 #     widget = QtWidgets.QListWidget()
-                elif issubclass(socket.data_class, editor_conf.DataType.PYNODE.get('class')):
-                    widget = QtWidgets.QLineEdit()
                 elif issubclass(socket.data_class, editor_conf.DataType.CONTROL.get('class')):
                     widget = QtWidgets.QLineEdit()
                 elif issubclass(socket.data_class, editor_conf.DataType.COMPONENT.get('class')):
@@ -92,8 +90,6 @@ class AttribWidget(QtWidgets.QGroupBox):
         elif issubclass(socket.data_class, editor_conf.DataType.BOOLEAN.get('class')):
             widget.setChecked(socket.value)
         # elif issubclass(socket.data_class, editor_conf.DataType.LIST.get('class')):
-        elif issubclass(socket.data_class, editor_conf.DataType.PYNODE.get('class')):
-            widget.setText(str(socket.value))
         elif issubclass(socket.data_class, editor_conf.DataType.CONTROL.get('class')):
             if socket.value:
                 widget.setText(str(socket.value.transform))

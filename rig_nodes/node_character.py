@@ -20,9 +20,9 @@ class CharacterNode(base_component.ComponentNode):
         self.in_tag.value = self.out_tag.value = 'character'
 
         self.out_root_control = self.add_output(editor_conf.DataType.CONTROL, label='Root Control')
-        self.out_deform_rig = self.add_output(editor_conf.DataType.PYNODE, label='Deformation Rig')
-        self.out_control_rig = self.add_output(editor_conf.DataType.PYNODE, label='Control Rig')
-        self.out_geometry_grp = self.add_output(editor_conf.DataType.PYNODE, label='Geometry Group')
+        self.out_deform_rig = self.add_output(editor_conf.DataType.STRING, label='Deformation Rig')
+        self.out_control_rig = self.add_output(editor_conf.DataType.STRING, label='Control Rig')
+        self.out_geometry_grp = self.add_output(editor_conf.DataType.STRING, label='Geometry Group')
 
     def execute(self):
         try:

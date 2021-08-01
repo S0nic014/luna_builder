@@ -20,7 +20,7 @@ class SpineNode(base_component.AnimComponentNode):
         self.out_root_control = self.add_output(editor_conf.DataType.CONTROL, label='Root Control')
         self.out_hips_control = self.add_output(editor_conf.DataType.CONTROL, label='Hips Control')
         self.out_chest_control = self.add_output(editor_conf.DataType.CONTROL, label='Chest Control')
-        self.out_ik_curve = self.add_output(editor_conf.DataType.PYNODE, label='IK Curve')
+        self.out_ik_curve = self.add_output(editor_conf.DataType.STRING, label='IK Curve')
 
 
 class FKIKSpineNode(SpineNode):

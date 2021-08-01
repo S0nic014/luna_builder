@@ -26,9 +26,9 @@ class FKIKComponentNode(base_component.AnimComponentNode):
         self.out_hook_start_jnt = self.add_output(editor_conf.DataType.NUMERIC, label='Hook End', value=self.COMPONENT_CLASS.Hooks.END_JNT.value)
         self.out_ik_control = self.add_output(editor_conf.DataType.CONTROL, label='IK Control')
         self.out_pv_control = self.add_output(editor_conf.DataType.CONTROL, label='PV Control')
-        self.out_param_controls = self.add_output(editor_conf.DataType.LIST, label='Param Control')
+        self.out_param_controls = self.add_output(editor_conf.DataType.CONTROL, label='Param Control')
         self.out_fk_controls = self.add_output(editor_conf.DataType.LIST, label='FK Controls')
-        self.out_ik_handle = self.add_output(editor_conf.DataType.PYNODE, label='IK Handle')
+        self.out_ik_handle = self.add_output(editor_conf.DataType.STRING, label='IK Handle')
 
     def execute(self):
         pass

@@ -1,4 +1,5 @@
 import imp
+import pymel.core as pm
 from PySide2 import QtCore
 from collections import OrderedDict
 
@@ -84,6 +85,8 @@ class Socket(node_serializable.Serializable):
             return
         if self._value == value:
             return
+        if isinstance(value, pm.PyNode):
+            value = str(value)
 
         self._value = value
         self.signals.value_changed.emit()

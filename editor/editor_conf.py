@@ -14,6 +14,7 @@ PALETTE_MIMETYPE = 'luna/x-item'
 FUNC_NODE_ID = 100
 INPUT_NODE_ID = 101
 OUTPUT_NODE_ID = 102
+UNBOUND_FUNCTION_DATATYPE = -1
 
 # ====== EXCEPTIONS ======== #
 
@@ -57,28 +58,22 @@ class DataType(object):
             'label': 'List',
             'class': list,
             'default': []}
-    PYNODE = {'index': 5,
-              'color': QtGui.QColor("#FF0056a6"),
-              'label': 'Scene object',
-              'class': pm.PyNode,
-              'default': None,
-              }
-    CONTROL = {'index': 6,
+    CONTROL = {'index': 5,
                'color': QtGui.QColor("#FF0056a6"),
                'label': 'Control',
                'class': luna_rig.Control,
                'default': None}
-    COMPONENT = {'index': 7,
+    COMPONENT = {'index': 6,
                  'color': QtGui.QColor("#FF0056a6"),
                  'label': 'Component',
                  'class': luna_rig.Component,
                  'default': None}
-    ANIM_COMPONENT = {'index': 8,
+    ANIM_COMPONENT = {'index': 7,
                       'color': QtGui.QColor("#FF0056a6"),
                       'label': 'AnimComponent',
                       'class': luna_rig.AnimComponent,
                       'default': None}
-    CHARACTER = {'index': 9,
+    CHARACTER = {'index': 8,
                  'color': QtGui.QColor("#FF0056a6"),
                  'label': 'Character',
                  'class': luna_rig.components.Character,
@@ -86,7 +81,7 @@ class DataType(object):
 
     @classmethod
     def runtime_types(cls):
-        return [cls.COMPONENT, cls.LIST, cls.CONTROL, cls.PYNODE]
+        return [cls.COMPONENT, cls.LIST, cls.CONTROL]
 
     @classmethod
     def list_types(cls):
@@ -109,7 +104,7 @@ class DataType(object):
 
     @ classmethod
     def get_type(cls, index, name_only=False):
-        if index == -1:
+        if index == UNBOUND_FUNCTION_DATATYPE:
             return None
 
         try:
@@ -153,7 +148,7 @@ def register_function(func, source_datatype, inputs_dict={}, outputs_dict={}, ni
     # Get datatype index if source_datatype is not int
     if not isinstance(source_datatype, int):
         if not source_datatype:
-            dt_index = -1
+            dt_index = UNBOUND_FUNCTION_DATATYPE
         else:
             dt_index = source_datatype.get('index')
         dt_name = DataType.get_type(dt_index, name_only=True) if dt_index else None

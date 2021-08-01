@@ -91,12 +91,12 @@ class AttribWidget(QtWidgets.QGroupBox):
             widget.setText(str(socket.value))
         elif issubclass(socket.data_class, editor_conf.DataType.CONTROL.get('class')):
             if socket.value:
-                widget.setText(str(socket.value.transform))
+                widget.setText(str(socket.value))
             else:
                 widget.clear()
         elif issubclass(socket.data_class, editor_conf.DataType.COMPONENT.get('class')):
             if socket.value:
-                widget.setText(str(socket.value.pynode))
+                widget.setText(str(socket.value))
         else:
             Logger.error('Failed to create attribute field: {0}::{1}'.format(socket, socket.data_class))
 

@@ -31,15 +31,15 @@ class FunctionNode(luna_node.LunaNode):
     def func_signature(self):
         return self._func_signature
 
-    @property
-    def func_ref(self):
-        reference = self.func_signature.get('ref') if self.func_signature else None  # type: function
-        return reference
-
     @func_signature.setter
     def func_signature(self, value):
         self.set_signature_without_reinit(value)
         self.init_sockets(reset=True)
+
+    @property
+    def func_ref(self):
+        reference = self.func_signature.get('ref') if self.func_signature else None  # type: function
+        return reference
 
     def set_signature_without_reinit(self, signature):
         self._func_signature = signature
@@ -56,8 +56,8 @@ class FunctionNode(luna_node.LunaNode):
         res['func_signature'] = self.func_signature
         return res
 
-    def post_deserilization(self, data):
-        self.set_signature_without_reinit(data.get('func_signature'))
+    def pre_deserilization(self, data):
+        self.func_signature = data.get('func_signature')
 
     def execute(self):
         attr_values = [socket.value for socket in self.list_non_exec_inputs()]

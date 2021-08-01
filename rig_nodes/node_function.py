@@ -52,7 +52,10 @@ class FunctionNode(luna_node.LunaNode):
         return self._func_desc
 
     def serialize(self):
-        res = super(FunctionNode, self).serialize()
+        try:
+            res = super(FunctionNode, self).serialize()
+        except TypeError:
+            pass
         res['func_signature'] = self.func_signature
         return res
 

@@ -189,8 +189,6 @@ class Node(node_serializable.Serializable):
         self.signals.dirty_changed.emit(self._is_dirty)
 
     def on_dirty_change(self, state):
-        if state:
-            Logger.debug('{0} marked dirty'.format(self))
         self.mark_children_dirty(state)
 
     def is_invalid(self):
@@ -360,7 +358,7 @@ class Node(node_serializable.Serializable):
         return socket.value
 
     def list_exec_outputs(self):
-        [socket for socket in self.outputs if socket.data_type == editor_conf.DataType.EXEC]
+        return [socket for socket in self.outputs if socket.data_type == editor_conf.DataType.EXEC]
 
     def list_non_exec_inputs(self):
         return [socket for socket in self.inputs if socket.data_type != editor_conf.DataType.EXEC]

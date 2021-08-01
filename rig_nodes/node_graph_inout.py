@@ -3,7 +3,7 @@ import luna_builder.rig_nodes.luna_node as luna_node
 
 
 class GraphInputNode(luna_node.LunaNode):
-    ID = 3
+    ID = editor_conf.INPUT_NODE_ID
     IS_EXEC = True
     AUTO_INIT_EXECS = False
     ICON = 'input.png'
@@ -18,7 +18,7 @@ class GraphInputNode(luna_node.LunaNode):
 
 
 class GraphOutputNode(luna_node.LunaNode):
-    ID = 4
+    ID = editor_conf.OUTPUT_NODE_ID
     IS_EXEC = True
     AUTO_INIT_EXECS = False
     ICON = 'output.png'

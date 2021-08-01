@@ -18,6 +18,12 @@ class BranchNode(luna_node.LunaNode):
         self.out_true = self.exec_out_socket
         self.out_false = self.add_output(editor_conf.DataType.EXEC, label='False')
 
+    def list_exec_outputs(self):
+        if self.in_condition.value:
+            return [self.out_true]
+        else:
+            return [self.out_false]
+
 
 def register_plugin():
     editor_conf.register_node(BranchNode.ID, BranchNode)

@@ -12,6 +12,8 @@ import luna.static.directories as directories
 # ====== CONSTANTS ======== #
 PALETTE_MIMETYPE = 'luna/x-item'
 FUNC_NODE_ID = 100
+INPUT_NODE_ID = 101
+OUTPUT_NODE_ID = 102
 
 # ====== EXCEPTIONS ======== #
 

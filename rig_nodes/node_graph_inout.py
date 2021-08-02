@@ -29,7 +29,6 @@ class GraphInputNode(luna_node.LunaNode):
         try:
             self.out_asset_name.value = luna.workspace.Asset.get().name
             pm.newFile(f=1)
-            Logger.info('Initiating new build...')
             asset_files.import_model()
             asset_files.import_skeleton()
         except Exception:

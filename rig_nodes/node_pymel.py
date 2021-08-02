@@ -9,4 +9,5 @@ def register_plugin():
                                   OrderedDict([
                                       ('Child', editor_conf.DataType.STRING),
                                       ('Parent', editor_conf.DataType.STRING)]),
-                                  nice_name='Parent')
+                                  nice_name='Parent',
+                                  category='Pymel')

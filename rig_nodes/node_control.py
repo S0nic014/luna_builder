@@ -45,7 +45,8 @@ def register_plugin():
                                       ('Output Max', editor_conf.DataType.NUMERIC)
                                   ]),
                                   default_values=[None, '', '', 'remap', 0.0, 10.0, 0.0, 1.0],
-                                  nice_name='Connect Via Remap')
+                                  nice_name='Connect Via Remap',
+                                  category='Control')
 
     editor_conf.register_function(luna_rig.Control.add_space,
                                   editor_conf.DataType.CONTROL,
@@ -56,7 +57,8 @@ def register_plugin():
                                       ('Use Offset Matrix', editor_conf.DataType.BOOLEAN)
                                   ]),
                                   default_values=[None, None, 'newSpace', False],
-                                  nice_name='Add Space')
+                                  nice_name='Add Space',
+                                  category='Control')
 
     editor_conf.register_function(luna_rig.Control.add_world_space,
                                   editor_conf.DataType.CONTROL,
@@ -65,7 +67,8 @@ def register_plugin():
                                       ('Use Offset Matrix', editor_conf.DataType.BOOLEAN)
                                   ]),
                                   default_values=[None, False],
-                                  nice_name='Add World Space')
+                                  nice_name='Add World Space',
+                                  category='Control')
 
     editor_conf.register_function(luna_rig.Control.add_orient_switch,
                                   editor_conf.DataType.CONTROL,
@@ -76,7 +79,8 @@ def register_plugin():
                                       ('Default State', editor_conf.DataType.BOOLEAN),
                                   ]),
                                   default_values=[None, '', None, True],
-                                  nice_name='Add Orient Switch')
+                                  nice_name='Add Orient Switch',
+                                  category='Control')
 
     editor_conf.register_function(luna_rig.Control.constrain_geometry,
                                   editor_conf.DataType.CONTROL,
@@ -87,7 +91,8 @@ def register_plugin():
                                       ('Inherits Transfom', editor_conf.DataType.BOOLEAN),
                                   ]),
                                   default_values=[None, '', True, True],
-                                  nice_name='Constrain Geometry')
+                                  nice_name='Constrain Geometry',
+                                  category='Control')
 
     editor_conf.register_function(luna_rig.Control.get_parent,
                                   editor_conf.DataType.CONTROL,
@@ -99,7 +104,8 @@ def register_plugin():
                                       ('Parent', editor_conf.DataType.CONTROL),
                                   ]),
                                   default_values=[None, 1],
-                                  nice_name='Get Parent')
+                                  nice_name='Get Parent',
+                                  category='Control')
 
     editor_conf.register_function(luna_rig.Control.set_parent,
                                   editor_conf.DataType.CONTROL,
@@ -107,7 +113,8 @@ def register_plugin():
                                       ('Control', editor_conf.DataType.CONTROL),
                                       ('Parent Control', editor_conf.DataType.CONTROL)
                                   ]),
-                                  nice_name='Set Parent')
+                                  nice_name='Set Parent',
+                                  category='Control')
     editor_conf.register_function(luna_rig.Control.get_tag,
                                   editor_conf.DataType.CONTROL,
                                   inputs_dict=OrderedDict([
@@ -116,7 +123,8 @@ def register_plugin():
                                   outputs_dict=OrderedDict([
                                       ('Tag', editor_conf.DataType.STRING),
                                   ]),
-                                  nice_name='Get Tag')
+                                  nice_name='Get Tag',
+                                  category='Control')
     editor_conf.register_function(luna_rig.Control.get_joint,
                                   editor_conf.DataType.CONTROL,
                                   inputs_dict=OrderedDict([
@@ -125,7 +133,8 @@ def register_plugin():
                                   outputs_dict=OrderedDict([
                                       ('Joint', editor_conf.DataType.STRING),
                                   ]),
-                                  nice_name='Get Joint')
+                                  nice_name='Get Joint',
+                                  category='Control')
     editor_conf.register_function(luna_rig.Control.get_connected_component,
                                   editor_conf.DataType.CONTROL,
                                   inputs_dict=OrderedDict([
@@ -134,7 +143,8 @@ def register_plugin():
                                   outputs_dict=OrderedDict([
                                       ('Anim Component', editor_conf.DataType.ANIM_COMPONENT),
                                   ]),
-                                  nice_name='Get Component')
+                                  nice_name='Get Component',
+                                  category='Control')
     editor_conf.register_function(luna_rig.Control.get_character,
                                   editor_conf.DataType.CONTROL,
                                   inputs_dict=OrderedDict([
@@ -143,4 +153,5 @@ def register_plugin():
                                   outputs_dict=OrderedDict([
                                       ('Character', editor_conf.DataType.CHARACTER),
                                   ]),
-                                  nice_name='Get Character')
+                                  nice_name='Get Character',
+                                  category='Control')

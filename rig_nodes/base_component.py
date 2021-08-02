@@ -74,7 +74,8 @@ def register_plugin():
                                   outputs_dict=OrderedDict([
                                       ('Parent Component', editor_conf.DataType.COMPONENT),
                                   ]),
-                                  nice_name='Get Parent')
+                                  nice_name='Get Parent',
+                                  category='Component')
     editor_conf.register_function(ComponentNode.COMPONENT_CLASS.get_meta_children,
                                   editor_conf.DataType.COMPONENT,
                                   inputs_dict=OrderedDict([
@@ -84,7 +85,8 @@ def register_plugin():
                                   outputs_dict=OrderedDict([
                                       ('Children', editor_conf.DataType.LIST),
                                   ]),
-                                  nice_name='Get Children')
+                                  nice_name='Get Children',
+                                  category='Component')
 
     # Anim Component methods
     editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.get_meta_parent,
@@ -95,19 +97,22 @@ def register_plugin():
                                   outputs_dict=OrderedDict([
                                       ('Parent AnimComponent', editor_conf.DataType.ANIM_COMPONENT),
                                   ]),
-                                  nice_name='Get Parent')
+                                  nice_name='Get Parent',
+                                  category='Anim Component')
 
     editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.get_character,
                                   editor_conf.DataType.ANIM_COMPONENT,
                                   inputs_dict={'AnimComponent': editor_conf.DataType.ANIM_COMPONENT},
                                   outputs_dict={'Character': editor_conf.DataType.CHARACTER},
-                                  nice_name='Get Character')
+                                  nice_name='Get Character',
+                                  category='Anim Component')
 
     editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.get_in_hook_index,
                                   editor_conf.DataType.ANIM_COMPONENT,
                                   inputs_dict={'AnimComponent': editor_conf.DataType.ANIM_COMPONENT},
                                   outputs_dict={'Hook Index': editor_conf.DataType.NUMERIC},
-                                  nice_name='Get In Hook Index')
+                                  nice_name='Get In Hook Index',
+                                  category='Anim Component')
 
     editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.list_controls,
                                   editor_conf.DataType.ANIM_COMPONENT,
@@ -117,7 +122,8 @@ def register_plugin():
                                   outputs_dict=OrderedDict([
                                       ('Controls', editor_conf.DataType.LIST),
                                   ]),
-                                  nice_name='List Controls')
+                                  nice_name='List Controls',
+                                  category='Anim Component')
 
     editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.get_ctl_chain,
                                   editor_conf.DataType.ANIM_COMPONENT,
@@ -127,7 +133,8 @@ def register_plugin():
                                   outputs_dict=OrderedDict([
                                       ('Joint Chain', editor_conf.DataType.LIST),
                                   ]),
-                                  nice_name='Get Ctl Chain')
+                                  nice_name='Get Ctl Chain',
+                                  category='Anim Component')
 
     editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.get_character,
                                   editor_conf.DataType.ANIM_COMPONENT,
@@ -137,7 +144,8 @@ def register_plugin():
                                   outputs_dict=OrderedDict([
                                       ('Character', editor_conf.DataType.CHARACTER),
                                   ]),
-                                  nice_name='Get Character')
+                                  nice_name='Get Character',
+                                  category='Anim Component')
 
     editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.get_bind_joints,
                                   editor_conf.DataType.ANIM_COMPONENT,
@@ -147,7 +155,8 @@ def register_plugin():
                                   outputs_dict=OrderedDict([
                                       ('Bind Joints', editor_conf.DataType.LIST),
                                   ]),
-                                  nice_name='Get Bind Joints')
+                                  nice_name='Get Bind Joints',
+                                  category='Anim Component')
 
     editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.get_root,
                                   editor_conf.DataType.ANIM_COMPONENT,
@@ -157,4 +166,5 @@ def register_plugin():
                                   outputs_dict=OrderedDict([
                                       ('Root Group', editor_conf.DataType.STRING),
                                   ]),
-                                  nice_name='Get Root')
+                                  nice_name='Get Root',
+                                  category='Anim Component')

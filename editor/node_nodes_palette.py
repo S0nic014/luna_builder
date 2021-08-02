@@ -117,12 +117,12 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         if not parent:
             parent = self
         tree_item = QtWidgets.QTreeWidgetItem(parent)
-        tree_item.setText(0, name.capitalize())
+        tree_item.setText(0, name)
         tree_item.setExpanded(expanded)
         return tree_item
 
     def get_category(self, name, expanded=True, parent=None):
-        found_items = self.findItems(name, QtCore.Qt.MatchContains | QtCore.Qt.MatchRecursive, 0)
+        found_items = self.findItems(name, QtCore.Qt.MatchExactly | QtCore.Qt.MatchRecursive, 0)
         if parent is not self:
             found_items = [item for item in found_items if item.parent() is parent]
         item = found_items[0] if found_items else self.add_category(name, expanded=expanded, parent=parent)
@@ -189,6 +189,7 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
 
     def add_registered_functions(self):
         keys = list(editor_conf.FUNCTION_REGISTER.keys())
+        Logger.debug(keys)
         keys.sort()
         for datatype_name in keys:
             if datatype_name != editor_conf.UNBOUND_FUNCTION_DATATYPE and self.nodes_palette.data_type_filter:
@@ -199,14 +200,13 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
             func_signatures_list.sort()
             for func_sign in func_signatures_list:
                 if datatype_name != editor_conf.UNBOUND_FUNCTION_DATATYPE:
-                    sub_category_name = editor_conf.get_class_name_from_signature(func_sign)
                     expanded = self.nodes_palette.functions_first
                 else:
-                    sub_category_name = 'Common'
                     expanded = True
                 func_dict = func_map[func_sign]
                 icon_name = func_dict['icon']
                 nice_name = func_dict.get('nice_name')
+                sub_category_name = func_dict.get('category', 'General')
                 palette_name = nice_name if nice_name else func_sign
 
                 self.add_node_item(editor_conf.FUNC_NODE_ID,

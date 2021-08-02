@@ -142,6 +142,7 @@ def register_function(func,
                       outputs_dict={},
                       default_values=[],
                       nice_name=None,
+                      category='General',
                       docstring='',
                       icon='func.png'):
     # Get datatype index if source_datatype is not int
@@ -171,6 +172,7 @@ def register_function(func,
                  'doc': docstring,
                  'icon': icon,
                  'nice_name': nice_name,
+                 'category': category,
                  'default_values': default_values}
 
     # Store function in the register

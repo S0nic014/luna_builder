@@ -48,32 +48,38 @@ def register_plugin():
                                   editor_conf.DataType.CHARACTER,
                                   inputs_dict={'Character': editor_conf.DataType.CHARACTER},
                                   outputs_dict={'Control Rig': editor_conf.DataType.STRING},
-                                  nice_name='Get Control Rig')
+                                  nice_name='Get Control Rig',
+                                  category='Character')
     editor_conf.register_function(CharacterNode.COMPONENT_CLASS.get_deformation_rig,
                                   editor_conf.DataType.CHARACTER,
                                   inputs_dict={'Character': editor_conf.DataType.CHARACTER},
                                   outputs_dict={'Deformation Rig': editor_conf.DataType.STRING},
-                                  nice_name='Get Deformation Rig')
+                                  nice_name='Get Deformation Rig',
+                                  category='Character')
     editor_conf.register_function(CharacterNode.COMPONENT_CLASS.get_geometry_grp,
                                   editor_conf.DataType.CHARACTER,
                                   inputs_dict={'Character': editor_conf.DataType.CHARACTER},
                                   outputs_dict={'Geometry Group': editor_conf.DataType.STRING},
-                                  nice_name='Get Geometry Group')
+                                  nice_name='Get Geometry Group',
+                                  category='Character')
     editor_conf.register_function(CharacterNode.COMPONENT_CLASS.get_root_control,
                                   editor_conf.DataType.CHARACTER,
                                   inputs_dict={'Character': editor_conf.DataType.CHARACTER},
                                   outputs_dict={'Root Control': editor_conf.DataType.CONTROL},
-                                  nice_name='Get Root Control')
+                                  nice_name='Get Root Control',
+                                  category='Character')
     editor_conf.register_function(CharacterNode.COMPONENT_CLASS.get_world_locator,
                                   editor_conf.DataType.CHARACTER,
                                   inputs_dict={'Character': editor_conf.DataType.CHARACTER},
                                   outputs_dict={'World Locator': editor_conf.DataType.STRING},
-                                  nice_name='Get World Locator')
+                                  nice_name='Get World Locator',
+                                  category='Character')
     editor_conf.register_function(CharacterNode.COMPONENT_CLASS.get_root_motion,
                                   editor_conf.DataType.CHARACTER,
                                   inputs_dict={'Character': editor_conf.DataType.CHARACTER},
                                   outputs_dict={'Root Joint': editor_conf.DataType.STRING},
-                                  nice_name='Get Root Joint')
+                                  nice_name='Get Root Joint',
+                                  category='Character')
     editor_conf.register_function(CharacterNode.COMPONENT_CLASS.add_root_motion,
                                   editor_conf.DataType.CHARACTER,
                                   inputs_dict=OrderedDict([
@@ -82,4 +88,5 @@ def register_plugin():
                                       ('Root Joint', editor_conf.DataType.STRING)
                                   ]),
                                   outputs_dict={'Root Joint': editor_conf.DataType.STRING},
-                                  nice_name='Add Root Motion')
+                                  nice_name='Add Root Motion',
+                                  category='Character')

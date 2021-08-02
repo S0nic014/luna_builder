@@ -66,6 +66,9 @@ class AttribWidget(QtWidgets.QGroupBox):
     def store_in_fields_map(self, socket, widget):
         self.fields_map[socket.label] = (socket, widget)
 
+    def set_socket_string_value(self, socket, widget):
+        socket.set_value(widget.text())
+
     def create_signal_connections(self):
         for label, socket_widget_pair in self.fields_map.items():
             socket, widget = socket_widget_pair
@@ -75,7 +78,7 @@ class AttribWidget(QtWidgets.QGroupBox):
 
             # Setable types
             if isinstance(widget, QtWidgets.QLineEdit):
-                widget.textChanged.connect(socket.set_value)
+                widget.returnPressed.connect(lambda socket=socket, widget=widget: self.set_socket_string_value(socket, widget))
             elif isinstance(widget, QtWidgets.QAbstractSpinBox):
                 widget.valueChanged.connect(socket.set_value)
             elif isinstance(widget, QtWidgets.QCheckBox):

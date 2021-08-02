@@ -4,7 +4,6 @@ import imp
 from collections import OrderedDict
 from PySide2 import QtGui
 
-import pymel.core as pm
 from luna import Logger
 import luna_rig
 import luna.static.directories as directories
@@ -12,10 +11,10 @@ import luna.static.directories as directories
 
 # ====== CONSTANTS ======== #
 PALETTE_MIMETYPE = 'luna/x-item'
+UNBOUND_FUNCTION_DATATYPE = 'UNBOUND'
 FUNC_NODE_ID = 100
 INPUT_NODE_ID = 101
 OUTPUT_NODE_ID = 102
-UNBOUND_FUNCTION_DATATYPE = 'UNBOUND'
 
 # ====== EXCEPTIONS ======== #
 
@@ -36,12 +35,21 @@ class NodeIDNotFound(ConfException):
     pass
 
 
-# Registration queues
-DATA_TYPES_QUEUE = OrderedDict()
+# ====== QUEUES ======== #
 NODES_QUEUE = OrderedDict()
 FUNCTIONS_QUEUE = OrderedDict()
 
+# ====== REGISTERS ======== #
+DATATYPE_REGISTER = {}
+NODE_REGISTER = {}
+FUNCTION_REGISTER = {}
 
+
+def instancer(cls):
+    return cls()
+
+
+@instancer
 class DataType(object):
 
     EXEC = {'class': type(None),
@@ -81,22 +89,26 @@ class DataType(object):
                  'label': 'Character',
                  'default': None}
 
-    @classmethod
-    def runtime_types(cls):
-        return [cls.COMPONENT, cls.LIST, cls.CONTROL]
+    def __getattr__(self, name):
+        if name in DATATYPE_REGISTER:
+            return DATATYPE_REGISTER[name]
+        else:
+            Logger.error('Uregistered datatype: {0}'.format(name))
+            raise KeyError
 
     @classmethod
-    def list_types(cls):
+    def _basic_types(cls):
         return [(dt, desc) for dt, desc in cls.__dict__.items() if isinstance(desc, dict)]
 
     @classmethod
-    def list_basetypes(cls, of_type):
-        basetypes = [typ for typ in cls.list_types() if issubclass(of_type, typ[1]['class'])]
-        return basetypes
+    def _register_basic_types(cls):
+        Logger.debug('Registering base datatypes')
+        for type_name, type_dict in cls._basic_types():
+            DATATYPE_REGISTER[type_name] = type_dict
 
     @ classmethod
     def register_datatype(cls, type_name, type_class, color, label='custom_data', default_value=None):
-        if type_name in DATA_TYPES_QUEUE.keys():
+        if type_name in DATATYPE_REGISTER.keys():
             Logger.error('Datatype {0} is already registered'.format(type_name))
             raise InvalidDataTypeRegistration
 
@@ -104,42 +116,36 @@ class DataType(object):
                      'color': color if isinstance(color, QtGui.QColor) else QtGui.QColor(color),
                      'label': label,
                      'default': default_value}
-        DATA_TYPES_QUEUE[type_name.upper()] = type_dict
+        DATATYPE_REGISTER[type_name.upper()] = type_dict
 
     @classmethod
-    def _do_registrations(cls):
-        for type_name, type_dict in DATA_TYPES_QUEUE.items():
-            setattr(cls, type_name, type_dict)
-            Logger.info('Registered datatype: {0}'.format(type_name))
-        DATA_TYPES_QUEUE.clear()
+    def runtime_types(cls):
+        return [cls.COMPONENT, cls.LIST, cls.CONTROL]
+
+    @classmethod
+    def list_base_types(cls, of_type):
+        basetypes = [typ for typ in DATATYPE_REGISTER.values() if issubclass(of_type, typ['class'])]
+        return basetypes
 
     @classmethod
     def get_type_name(cls, data_type_dict):
         try:
-            type_name = [dt_name for dt_name, desc in cls.__dict__.items() if isinstance(desc, dict) and desc == data_type_dict][0]
+            type_name = [dt_name for dt_name, desc in DATATYPE_REGISTER.items() if desc == data_type_dict][0]
             return type_name
         except IndexError:
-            Logger.exception('Failed to find datatype with index {0}'.format(data_type_dict))
+            Logger.exception('Failed to find datatype for class {0}'.format(data_type_dict['class']))
             raise IndexError
 
     @classmethod
     def get_type(cls, type_name):
         try:
-            return getattr(cls, type_name)
+            return DATATYPE_REGISTER[type_name]
         except KeyError:
             Logger.exception('Unregistered datatype: {0}'.format(type_name))
             raise
 
-    @ classmethod
-    def _get_new_index(cls):
-        return len([mp for mp in cls.__dict__.values() if isinstance(mp, dict)])
-
 
 # ========== REGISTERS =========== #
-NODE_REGISTER = {}
-
-FUNCTION_REGISTER = {}
-
 
 def register_node(node_id, node_class):
     if node_id in NODES_QUEUE:
@@ -237,6 +243,17 @@ def get_class_name_from_signature(signature):
 # ========== PLUGINS =========== #
 def load_plugins():
     Logger.info('Loading rig editor plugins...')
+    # Clear queues and registers
+    NODES_QUEUE.clear()
+    FUNCTIONS_QUEUE.clear()
+    DATATYPE_REGISTER.clear()
+    NODE_REGISTER.clear()
+    FUNCTION_REGISTER.clear()
+
+    # Register basic datatypes with register
+    DataType._register_basic_types()
+
+    # Load plugins
     success_count = 0
     plugin_files = []
     plugin_paths = []
@@ -259,17 +276,10 @@ def load_plugins():
             plugin.register_plugin()
             success_count += 1
         except Exception:
-            Logger.exception('Failed to register')
+            Logger.exception('Failed to register plugin {0}'.format(p_name))
 
     # Do actual registrations
-    DataType._do_registrations()
     _do_node_registrations()
     _do_func_registrations()
 
     Logger.info('Successfully loaded {0} plugins'.format(success_count))
-
-
-def reload_plugins():
-    NODE_REGISTER.clear()
-    FUNCTION_REGISTER.clear()
-    load_plugins()

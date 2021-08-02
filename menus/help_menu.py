@@ -1,5 +1,4 @@
 from PySide2 import QtWidgets
-import luna
 import luna.utils.pysideFn as pysideFn
 import luna_builder.editor.editor_conf as editor_conf
 
@@ -22,7 +21,7 @@ class HelpMenu(QtWidgets.QMenu):
         self.docs_action = QtWidgets.QAction(pysideFn.get_QIcon("help.png", maya_icon=True), "Documentation", self)
 
     def create_connections(self):
-        self.reload_editor_plugins_action.triggered.connect(editor_conf.reload_plugins)
+        self.reload_editor_plugins_action.triggered.connect(editor_conf.load_plugins)
         self.reload_editor_plugins_action.triggered.connect(self.main_dialog.nodes_palette.update_node_tree)
 
     def populate(self):

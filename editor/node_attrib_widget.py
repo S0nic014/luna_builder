@@ -42,6 +42,7 @@ class AttribWidget(QtWidgets.QGroupBox):
                     widget = QtWidgets.QLineEdit()
                 elif issubclass(socket.data_class, editor_conf.DataType.NUMERIC.get('class')):
                     widget = QtWidgets.QDoubleSpinBox()
+                    widget.setRange(-9999, 9999)
                 elif issubclass(socket.data_class, editor_conf.DataType.BOOLEAN.get('class')):
                     widget = QtWidgets.QCheckBox()
                 # elif issubclass(socket.data_class, editor_conf.DataType.LIST.get('class')):
@@ -66,19 +67,17 @@ class AttribWidget(QtWidgets.QGroupBox):
     def store_in_fields_map(self, socket, widget):
         self.fields_map[socket.label] = (socket, widget)
 
-    def set_socket_string_value(self, socket, widget):
-        socket.set_value(widget.text())
-
     def create_signal_connections(self):
         for label, socket_widget_pair in self.fields_map.items():
             socket, widget = socket_widget_pair
-            socket.signals.value_changed.connect(self.update_fields)
+            if isinstance(socket, node_socket.InputSocket):
+                socket.signals.connection_changed.connect(self.update_fields)
             if socket.is_runtime_data():
                 continue
 
             # Setable types
             if isinstance(widget, QtWidgets.QLineEdit):
-                widget.returnPressed.connect(lambda socket=socket, widget=widget: self.set_socket_string_value(socket, widget))
+                widget.textChanged.connect(socket.set_value)
             elif isinstance(widget, QtWidgets.QAbstractSpinBox):
                 widget.valueChanged.connect(socket.set_value)
             elif isinstance(widget, QtWidgets.QCheckBox):

@@ -114,6 +114,10 @@ class Socket(node_serializable.Serializable):
         return self.data_type.get('class')
 
     # ===== Methods ===== #
+    def remove(self):
+        self.remove_all_edges()
+        self.node.scene.gr_scene.removeItem(self.gr_socket)
+
     def is_runtime_data(self):
         return any([issubclass(self.data_class, dt['class']) for dt in editor_conf.DataType.runtime_types()])
 

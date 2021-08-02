@@ -309,7 +309,25 @@ class Node(node_serializable.Serializable):
         self.update_socket_positions()
         return socket
 
+    def remove_socket(self, name, is_input=True):
+        try:
+            if is_input:
+                socket_to_remove = [socket for socket in self.inputs if socket.label == name][0]  # type: node_socket.InputSocket
+                if socket_to_remove.index != len(self.inputs) - 1:
+                    self.inputs[socket_to_remove.index + 1].index -= 1
+                self.inputs.remove(socket_to_remove)
+            else:
+                socket_to_remove = [socket for socket in self.outputs if socket.label == name][0]  # type: node_socket.OutputSocket
+                if socket_to_remove.index != len(self.outputs) - 1:
+                    self.outputs[socket_to_remove.index + 1].index -= 1
+                self.outputs.remove(socket_to_remove)
+            socket_to_remove.remove()
+            self.update_socket_positions()
+        except IndexError:
+            Logger.error('Failed to delete input, socket with name {0} does not exist'.format(name))
+
     # ========= Graph Traversal ================ #
+
     def list_children(self, recursive=False):
         children = []
         for output in self.outputs:

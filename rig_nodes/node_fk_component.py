@@ -24,8 +24,8 @@ class FKComponentNode(base_component.AnimComponentNode):
         # Create new inputs
         self.in_start_joint = self.add_input(editor_conf.DataType.STRING, label='Start Joint', value=None)
         self.in_end_joint = self.add_input(editor_conf.DataType.STRING, label='End Joint', value=None)
-        self.in_add_end_ctl = self.add_input(editor_conf.DataType.BOOLEAN, label='End Control', value=True)
         self.in_lock_translate = self.add_input(editor_conf.DataType.BOOLEAN, label='Lock Translation', value=True)
+        self.in_add_end_ctl = self.add_input(editor_conf.DataType.BOOLEAN, label='End Control', value=True)
 
     def execute(self):
         self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value,
@@ -59,6 +59,7 @@ class HeadComponentNode(FKComponentNode):
         self.out_self.data_type = editor_conf.DataType.HEAD_COMPONENT
 
         # Create new inputs
+        self.remove_socket('End Control', is_input=True)
         self.in_head_joint_index = self.add_input(editor_conf.DataType.NUMERIC, label='Head Index', value=-2)
         # Create new outputs
         self.out_head_hook = self.add_output(editor_conf.DataType.NUMERIC, label='Hook Head', value=self.COMPONENT_CLASS.Hooks.HEAD)

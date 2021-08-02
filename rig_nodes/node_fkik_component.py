@@ -31,7 +31,17 @@ class FKIKComponentNode(base_component.AnimComponentNode):
         self.out_ik_handle = self.add_output(editor_conf.DataType.STRING, label='IK Handle')
 
     def execute(self):
-        pass
+        self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value,
+                                                              hook=self.in_hook.value,
+                                                              character=self.in_character.value,
+                                                              side=self.in_side.value,
+                                                              name=self.in_name.value,
+                                                              start_joint=self.in_start_joint.value,
+                                                              end_joint=self.in_end_joint.value,
+                                                              ik_world_orient=self.in_ik_world_orient.value,
+                                                              default_state=self.in_default_state.value,
+                                                              param_locator=self.in_param_locator.value,
+                                                              tag=self.in_tag.value)
 
 
 def register_plugin():

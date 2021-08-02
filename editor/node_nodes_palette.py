@@ -192,7 +192,7 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         keys.sort()
         for datatype_id in keys:
             if datatype_id != editor_conf.UNBOUND_FUNCTION_DATATYPE and self.nodes_palette.data_type_filter:
-                if not issubclass(editor_conf.DataType.get_type(datatype_id).get('class'), self.nodes_palette.data_type_filter.get('class')):
+                if not issubclass(self.nodes_palette.data_type_filter.get('class'), editor_conf.DataType.get_type(datatype_id).get('class')):
                     continue
             func_map = editor_conf.FUNCTION_REGISTER[datatype_id]
             func_signatures_list = func_map.keys()

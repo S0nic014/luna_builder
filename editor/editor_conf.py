@@ -1,6 +1,7 @@
 import os
 import imp
 
+from collections import OrderedDict
 from PySide2 import QtGui
 
 import pymel.core as pm
@@ -27,8 +28,18 @@ class InvalidNodeRegistration(ConfException):
     pass
 
 
+class InvalidDataTypeRegistration(ConfException):
+    pass
+
+
 class NodeIDNotFound(ConfException):
     pass
+
+
+# Registration queues
+DATA_TYPES_QUEUE = OrderedDict()
+NODES_QUEUE = OrderedDict()
+FUNCTIONS_QUEUE = OrderedDict()
 
 
 class DataType(object):
@@ -85,12 +96,22 @@ class DataType(object):
 
     @ classmethod
     def register_datatype(cls, type_name, type_class, color, label='custom_data', default_value=None):
+        if type_name in DATA_TYPES_QUEUE.keys():
+            Logger.error('Datatype {0} is already registered'.format(type_name))
+            raise InvalidDataTypeRegistration
+
         type_dict = {'class': type_class,
                      'color': color if isinstance(color, QtGui.QColor) else QtGui.QColor(color),
                      'label': label,
                      'default': default_value}
-        setattr(cls, type_name.upper(), type_dict)
-        Logger.info('Registered datatype: {0}'.format(type_name))
+        DATA_TYPES_QUEUE[type_name.upper()] = type_dict
+
+    @classmethod
+    def _do_registrations(cls):
+        for type_name, type_dict in DATA_TYPES_QUEUE.items():
+            setattr(cls, type_name, type_dict)
+            Logger.info('Registered datatype: {0}'.format(type_name))
+        DATA_TYPES_QUEUE.clear()
 
     @classmethod
     def get_type_name(cls, data_type_dict):
@@ -121,11 +142,17 @@ FUNCTION_REGISTER = {}
 
 
 def register_node(node_id, node_class):
-    if node_id in NODE_REGISTER:
+    if node_id in NODES_QUEUE:
         Logger.error('Node with id {0} is already registered as {1}'.format(node_id, node_class))
         raise InvalidNodeRegistration
-    NODE_REGISTER[node_id] = node_class
-    Logger.debug('Registered node {0}::{1}'.format(node_id, node_class))
+    NODES_QUEUE[node_id] = node_class
+
+
+def _do_node_registrations():
+    for node_id, node_class in NODES_QUEUE.items():
+        NODE_REGISTER[node_id] = node_class
+        Logger.debug('Registered node {0}::{1}'.format(node_id, node_class))
+    NODES_QUEUE.clear()
 
 
 def get_node_class_from_id(node_id):
@@ -176,11 +203,19 @@ def register_function(func,
                  'default_values': default_values}
 
     # Store function in the register
-    if dt_name not in FUNCTION_REGISTER:
-        FUNCTION_REGISTER[dt_name] = {}
-    FUNCTION_REGISTER[dt_name][signature] = func_dict
-    Logger.debug('Registered function for datatype: {0}'.format(dt_name))
-    Logger.debug('>    {0}: {1}\n'.format(signature, func_dict))
+    if dt_name not in FUNCTIONS_QUEUE:
+        FUNCTIONS_QUEUE[dt_name] = {}
+    FUNCTIONS_QUEUE[dt_name][signature] = func_dict
+
+
+def _do_func_registrations():
+    for dt_name in FUNCTIONS_QUEUE.keys():
+        if dt_name not in FUNCTION_REGISTER.keys():
+            FUNCTION_REGISTER[dt_name] = {}
+        for signature, func_dict in FUNCTIONS_QUEUE[dt_name].items():
+            FUNCTION_REGISTER[dt_name][signature] = func_dict
+            Logger.debug('Function registered {0}: {1}'.format(dt_name, signature))
+    FUNCTIONS_QUEUE.clear()
 
 
 def get_functions_map_from_datatype(datatype):
@@ -220,10 +255,17 @@ def load_plugins():
         # TODO: Add condition for Python 3 import
         plugin = imp.load_source('luna_builder.rig_nodes.{0}'.format(p_name), path)
         try:
+            # Populates datatypes, nodes, function queues
             plugin.register_plugin()
             success_count += 1
         except Exception:
             Logger.exception('Failed to register')
+
+    # Do actual registrations
+    DataType._do_registrations()
+    _do_node_registrations()
+    _do_func_registrations()
+
     Logger.info('Successfully loaded {0} plugins'.format(success_count))
 
 

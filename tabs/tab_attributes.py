@@ -1,4 +1,3 @@
-from luna import Logger
 from PySide2 import QtWidgets
 
 

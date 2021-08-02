@@ -25,7 +25,7 @@ class FKIKComponentNode(base_component.AnimComponentNode):
         self.in_param_locator = self.add_input(editor_conf.DataType.STRING, 'Param Control Locator')
 
         self.out_hook_start_jnt = self.add_output(editor_conf.DataType.NUMERIC, label='Hook Start', value=self.COMPONENT_CLASS.Hooks.START_JNT.value)
-        self.out_hook_start_jnt = self.add_output(editor_conf.DataType.NUMERIC, label='Hook End', value=self.COMPONENT_CLASS.Hooks.END_JNT.value)
+        self.out_hook_end_jnt = self.add_output(editor_conf.DataType.NUMERIC, label='Hook End', value=self.COMPONENT_CLASS.Hooks.END_JNT.value)
 
     def execute(self):
         self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value,

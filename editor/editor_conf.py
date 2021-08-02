@@ -144,7 +144,14 @@ def get_node_class_from_id(node_id):
 
 
 # ========== FUNCTIONS =========== #
-def register_function(func, source_datatype, inputs_dict={}, outputs_dict={}, nice_name=None, docstring='', icon='func.png'):
+def register_function(func,
+                      source_datatype,
+                      inputs_dict={},
+                      outputs_dict={},
+                      default_values=[],
+                      nice_name=None,
+                      docstring='',
+                      icon='func.png'):
     # Get datatype index if source_datatype is not int
     if not isinstance(source_datatype, int):
         if not source_datatype:
@@ -169,7 +176,8 @@ def register_function(func, source_datatype, inputs_dict={}, outputs_dict={}, ni
                  'outputs': outputs_dict,
                  'doc': docstring,
                  'icon': icon,
-                 'nice_name': nice_name}
+                 'nice_name': nice_name,
+                 'default_values': default_values}
 
     # Store function in the register
     if dt_index not in FUNCTION_REGISTER:
@@ -200,12 +208,18 @@ def load_plugins():
     Logger.info('Loading rig editor plugins...')
     success_count = 0
     plugin_files = []
+    plugin_paths = []
 
     for file_name in os.listdir(directories.EDITOR_PLUGINS_PATH):
         if file_name.endswith('.py') and file_name.startswith('node_'):
-            plugin_files.append(os.path.join(directories.EDITOR_PLUGINS_PATH, file_name))
+            plugin_files.append(file_name)
+    # Move core files to the front
+    plugin_files.insert(0, plugin_files.pop(plugin_files.index('node_function.py')))
+    plugin_files.insert(1, plugin_files.pop(plugin_files.index('node_character.py')))
+    plugin_paths = [os.path.join(directories.EDITOR_PLUGINS_PATH, file_name) for file_name in plugin_files]
 
-    for path in plugin_files:
+    # Dynamically import plugin files
+    for path in plugin_paths:
         p_name = os.path.basename(path).split('.')[0]
         # TODO: Add condition for Python 3 import
         plugin = imp.load_source('luna_builder.rig_nodes.{0}'.format(p_name), path)

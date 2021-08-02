@@ -90,3 +90,16 @@ def register_plugin():
                                   outputs_dict={'Root Joint': editor_conf.DataType.STRING},
                                   nice_name='Add Root Motion',
                                   category='Character')
+    editor_conf.register_function(CharacterNode.COMPONENT_CLASS.attach_to_skeleton,
+                                  editor_conf.DataType.CHARACTER,
+                                  inputs_dict=OrderedDict([
+                                      ('Character', editor_conf.DataType.CHARACTER)]),
+                                  nice_name='Attach To Skeleton',
+                                  category='Character')
+    editor_conf.register_function(CharacterNode.COMPONENT_CLASS.set_publish_mode,
+                                  editor_conf.DataType.CHARACTER,
+                                  inputs_dict=OrderedDict([
+                                      ('Character', editor_conf.DataType.CHARACTER),
+                                      ('Publish Ready', editor_conf.DataType.BOOLEAN)]),
+                                  nice_name='Set Publish Mode',
+                                  category='Character')

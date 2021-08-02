@@ -13,6 +13,7 @@ imp.reload(graphics_socket)
 
 class SocketSignals(QtCore.QObject):
     value_changed = QtCore.Signal()
+    connection_changed = QtCore.Signal()
 
 
 class Socket(node_serializable.Serializable):
@@ -201,6 +202,7 @@ class InputSocket(Socket):
         if self.edges and edge not in self.edges:
             self.edges[0].remove()
         self.edges = [edge]
+        self.signals.connection_changed.emit()
 
     def update_mathching_outputs(self):
         for output in self.node.outputs:

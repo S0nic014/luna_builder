@@ -190,15 +190,15 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
     def add_registered_functions(self):
         keys = list(editor_conf.FUNCTION_REGISTER.keys())
         keys.sort()
-        for datatype_id in keys:
-            if datatype_id != editor_conf.UNBOUND_FUNCTION_DATATYPE and self.nodes_palette.data_type_filter:
-                if not issubclass(self.nodes_palette.data_type_filter.get('class'), editor_conf.DataType.get_type(datatype_id).get('class')):
+        for datatype_name in keys:
+            if datatype_name != editor_conf.UNBOUND_FUNCTION_DATATYPE and self.nodes_palette.data_type_filter:
+                if not issubclass(self.nodes_palette.data_type_filter.get('class'), editor_conf.DataType.get_type(datatype_name).get('class')):
                     continue
-            func_map = editor_conf.FUNCTION_REGISTER[datatype_id]
+            func_map = editor_conf.FUNCTION_REGISTER[datatype_name]
             func_signatures_list = func_map.keys()
             func_signatures_list.sort()
             for func_sign in func_signatures_list:
-                if datatype_id != editor_conf.UNBOUND_FUNCTION_DATATYPE:
+                if datatype_name != editor_conf.UNBOUND_FUNCTION_DATATYPE:
                     sub_category_name = editor_conf.get_class_name_from_signature(func_sign)
                     expanded = self.nodes_palette.functions_first
                 else:

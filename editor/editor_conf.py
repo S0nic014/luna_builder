@@ -14,7 +14,7 @@ PALETTE_MIMETYPE = 'luna/x-item'
 FUNC_NODE_ID = 100
 INPUT_NODE_ID = 101
 OUTPUT_NODE_ID = 102
-UNBOUND_FUNCTION_DATATYPE = -1
+UNBOUND_FUNCTION_DATATYPE = 'UNBOUND'
 
 # ====== EXCEPTIONS ======== #
 
@@ -33,50 +33,41 @@ class NodeIDNotFound(ConfException):
 
 class DataType(object):
 
-    EXEC = {'index': 0,
+    EXEC = {'class': type(None),
             'color': QtGui.QColor("#FFFFFF"),
             'label': '',
-            'class': type(None),
             'default': None}
-    STRING = {'index': 1,
+    STRING = {'class': str,
               'color': QtGui.QColor("#FF52e220"),
               'label': 'Name',
-              'class': str,
               'default': ''}
-    NUMERIC = {'index': 2,
+    NUMERIC = {'class': float,
                'color': QtGui.QColor("#FFFF7700"),
                'label': 'Number',
-               'class': float,
                'default': 0.0}
-    BOOLEAN = {'index': 3,
+    BOOLEAN = {'class': bool,
                'color': QtGui.QColor("#C40000"),
                'label': 'Condition',
-               'class': bool,
                'default': False}
-    LIST = {'index': 4,
+    LIST = {'class': list,
             'color': QtGui.QColor("#FF52e220"),
             'label': 'List',
-            'class': list,
             'default': []}
-    CONTROL = {'index': 5,
+    CONTROL = {'class': luna_rig.Control,
                'color': QtGui.QColor("#FF0056a6"),
                'label': 'Control',
-               'class': luna_rig.Control,
                'default': None}
-    COMPONENT = {'index': 6,
+    COMPONENT = {'class': luna_rig.Component,
                  'color': QtGui.QColor("#FF0056a6"),
                  'label': 'Component',
-                 'class': luna_rig.Component,
                  'default': None}
-    ANIM_COMPONENT = {'index': 7,
+    ANIM_COMPONENT = {'class': luna_rig.AnimComponent,
                       'color': QtGui.QColor("#FF0056a6"),
                       'label': 'AnimComponent',
-                      'class': luna_rig.AnimComponent,
                       'default': None}
-    CHARACTER = {'index': 8,
+    CHARACTER = {'class': luna_rig.components.Character,
                  'color': QtGui.QColor("#FF0056a6"),
                  'label': 'Character',
-                 'class': luna_rig.components.Character,
                  'default': None}
 
     @classmethod
@@ -93,29 +84,30 @@ class DataType(object):
         return basetypes
 
     @ classmethod
-    def register_datatype(cls, type_name, color, label='custom_data', type_class=None, default_value=None):
-        type_dict = {'index': cls._get_new_index(),
+    def register_datatype(cls, type_name, type_class, color, label='custom_data', default_value=None):
+        type_dict = {'class': type_class,
                      'color': color if isinstance(color, QtGui.QColor) else QtGui.QColor(color),
-                     'label': label.capitalize(),
-                     'class': type_class,
+                     'label': label,
                      'default': default_value}
-        setattr(cls, type_name, type_dict)
+        setattr(cls, type_name.upper(), type_dict)
         Logger.info('Registered datatype: {0}'.format(type_name))
 
-    @ classmethod
-    def get_type(cls, index, name_only=False):
-        if index == UNBOUND_FUNCTION_DATATYPE:
-            return None
-
+    @classmethod
+    def get_type_name(cls, data_type_dict):
         try:
-            type_name = [dt for dt, desc in cls.__dict__.items() if isinstance(desc, dict) and desc.get('index') == index][0]
+            type_name = [dt_name for dt_name, desc in cls.__dict__.items() if isinstance(desc, dict) and desc == data_type_dict][0]
+            return type_name
         except IndexError:
-            Logger.exception('Failed to find datatype with index {0}'.format(index))
+            Logger.exception('Failed to find datatype with index {0}'.format(data_type_dict))
             raise IndexError
-        else:
-            if name_only:
-                return type_name
-            return cls.__dict__[type_name]
+
+    @classmethod
+    def get_type(cls, type_name):
+        try:
+            return getattr(cls, type_name)
+        except KeyError:
+            Logger.exception('Unregistered datatype: {0}'.format(type_name))
+            raise
 
     @ classmethod
     def _get_new_index(cls):
@@ -153,12 +145,14 @@ def register_function(func,
                       docstring='',
                       icon='func.png'):
     # Get datatype index if source_datatype is not int
-    if not isinstance(source_datatype, int):
-        if not source_datatype:
-            dt_index = UNBOUND_FUNCTION_DATATYPE
+    if source_datatype:
+        if isinstance(source_datatype, dict):
+            dt_name = DataType.get_type_name(source_datatype)
         else:
-            dt_index = source_datatype.get('index')
-        dt_name = DataType.get_type(dt_index, name_only=True) if dt_index else None
+            Logger.error('Invalid datatype passed to register function: {0}'.format(source_datatype))
+            raise ValueError
+    else:
+        dt_name = UNBOUND_FUNCTION_DATATYPE
 
     # Create register signature
     if source_datatype:
@@ -180,10 +174,10 @@ def register_function(func,
                  'default_values': default_values}
 
     # Store function in the register
-    if dt_index not in FUNCTION_REGISTER:
-        FUNCTION_REGISTER[dt_index] = {}
-    FUNCTION_REGISTER[dt_index][signature] = func_dict
-    Logger.debug('Registered function for datatype {0} ({1}):'.format(dt_name, dt_index))
+    if dt_name not in FUNCTION_REGISTER:
+        FUNCTION_REGISTER[dt_name] = {}
+    FUNCTION_REGISTER[dt_name][signature] = func_dict
+    Logger.debug('Registered function for datatype: {0}'.format(dt_name))
     Logger.debug('>    {0}: {1}\n'.format(signature, func_dict))
 
 

@@ -47,7 +47,8 @@ class Socket(node_serializable.Serializable):
         self.node = node
         self.index = index
         self.node_position = position if isinstance(position, Socket.Position) else Socket.Position(position)
-        self.data_type = editor_conf.DataType.get_type(data_type) if isinstance(data_type, int) else data_type
+        # self.data_type = editor_conf.DataType.get_type(data_type) if isinstance(data_type, int) else data_type
+        self.data_type = data_type
         self._label = label if label else self.data_type.get('label')
         self.max_connections = max_connections
         self.count_on_this_side = count_on_this_side
@@ -97,7 +98,13 @@ class Socket(node_serializable.Serializable):
 
     @data_type.setter
     def data_type(self, value):
-        self._data_type = editor_conf.DataType.get_type(value) if isinstance(value, int) else value
+        if isinstance(value, str):
+            self._data_type = getattr(editor_conf.DataType, value)
+        elif isinstance(value, dict):
+            self._data_type = value
+        else:
+            Logger.error('{0}: Can\'t set datatype to {0}'.format(value))
+            raise ValueError
         if hasattr(self, 'gr_socket'):
             self.gr_socket._color_background = self._data_type.get('color')
 
@@ -169,7 +176,8 @@ class Socket(node_serializable.Serializable):
             ('id', self.id),
             ('index', self.index),
             ('position', self.node_position.value),
-            ('data_type', self.data_type.get('index')),
+            # ('data_type',   self.data_type.get('index')),
+            ('data_type', editor_conf.DataType.get_type_name(self.data_type)),
             ('max_connections', self.max_connections),
             ('label', self.label),
             ('value', value)
@@ -178,9 +186,9 @@ class Socket(node_serializable.Serializable):
     def deserialize(self, data, hashmap, restore_id=True):
         if restore_id:
             self.id = data.get('id')
-        data_type = data['data_type']
-        value = data.get('value', editor_conf.DataType.get_type(data_type)['default'])
-        self.data_type = data['data_type']
+        data_type = editor_conf.DataType.get_type(data['data_type'])
+        value = data.get('value', data_type['default'])
+        self.data_type = data_type
         self.value = value
         hashmap[data['id']] = self
         return True

@@ -82,27 +82,30 @@ class AttribWidget(QtWidgets.QGroupBox):
                 widget.toggled.connect(socket.set_value)
 
     def update_widget_value(self, socket, widget):
-        if issubclass(socket.data_class, editor_conf.DataType.STRING.get('class')):
-            widget.setText(socket.value)
-        elif issubclass(socket.data_class, editor_conf.DataType.NUMERIC.get('class')):
-            if socket.value:
-                widget.setValue(socket.value)
-        elif issubclass(socket.data_class, editor_conf.DataType.BOOLEAN.get('class')):
-            widget.setChecked(socket.value)
-        # elif issubclass(socket.data_class, editor_conf.DataType.LIST.get('class')):
-        elif issubclass(socket.data_class, editor_conf.DataType.CONTROL.get('class')):
-            if socket.value:
-                widget.setText(str(socket.value.transform))
-            else:
-                widget.clear()
-        elif issubclass(socket.data_class, editor_conf.DataType.COMPONENT.get('class')):
-            if socket.value:
-                if hasattr(socket, 'pynode'):
-                    widget.setText(str(socket.value.pynode.name()))
+        try:
+            if issubclass(socket.data_class, editor_conf.DataType.STRING.get('class')):
+                widget.setText(socket.value)
+            elif issubclass(socket.data_class, editor_conf.DataType.NUMERIC.get('class')):
+                if socket.value:
+                    widget.setValue(socket.value)
+            elif issubclass(socket.data_class, editor_conf.DataType.BOOLEAN.get('class')):
+                widget.setChecked(socket.value)
+            # elif issubclass(socket.data_class, editor_conf.DataType.LIST.get('class')):
+            elif issubclass(socket.data_class, editor_conf.DataType.CONTROL.get('class')):
+                if socket.value:
+                    widget.setText(str(socket.value.transform))
                 else:
-                    widget.setText(str(socket.value))
-        else:
-            Logger.error('Failed to create attribute field: {0}::{1}'.format(socket, socket.data_class))
+                    widget.clear()
+            elif issubclass(socket.data_class, editor_conf.DataType.COMPONENT.get('class')):
+                if socket.value:
+                    if hasattr(socket, 'pynode'):
+                        widget.setText(str(socket.value.pynode.name()))
+                    else:
+                        widget.setText(str(socket.value))
+            else:
+                Logger.error('Failed to create attribute field: {0}::{1}'.format(socket, socket.data_class))
+        except Exception:
+            Logger.exception('Failed to update widget value for {0}'.format(socket))
 
     def update_fields(self):
         self.blockSignals(True)

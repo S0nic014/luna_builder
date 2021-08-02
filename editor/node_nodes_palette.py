@@ -88,7 +88,7 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         self.setColumnCount(1)
         self.setHeaderHidden(True)
 
-    def add_node_item(self, node_id, label_text, func_signature='', category='Undefiend', icon_name=None):
+    def add_node_item(self, node_id, label_text, func_signature='', category='Undefiend', icon_name=None, expanded=True):
         if not icon_name:
             icon_name = 'func.png'
         icon_path = os.path.join(directories.ICONS_PATH, icon_name)
@@ -98,7 +98,7 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         category_path = category.split('/')
         parent_item = self
         for category_name in category_path:
-            parent_item = self.get_category(category_name, parent=parent_item)
+            parent_item = self.get_category(category_name, parent=parent_item, expanded=expanded)
 
         # Setup item
         item = QtWidgets.QTreeWidgetItem()
@@ -118,7 +118,7 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
             parent = self
         tree_item = QtWidgets.QTreeWidgetItem(parent)
         tree_item.setText(0, name.capitalize())
-        tree_item.setExpanded(True)
+        tree_item.setExpanded(expanded)
         return tree_item
 
     def get_category(self, name, expanded=True, parent=None):
@@ -198,13 +198,20 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
             func_signatures_list = func_map.keys()
             func_signatures_list.sort()
             for func_sign in func_signatures_list:
-                sub_category_name = editor_conf.get_class_name_from_signature(func_sign)
+                if datatype_id != editor_conf.UNBOUND_FUNCTION_DATATYPE:
+                    sub_category_name = editor_conf.get_class_name_from_signature(func_sign)
+                    expanded = self.nodes_palette.functions_first
+                else:
+                    sub_category_name = 'Common'
+                    expanded = True
                 func_dict = func_map[func_sign]
                 icon_name = func_dict['icon']
                 nice_name = func_dict.get('nice_name')
                 palette_name = nice_name if nice_name else func_sign
+
                 self.add_node_item(editor_conf.FUNC_NODE_ID,
                                    palette_name,
                                    func_signature=func_sign,
                                    category='Functions/{0}'.format(sub_category_name),
-                                   icon_name=icon_name)
+                                   icon_name=icon_name,
+                                   expanded=expanded)

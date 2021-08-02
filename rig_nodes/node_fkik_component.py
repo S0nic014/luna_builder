@@ -39,6 +39,7 @@ class FKIKComponentNode(base_component.AnimComponentNode):
                                                               default_state=self.in_default_state.value,
                                                               param_locator=self.in_param_locator.value,
                                                               tag=self.in_tag.value)
+        self.out_self.value = self.component_instance
 
 
 def register_plugin():

@@ -23,4 +23,4 @@ class GraphExecutor(object):
         if not input_node:
             return
         input_node._exec()
-        Logger.info("Build finished in {0:.2f}s".format(timeit.default_timer() - self.start_time))
+        Logger.info("Build finished in {0:.2f}s".format(timeit.default_timer() - start_time))

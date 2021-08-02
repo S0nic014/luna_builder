@@ -15,12 +15,13 @@ class SpineNode(base_component.AnimComponentNode):
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(SpineNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
-        self.in_name.value = self.out_name.value = 'spine'
-        self.in_tag.value = self.out_tag.value = 'body'
+        self.in_name.value = 'spine'
+        self.in_tag.value = 'body'
         self.out_root_control = self.add_output(editor_conf.DataType.CONTROL, label='Root Control')
         self.out_hips_control = self.add_output(editor_conf.DataType.CONTROL, label='Hips Control')
         self.out_chest_control = self.add_output(editor_conf.DataType.CONTROL, label='Chest Control')
         self.out_ik_curve = self.add_output(editor_conf.DataType.STRING, label='IK Curve')
+        self.update_node_title()
 
 
 class FKIKSpineNode(SpineNode):

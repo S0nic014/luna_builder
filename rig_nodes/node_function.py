@@ -27,6 +27,10 @@ class FunctionNode(luna_node.LunaNode):
         for socket_name, socket_datatype in self.func_desc.get('outputs').items():
             self.add_output(socket_datatype, socket_name)
 
+        # Set default input values
+        for socket, input_value in zip(self.list_non_exec_inputs(), self.func_desc.get('default_values')):
+            socket.value = input_value
+
     @property
     def func_signature(self):
         return self._func_signature

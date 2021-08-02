@@ -250,8 +250,8 @@ class Scene(node_serializable.Serializable):
         try:
             new_node = editor_conf.get_node_class_from_id(node_id)(self)
             if node_id == editor_conf.FUNC_NODE_ID:
-                new_node.func_signature = json_data.get('func_signature', '')
                 new_node.title = json_data.get('title')
+                new_node.func_signature = json_data.get('func_signature', '')
 
             new_node.set_position(position.x(), position.y())
             self.history.store_history('Created Node {0}'.format(new_node.as_str(name_only=True)))

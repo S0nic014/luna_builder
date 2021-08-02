@@ -17,6 +17,14 @@ class BranchNode(luna_node.LunaNode):
         self.exec_out_socket = self.add_output(editor_conf.DataType.EXEC, label='True')
         self.out_true = self.exec_out_socket
         self.out_false = self.add_output(editor_conf.DataType.EXEC, label='False')
+        self.update_title()
+
+    def create_connections(self):
+        super(BranchNode, self).create_connections()
+        self.in_condition.signals.value_changed.connect(self.update_title)
+
+    def update_title(self):
+        self.title = '{0}: {1}'.format(self.DEFAULT_TITLE, self.in_condition.value)
 
     def list_exec_outputs(self):
         if self.in_condition.value:

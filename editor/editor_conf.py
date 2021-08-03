@@ -175,6 +175,7 @@ def register_function(func,
                       outputs_dict={},
                       default_values=[],
                       nice_name=None,
+                      subtype=None,
                       category='General',
                       docstring='',
                       icon='func.png'):
@@ -197,6 +198,10 @@ def register_function(func,
             signature = "{0}.{1}".format(func.__module__, func.__name__)
     else:
         signature = "{0}.{1}".format(func.__module__, func.__name__)
+
+    # Subtype signature
+    if subtype:
+        signature = '{0}({1})'.format(signature, subtype)
 
     # Create function description
     func_dict = {'ref': func,

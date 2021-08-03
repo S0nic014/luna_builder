@@ -352,7 +352,7 @@ class Node(node_serializable.Serializable):
         except Exception:
             Logger.exception('Failed to execute {0} {1}'.format(self.title, self))
             self.set_invalid(True)
-            return
+            raise
 
         self.set_dirty(False)
         self.set_invalid(False)

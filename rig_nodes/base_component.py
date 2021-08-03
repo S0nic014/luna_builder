@@ -168,3 +168,14 @@ def register_plugin():
                                   ]),
                                   nice_name='Get Root',
                                   category='Anim Component')
+    editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.get_hook_transform,
+                                  editor_conf.DataType.ANIM_COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('AnimComponent', editor_conf.DataType.ANIM_COMPONENT),
+                                      ('Hook Index', editor_conf.DataType.NUMERIC)
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Transform', editor_conf.DataType.STRING),
+                                  ]),
+                                  nice_name='Get Hook Transform',
+                                  category='Anim Component')

@@ -75,12 +75,16 @@ class FunctionNode(luna_node.LunaNode):
         if not isinstance(func_result, (list, tuple)):
             func_result = [func_result]
 
-        for index, out_socket in enumerate(self.list_non_exec_outputs()):
-            try:
-                out_socket.value = func_result[index]
-            except IndexError:
-                Logger.error('Missing return result for function {0}, at index {1}'.format(self.func_ref, index))
-                raise
+        non_exec_outs = self.list_non_exec_outputs()
+        if non_exec_outs and non_exec_outs[0].data_type == editor_conf.DataType.LIST:
+            non_exec_outs[0].value = func_result
+        else:
+            for index, out_socket in enumerate(self.list_non_exec_outputs()):
+                try:
+                    out_socket.value = func_result[index]
+                except IndexError:
+                    Logger.error('Missing return result for function {0}, at index {1}'.format(self.func_ref, index))
+                    raise
 
 
 def register_plugin():

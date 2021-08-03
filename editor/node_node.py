@@ -347,15 +347,17 @@ class Node(node_serializable.Serializable):
 
     def _exec(self):
         Logger.debug('Executing {0}...'.format(self))
-        result = self.execute()
-        if result:
+        try:
+            self.execute()
+        except Exception:
+            Logger.exception('Failed to execute {0} {1}'.format(self.title, self))
             self.set_invalid(True)
             return
-        else:
-            self.set_dirty(False)
-            self.set_invalid(False)
+
+        self.set_dirty(False)
+        self.set_invalid(False)
         self.exec_children()
-        return self
+        return 0
 
     def execute(self):
         return 0

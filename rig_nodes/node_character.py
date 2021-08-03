@@ -26,19 +26,14 @@ class CharacterNode(base_component.ComponentNode):
         self.out_geometry_grp = self.add_output(editor_conf.DataType.STRING, label='Geometry Group')
 
     def execute(self):
-        try:
-            self.component_instance = self.COMPONENT_CLASS.create(self.in_meta_parent.value, name=self.in_name.value, tag=self.in_tag.value)
-            # Set outputs
-            self.out_self.value = self.component_instance
-            self.out_meta_parent.value = self.component_instance.meta_parent
-            self.out_root_control.value = self.component_instance.root_control.transform
-            self.out_deform_rig.value = self.component_instance.deformation_rig
-            self.out_control_rig.value = self.component_instance.control_rig
-            self.out_geometry_grp.value = self.component_instance.geometry_grp
-
-        except Exception:
-            Logger.exception('Failed to create character component')
-            return 1
+        self.component_instance = self.COMPONENT_CLASS.create(self.in_meta_parent.value, name=self.in_name.value, tag=self.in_tag.value)
+        # Set outputs
+        self.out_self.value = self.component_instance
+        self.out_meta_parent.value = self.component_instance.meta_parent
+        self.out_root_control.value = self.component_instance.root_control.transform
+        self.out_deform_rig.value = self.component_instance.deformation_rig
+        self.out_control_rig.value = self.component_instance.control_rig
+        self.out_geometry_grp.value = self.component_instance.geometry_grp
 
 
 def register_plugin():

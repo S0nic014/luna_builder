@@ -43,22 +43,16 @@ class FKIKSpineNode(SpineNode):
         self.out_hook_chest = self.add_output(editor_conf.DataType.NUMERIC, label='Hook Chest', value=self.COMPONENT_CLASS.Hooks.CHEST.value)
 
     def execute(self):
-        try:
-            self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value,
-                                                                  hook=self.in_hook.value,
-                                                                  character=self.in_character.value,
-                                                                  side=self.in_side.value,
-                                                                  name=self.in_name.value,
-                                                                  start_joint=self.in_start_joint.value,
-                                                                  end_joint=self.in_end_joint.value,
-                                                                  tag=self.in_tag.value)
-            # Set outputs
-            self.out_self.value = self.component_instance
-
-        except Exception:
-            Logger.exception('Failed to create FKIK Spine')
-            return 1
-        return 0
+        self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value,
+                                                              hook=self.in_hook.value,
+                                                              character=self.in_character.value,
+                                                              side=self.in_side.value,
+                                                              name=self.in_name.value,
+                                                              start_joint=self.in_start_joint.value,
+                                                              end_joint=self.in_end_joint.value,
+                                                              tag=self.in_tag.value)
+        # Set outputs
+        self.out_self.value = self.component_instance
 
 
 def register_plugin():

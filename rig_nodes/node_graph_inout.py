@@ -25,17 +25,12 @@ class GraphInputNode(luna_node.LunaNode):
     def execute(self):
         if not luna.workspace.Asset.get():
             Logger.error('Asset is not set!')
-            return 1
+            raise ValueError
 
-        try:
-            self.out_asset_name.value = luna.workspace.Asset.get().name
-            pm.newFile(f=1)
-            asset_files.import_model()
-            asset_files.import_skeleton()
-        except Exception:
-            Logger.exception('Failed to initialize build')
-            return 1
-        return 0
+        self.out_asset_name.value = luna.workspace.Asset.get().name
+        pm.newFile(f=1)
+        asset_files.import_model()
+        asset_files.import_skeleton()
 
 
 class GraphOutputNode(luna_node.LunaNode):

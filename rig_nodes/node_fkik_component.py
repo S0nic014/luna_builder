@@ -108,3 +108,21 @@ def register_plugin():
                                   ]),
                                   nice_name='Get IK Handle',
                                   category='FKIK Component')
+    editor_conf.register_function(FKIKComponentNode.COMPONENT_CLASS.hide_last_fk,
+                                  editor_conf.DataType.FKIK_COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('FKIK Component', editor_conf.DataType.FKIK_COMPONENT)
+                                  ]),
+                                  nice_name='Hide last FK',
+                                  category='FKIK Component')
+    editor_conf.register_function(FKIKComponentNode.COMPONENT_CLASS.get_fk_control_at,
+                                  editor_conf.DataType.FKIK_COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('FKIK Component', editor_conf.DataType.FKIK_COMPONENT),
+                                      ('Index', editor_conf.DataType.NUMERIC)
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('FK Control', editor_conf.DataType.CONTROL)
+                                  ]),
+                                  nice_name='Get FK Control At',
+                                  category='FKIK Component')

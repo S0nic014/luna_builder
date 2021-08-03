@@ -168,6 +168,26 @@ def register_plugin():
                                   ]),
                                   nice_name='Get Root',
                                   category='Anim Component')
+    editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.get_group_ctls,
+                                  editor_conf.DataType.ANIM_COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('AnimComponent', editor_conf.DataType.ANIM_COMPONENT),
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Ctls Group', editor_conf.DataType.STRING),
+                                  ]),
+                                  nice_name='Get Group Ctls',
+                                  category='Anim Component')
+    editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.get_group_joints,
+                                  editor_conf.DataType.ANIM_COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('AnimComponent', editor_conf.DataType.ANIM_COMPONENT),
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Joints Group', editor_conf.DataType.STRING),
+                                  ]),
+                                  nice_name='Get Joints Ctls',
+                                  category='Anim Component')
     editor_conf.register_function(AnimComponentNode.COMPONENT_CLASS.get_hook_transform,
                                   editor_conf.DataType.ANIM_COMPONENT,
                                   inputs_dict=OrderedDict([

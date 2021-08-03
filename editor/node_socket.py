@@ -208,13 +208,18 @@ class InputSocket(Socket):
         self.edges = [edge]
         self.signals.connection_changed.emit()
 
-    def update_mathching_outputs(self):
+    def on_connection_changed(self):
+        if not self.has_edge() and self.data_type in editor_conf.DataType.runtime_types():
+            self.value = self.data_type['default']
+
+    def update_matching_outputs(self):
         for output in self.node.outputs:
             if output.label.lower() == self.label.lower():
                 output.value = self.value
 
     def create_connections(self):
-        self.signals.value_changed.connect(self.update_mathching_outputs)
+        self.signals.connection_changed.connect(self.on_connection_changed)
+        self.signals.value_changed.connect(self.update_matching_outputs)
         self.signals.value_changed.connect(self.node.set_dirty)
 
 

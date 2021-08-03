@@ -5,7 +5,7 @@ import luna_builder.rig_nodes.luna_node as luna_node
 
 
 class ControlNode(luna_node.LunaNode):
-    ID = 15
+    ID = 2
     IS_EXEC = True
     ICON = None
     DEFAULT_TITLE = 'Control'
@@ -14,19 +14,56 @@ class ControlNode(luna_node.LunaNode):
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(ControlNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
-        self.in_control = self.add_input(editor_conf.DataType.CONTROL, label='Control')
+
+        self.in_name = self.add_input(editor_conf.DataType.STRING, label='Name', value='control')
+        self.in_side = self.add_input(editor_conf.DataType.STRING, label='Side', value='c')
+        self.in_guide = self.add_input(editor_conf.DataType.STRING, label='Guide')
+        self.in_delete_guide = self.add_input(editor_conf.DataType.BOOLEAN, label='Delete Guide', value=False)
+        self.in_parent = self.add_input(editor_conf.DataType.STRING, label='Parent')
+        self.in_attribs = self.add_input(editor_conf.DataType.STRING, label='Attributes', value='tr')
+        self.in_match_pos = self.add_input(editor_conf.DataType.BOOLEAN, label='Match Position', value=True)
+        self.in_match_orient = self.add_input(editor_conf.DataType.BOOLEAN, label='Match Orient', value=True)
+        self.in_match_pivot = self.add_input(editor_conf.DataType.BOOLEAN, label='Match Pivot', value=True)
+        self.in_color_index = self.add_input(editor_conf.DataType.NUMERIC, label='Color', value=0)
+        self.in_offset_grp = self.add_input(editor_conf.DataType.BOOLEAN, label='Offset Group', value=True)
+        self.in_joint = self.add_input(editor_conf.DataType.BOOLEAN, label='Joint', value=True)
+        self.in_shape = self.add_input(editor_conf.DataType.STRING, label='Shape', value='cube')
+        self.in_tag = self.add_input(editor_conf.DataType.STRING, label='Tag', value='')
+        self.in_component = self.add_input(editor_conf.DataType.ANIM_COMPONENT, label='Component', value=None)
+        self.in_orient_axis = self.add_input(editor_conf.DataType.STRING, label='Orient Axis', value='x')
+        self.in_scale = self.add_input(editor_conf.DataType.NUMERIC, label='Scale', value=1.0)
 
         self.out_control = self.add_output(editor_conf.DataType.CONTROL, label='Control')
-        self.out_character = self.add_output(editor_conf.DataType.CHARACTER, label='Character')
-        self.out_transform = self.add_output(editor_conf.DataType.STRING, label='Transform')
+        self.out_transform = self.add_output(editor_conf.DataType.STRING, label='Transform', value='')
 
     def execute(self):
-        control_instance = self.in_control.value  # type:luna_rig.Control
-        self.out_character.value = control_instance.character
-        self.out_transform.value = control_instance.transform
+        attribs = self.in_attribs.value
+        attribs = attribs.split(',') if 'x' in attribs or 'y' in attribs or 'z' in attribs else attribs
+        parent = self.in_parent.value if self.in_parent.value else None
+
+        self.control_instance = luna_rig.Control.create(name=self.in_name.value,
+                                                        side=self.in_side.value,
+                                                        guide=self.in_guide.value,
+                                                        parent=parent,
+                                                        attributes=attribs,
+                                                        delete_guide=self.in_delete_guide.value,
+                                                        match_pos=self.in_match_pos.value,
+                                                        match_orient=self.in_match_orient.value,
+                                                        match_pivot=self.in_match_pivot.value,
+                                                        color=self.in_color_index.value,
+                                                        offset_grp=self.in_offset_grp.value,
+                                                        joint=self.in_joint.value,
+                                                        shape=self.in_shape.value,
+                                                        tag=self.in_tag.value,
+                                                        component=self.in_component.value,
+                                                        orient_axis=self.in_orient_axis.value,
+                                                        scale=self.in_scale.value)
+
+        self.out_control.value = self.control_instance
+        self.out_transform.value = self.control_instance.transform
 
         # Set new title
-        self.title = control_instance.transform.name() if control_instance else self.DEFAULT_TITLE
+        self.title = self.control_instance.transform.name() if self.control_instance else self.DEFAULT_TITLE
 
 
 def register_plugin():
@@ -134,6 +171,16 @@ def register_plugin():
                                       ('Joint', editor_conf.DataType.STRING),
                                   ]),
                                   nice_name='Get Joint',
+                                  category='Control')
+    editor_conf.register_function(luna_rig.Control.get_transform,
+                                  editor_conf.DataType.CONTROL,
+                                  inputs_dict=OrderedDict([
+                                      ('Control', editor_conf.DataType.CONTROL),
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Transform', editor_conf.DataType.STRING),
+                                  ]),
+                                  nice_name='Get Transform',
                                   category='Control')
     editor_conf.register_function(luna_rig.Control.get_connected_component,
                                   editor_conf.DataType.CONTROL,

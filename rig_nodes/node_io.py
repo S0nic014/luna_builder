@@ -1,4 +1,5 @@
 
+import sys
 import luna_rig.importexport as import_export
 import luna_builder.editor.editor_conf as editor_conf
 
@@ -32,3 +33,8 @@ def register_plugin():
                                   None,
                                   nice_name='Import SDK Correctives',
                                   category='Data')
+    if sys.version_info[0] < 3:
+        editor_conf.register_function(import_export.NgLayersManager.import_all,
+                                      None,
+                                      nice_name='Import NgLayers',
+                                      category='Data')

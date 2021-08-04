@@ -67,7 +67,7 @@ class Socket(node_serializable.Serializable):
     def create_connections(self):
         pass
 
-    # ===== Properties ===== #
+    # ============ Properties ============= #
 
     @property
     def label(self):
@@ -122,21 +122,16 @@ class Socket(node_serializable.Serializable):
     def data_class(self):
         return self.data_type.get('class')
 
-    # ===== Methods ===== #
+    # ============ Basic methods ============= #
     def remove(self):
         self.remove_all_edges()
         self.node.scene.gr_scene.removeItem(self.gr_socket)
 
+    # ============ Datatype methods ============= #
+
     def is_runtime_data(self):
         return any([issubclass(self.data_class, dt['class']) for dt in editor_conf.DataType.runtime_types()])
-
-    def list_connections(self):
-        result = []
-        for edge in self.edges:
-            for socket in [edge.start_socket, edge.end_socket]:
-                if socket and socket != self:
-                    result.append(socket)
-        return result
+    # ============ Value methods ============= #
 
     def set_value(self, value):
         self.value = value
@@ -144,8 +139,7 @@ class Socket(node_serializable.Serializable):
     def reset_value_to_default(self):
         self.value = self.default_value
 
-    def has_edge(self):
-        return bool(self.edges)
+    # ============ Graphics objects methods ============= #
 
     def update_positions(self):
         self.gr_socket.setPos(*self.node.get_socket_position(self.index, self.node_position, self.count_on_this_side))
@@ -163,6 +157,11 @@ class Socket(node_serializable.Serializable):
 
     def get_label_width(self):
         return self.gr_socket.text_item.boundingRect().width()
+
+    # ============ Edge Methods ============= #
+
+    def has_edge(self):
+        return bool(self.edges)
 
     def set_connected_edge(self, edge=None):
         if not edge:
@@ -183,6 +182,16 @@ class Socket(node_serializable.Serializable):
         for edge in self.edges:
             edge.update_positions()
 
+    # ============ Connections methods ============= #
+    def list_connections(self):
+        result = []
+        for edge in self.edges:
+            for socket in [edge.start_socket, edge.end_socket]:
+                if socket and socket != self:
+                    result.append(socket)
+        return result
+
+    # ============ (De)Serialization ============= #
     def serialize(self):
         if self.is_runtime_data():
             value = None
@@ -193,7 +202,6 @@ class Socket(node_serializable.Serializable):
             ('id', self.id),
             ('index', self.index),
             ('position', self.node_position.value),
-            # ('data_type',   self.data_type.get('index')),
             ('data_type', editor_conf.DataType.get_type_name(self.data_type)),
             ('max_connections', self.max_connections),
             ('label', self.label),
@@ -213,16 +221,16 @@ class Socket(node_serializable.Serializable):
 
 class InputSocket(Socket):
 
+    def on_connection_changed(self):
+        if not self.has_edge() and self.is_runtime_data():
+            self.value = self.data_type['default']
+
     def set_connected_edge(self, edge=None):
         super(InputSocket, self).set_connected_edge(edge=edge)
         if self.edges and edge not in self.edges:
             self.edges[0].remove()
         self.edges = [edge]
         self.signals.connection_changed.emit()
-
-    def on_connection_changed(self):
-        if not self.has_edge() and self.is_runtime_data():
-            self.value = self.data_type['default']
 
     def update_matching_outputs(self):
         for output in self.node.outputs:

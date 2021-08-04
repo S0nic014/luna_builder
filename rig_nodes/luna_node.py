@@ -7,12 +7,17 @@ import luna_builder.editor.graphics_node as graphics_node
 
 
 class LunaGraphicsNode(graphics_node.QLGraphicsNode):
+
+    ICON_DRAW_ZOOM_LIMIT = 2
+
     def init_assets(self):
         super(LunaGraphicsNode, self).init_assets()
         self.status_icons = QtGui.QImage(directories.get_icon_path('status_icons.png'))
 
     def paint(self, painter, option, widget=None):
         super(LunaGraphicsNode, self).paint(painter, option, widget=widget)
+        if self.node.scene.view.zoom < 2:
+            return
         if self.node.STATUS_ICON:
             icon_offset = 24.0
             if self.node.is_dirty():

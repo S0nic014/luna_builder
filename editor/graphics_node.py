@@ -7,6 +7,8 @@ from PySide2 import QtWidgets
 
 class QLGraphicsNode(QtWidgets.QGraphicsItem):
 
+    TEXT_ZOOM_OUT_LIMIT = 2
+
     def __init__(self, node, parent=None):
         super(QLGraphicsNode, self).__init__(parent)
         self.node = node
@@ -77,6 +79,8 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         pass
 
     def paint(self, painter, option, widget=None):
+        self.title_item.setVisible(self.node.scene.view.zoom > self.TEXT_ZOOM_OUT_LIMIT)
+
         # title
         path_title = QtGui.QPainterPath()
         path_title.setFillRule(QtCore.Qt.WindingFill)

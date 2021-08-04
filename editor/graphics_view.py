@@ -34,6 +34,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
     # Constant settings
     EDGE_DRAG_START_THRESHOLD = 10
+    HIGH_QUALITY_ZOOM = 3
 
     class EdgeMode(enumFn.Enum):
         NOOP = 1
@@ -52,7 +53,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.zoom_clamp = True
         self.zoom = 10
         self.zoom_step = 1
-        self.zoom_range = (-5, 10)
+        self.zoom_range = (-5.0, 10.0)
 
         self.edge_mode = QLGraphicsView.EdgeMode.NOOP
         self.last_lmb_click_pos = QtCore.QPointF(0.0, 0.0)
@@ -65,9 +66,12 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
         self.init_ui()
         self.setScene(self.gr_scene)
+        self.update_render_hints()
+        self.update_edge_width()
 
     def init_ui(self):
         self.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.HighQualityAntialiasing | QtGui.QPainter.TextAntialiasing | QtGui.QPainter.SmoothPixmapTransform)
+        # self.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.Notex | QtGui.QPainter.TextAntialiasing | QtGui.QPainter.SmoothPixmapTransform)
         self.setViewportUpdateMode(QtWidgets.QGraphicsView.FullViewportUpdate)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -80,6 +84,12 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
     @property
     def scene(self):
         return self.gr_scene.scene
+
+    def update_render_hints(self):
+        if self.zoom > self.HIGH_QUALITY_ZOOM:
+            self.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.HighQualityAntialiasing | QtGui.QPainter.TextAntialiasing | QtGui.QPainter.SmoothPixmapTransform)
+        else:
+            self.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.SmoothPixmapTransform)
 
     # =========== Qt Events overrides =========== #
 
@@ -128,6 +138,8 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         # Set actual scale
         if not clamped or not self.zoom_clamp:
             self.scale(zoom_factor, zoom_factor)
+            self.update_edge_width()
+            self.update_render_hints()
 
     def mouseMoveEvent(self, event):
         scene_pos = self.mapToScene(event.pos())
@@ -245,6 +257,10 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.setInteractive(True)
 
     # =========== Supporting methods =========== #
+    def update_edge_width(self):
+        graphics_edge.QLGraphicsEdge.WIDTH = ((self.zoom - self.zoom_range[0]) / (self.zoom_range[1] - self.zoom_range[0])) * \
+            (graphics_edge.QLGraphicsEdge.MIN_WIDTH - graphics_edge.QLGraphicsEdge.MAX_WIDTH) + graphics_edge.QLGraphicsEdge.MAX_WIDTH
+
     def get_item_at_click(self, event):
         """Object at click event position
 

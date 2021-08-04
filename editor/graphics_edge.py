@@ -1,11 +1,17 @@
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
+import math
 
 from luna import Logger
 
 
 class QLGraphicsEdge(QtWidgets.QGraphicsPathItem):
+
+    MAX_WIDTH = 6.0
+    MIN_WIDTH = 2.0
+    WIDTH = 2.0
+
     def __init__(self, edge, parent=None):
         super(QLGraphicsEdge, self).__init__(parent)
         self.edge = edge
@@ -31,7 +37,6 @@ class QLGraphicsEdge(QtWidgets.QGraphicsPathItem):
         self._pen_selected = QtGui.QPen(self._color_selected)
         self._pen_dragging = QtGui.QPen(self._color)
         self._pen_dragging.setStyle(QtCore.Qt.DashLine)
-        self._pen.setWidthF(2.0)
         self._pen_selected.setWidthF(3.0)
         self._pen_dragging.setWidthF(2.0)
 
@@ -56,6 +61,7 @@ class QLGraphicsEdge(QtWidgets.QGraphicsPathItem):
 
     def paint(self, painter, widget=None, options=None):
         self.setPath(self.calc_path())
+        self._pen.setWidthF(self.WIDTH)
 
         if self.edge.end_socket and self.edge.start_socket:
             self._pen.setColor(self.edge.start_socket.gr_socket._color_background)

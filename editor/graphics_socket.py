@@ -7,6 +7,9 @@ from luna import Logger
 
 class QLGraphicsSocket(QtWidgets.QGraphicsItem):
 
+    TEXT_ZOOM_OUT_LIMIT = 2
+    SOCKET_ZOOM_OUT_LIMIT = 2
+
     def __init__(self, socket):
         self.socket = socket
         super(QLGraphicsSocket, self).__init__(socket.node.gr_node)
@@ -30,6 +33,10 @@ class QLGraphicsSocket(QtWidgets.QGraphicsItem):
             self.align_text_right()
 
     def paint(self, painter, option=None, widget=None):
+        self.text_item.setVisible(self.socket.node.scene.view.zoom > self.TEXT_ZOOM_OUT_LIMIT)
+        if self.socket.node.scene.view.zoom < self.SOCKET_ZOOM_OUT_LIMIT:
+            return
+
         painter.setBrush(self._brush)
         painter.setPen(self._pen)
         painter.drawEllipse(-self.radius, -self.radius, 2 * self.radius, 2 * self.radius)

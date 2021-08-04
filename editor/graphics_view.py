@@ -44,7 +44,6 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         super(QLGraphicsView, self).__init__(parent)
 
         # Flags
-        self._items_are_being_deleted = False
         self.drag_edge = None
 
         self.gr_scene = gr_scene
@@ -376,24 +375,6 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         if event.modifiers() & QtCore.Qt.AltModifier:
             out += "ALT "
         Logger.debug(out)
-
-    def delete_selected(self, store_history=True):
-        self._items_are_being_deleted = True
-        try:
-            selected_items = self.gr_scene.selectedItems()
-            nodes_selected = [item for item in selected_items if isinstance(item, graphics_node.QLGraphicsNode)]
-            if nodes_selected:
-                for gr_node in nodes_selected:
-                    gr_node.node.remove()
-            else:
-                for item in selected_items:
-                    if isinstance(item, graphics_edge.QLGraphicsEdge):
-                        item.edge.remove()
-        except Exception:
-            Logger.exception('Failed to delete selected items')
-        self._items_are_being_deleted = False
-        if store_history:
-            self.scene.history.store_history('Item deleted', set_modified=True)
 
     @ history('Edges cut', set_modified=True)
     def cut_intersecting_edges(self):

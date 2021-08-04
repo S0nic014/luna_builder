@@ -93,5 +93,5 @@ class EditMenu(QtWidgets.QMenu):
             self.node_scene.paste_from_clipboard()
 
     def on_delete(self):
-        if self.gr_view:
-            self.gr_view.delete_selected()
+        if self.node_scene:
+            self.node_scene.delete_selected()

@@ -28,6 +28,7 @@ class AttributesEditor(QtWidgets.QWidget):
 
         selected = self.main_window.current_editor.scene.selected_nodes
         if not selected:
+            self.clear_layout()
             return
 
         node = selected[-1]

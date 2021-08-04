@@ -38,7 +38,7 @@ class SceneClipboard(object):
         ])
         # if cut -> remove selected items
         if delete:
-            self.scene.view.delete_selected(store_history=False)
+            self.scene.delete_selected(store_history=False)
             # Store history
             self.scene.history.store_history('Cut items', set_modified=True)
 

@@ -48,7 +48,7 @@ class NodeContextMenu(QtWidgets.QMenu):
 
     def on_delete(self):
         if self.scene:
-            self.scene.view.delete_selected()
+            self.scene.delete_selected()
 
 
 class NodeCreatorDialog(QtWidgets.QDialog):

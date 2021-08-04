@@ -37,6 +37,7 @@ class Scene(node_serializable.Serializable):
         self.signals = SceneSignals()
         self._file_name = None
         self._has_been_modified = False
+        self._items_are_being_deleted = False
         self._last_selected_items = []
 
         self.nodes = []
@@ -154,7 +155,7 @@ class Scene(node_serializable.Serializable):
     def on_selection_change(self):
         # Ignore selection update if rubberband dragging, item deletion is in progress
         if any([self.view.rubberband_dragging_rect,
-                self.view._items_are_being_deleted]):
+                self._items_are_being_deleted]):
             return
 
         current_selection = self.gr_scene.selectedItems()
@@ -171,7 +172,7 @@ class Scene(node_serializable.Serializable):
         self._last_selected_items = current_selection
         self.signals.selection_changed.emit()
 
-    # ====== Cut / Copy / Paste ====== #
+    # ====== Cut / Copy / Paste / Delete ====== #
     def copy_selected(self):
         if not self.selected_nodes:
             Logger.warning('No nodes selected to copy')
@@ -210,6 +211,20 @@ class Scene(node_serializable.Serializable):
             return
 
         self.clipboard.deserialize_from_clip(data)
+
+    def delete_selected(self, store_history=True):
+        self._items_are_being_deleted = True
+        try:
+            for node in self.selected_nodes:
+                node.remove()
+            for edge in self.selected_edges:
+                edge.remove()
+        except Exception:
+            Logger.exception('Failed to delete selected items')
+        self._items_are_being_deleted = False
+        if store_history:
+            self.history.store_history('Item deleted', set_modified=True)
+        self.signals.selection_changed.emit()
 
     # ====== File ====== #
 

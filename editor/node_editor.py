@@ -88,8 +88,14 @@ class NodeEditor(QtWidgets.QWidget):
         self.signals.about_to_close.emit(self, event)
 
     def contextMenuEvent(self, event):
+        if self.gr_view.is_view_dragging:
+            event.ignore()
+            return
+
         try:
             item = self.scene.get_item_at(event.pos())
+            if not item:
+                self.handle_node_context_menu(event)
             if hasattr(item, 'node') or hasattr(item, 'socket') or not item:
                 self.handle_node_context_menu(event)
             elif hasattr(item, 'edge'):

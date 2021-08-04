@@ -57,11 +57,12 @@ class QLGraphicsEdge(QtWidgets.QGraphicsPathItem):
     def paint(self, painter, widget=None, options=None):
         self.setPath(self.calc_path())
 
+        if self.edge.end_socket and self.edge.start_socket:
+            self._pen.setColor(self.edge.start_socket.gr_socket._color_background)
+
         if not self.edge.end_socket or not self.edge.start_socket:
             painter.setPen(self._pen_dragging)
         else:
-            if self.edge.end_socket and self.edge.start_socket:
-                self._pen.setColor(self.edge.start_socket.gr_socket._color_background)
             painter.setPen(self._pen if not self.isSelected() else self._pen_selected)
         painter.setBrush(QtCore.Qt.NoBrush)
         painter.drawPath(self.path())

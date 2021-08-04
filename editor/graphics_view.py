@@ -49,10 +49,10 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
         self.gr_scene = gr_scene
         self.zoom_in_factor = 1.25
-        self.zoom_clamp = False
+        self.zoom_clamp = True
         self.zoom = 10
         self.zoom_step = 1
-        self.zoom_range = [0, 10]
+        self.zoom_range = (-5, 10)
 
         self.edge_mode = QLGraphicsView.EdgeMode.NOOP
         self.last_lmb_click_pos = QtCore.QPointF(0.0, 0.0)
@@ -110,10 +110,8 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             super(QLGraphicsView, self).mouseReleaseEvent(event)
 
     def wheelEvent(self, event):
-        # Calculate zoom vector
-        zoom_out_factor = 1 / self.zoom_in_factor
+        zoom_out_factor = 1.0 / self.zoom_in_factor
 
-        # Calculate zoom
         if event.angleDelta().y() > 0:
             zoom_factor = self.zoom_in_factor
             self.zoom += self.zoom_step
@@ -123,14 +121,12 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
         clamped = False
         if self.zoom < self.zoom_range[0]:
-            self.zoom = self.zoom_range[0]
-            clamped = True
-        elif self.zoom > self.zoom_range[1]:
-            self.zoom = self.zoom_range[1]
-            clamped = True
+            self.zoom, clamped = self.zoom_range[0], True
+        if self.zoom > self.zoom_range[1]:
+            self.zoom, clamped = self.zoom_range[1], True
 
-        # Set scene scale
-        if not clamped or self.zoom_clamp is False:
+        # Set actual scale
+        if not clamped or not self.zoom_clamp:
             self.scale(zoom_factor, zoom_factor)
 
     def mouseMoveEvent(self, event):

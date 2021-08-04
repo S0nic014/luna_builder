@@ -183,6 +183,27 @@ class Socket(node_serializable.Serializable):
             edge.update_positions()
 
     # ============ Connections methods ============= #
+    def can_be_connected(self, other_socket):
+        # Clicking on socket edge is dragging from
+        if self is other_socket:
+            return False
+
+        # Trying to connect output->output or input->input
+        if isinstance(other_socket, self.__class__):
+            Logger.warning('Can\'t connect two sockets of the same type')
+            return False
+
+        if self.node is other_socket.node:
+            Logger.warning('Can\'t connect sockets on the same node')
+            return False
+
+        #!FIX: Find a way to check for cycles
+        # if assigned_socket.node in item.socket.node.list_children(recursive=True) or item.socket.node in assigned_socket.node.list_children():
+        #     Logger.warning('Can\'t create connection due to cycle')
+        #     return False
+
+        return True
+
     def list_connections(self):
         result = []
         for edge in self.edges:
@@ -220,10 +241,21 @@ class Socket(node_serializable.Serializable):
 
 
 class InputSocket(Socket):
+    def create_connections(self):
+        self.signals.connection_changed.connect(self.on_connection_changed)
+        self.signals.value_changed.connect(self.update_matching_outputs)
+        self.signals.value_changed.connect(self.node.set_dirty)
 
     def on_connection_changed(self):
         if not self.has_edge() and self.is_runtime_data():
             self.value = self.data_type['default']
+
+    def can_be_connected(self, other_socket):
+        super(InputSocket, self).can_be_connected(other_socket)
+        if not issubclass(other_socket.data_class, self.data_class):
+            Logger.warning('Can\'t connect data types {0} and {1}'.format(other_socket.data_class, self.data_class))
+            return False
+        return True
 
     def set_connected_edge(self, edge=None):
         super(InputSocket, self).set_connected_edge(edge=edge)
@@ -237,15 +269,17 @@ class InputSocket(Socket):
             if output.label.lower() == self.label.lower():
                 output.value = self.value
 
-    def create_connections(self):
-        self.signals.connection_changed.connect(self.on_connection_changed)
-        self.signals.value_changed.connect(self.update_matching_outputs)
-        self.signals.value_changed.connect(self.node.set_dirty)
-
 
 class OutputSocket(Socket):
     def create_connections(self):
         self.signals.value_changed.connect(self.update_connected_inputs)
+
+    def can_be_connected(self, other_socket):
+        super(OutputSocket, self).can_be_connected(other_socket)
+        if not issubclass(self.data_class, other_socket.data_class):
+            Logger.warning('Can\'t connect data types {0} and {1}'.format(other_socket.data_class, self.data_class))
+            return False
+        return True
 
     def set_connected_edge(self, edge=None):
         super(OutputSocket, self).set_connected_edge(edge=edge)

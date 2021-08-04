@@ -287,7 +287,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         if isinstance(item, node_socket.Socket):
             item = item.gr_socket
 
-        if not isinstance(item, graphics_socket.QLGraphicsSocket) or not self.is_connection_possible(item):
+        if not isinstance(item, graphics_socket.QLGraphicsSocket) or not item.socket.can_be_connected(self.drag_edge.get_assigned_socket()):
             Logger.debug("Canceling edge dragging")
             self.drag_edge.remove()
             self.drag_edge = None
@@ -309,33 +309,6 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         # Set input value
         self.drag_edge.end_socket.value = self.drag_edge.start_socket.value
         self.drag_edge = None
-        return True
-
-    def is_connection_possible(self, item):
-        assigned_socket = self.drag_edge.get_assigned_socket()
-        # Clicking on socket edge is dragging from
-        if item.socket == assigned_socket:
-            return False
-
-        # Trying to connect output->output or input->input
-        if isinstance(item.socket, type(assigned_socket)):
-            Logger.warning('Can\'t connect two sockets of the same type')
-            return False
-
-        if assigned_socket.node == item.socket.node:
-            Logger.warning('Can\'t connect sockets on the same node')
-            return False
-
-        #!FIX: Find a way to check for cycles
-        # if assigned_socket.node in item.socket.node.list_children(recursive=True) or item.socket.node in assigned_socket.node.list_children():
-        #     Logger.warning('Can\'t create connection due to cycle')
-        #     return False
-
-        # Data type class of source socket is not subclass of destination socket
-        if not issubclass(assigned_socket.data_class, item.socket.data_class):
-            Logger.warning('Can\'t connect data types {0} and {1}'.format(item.socket.data_class, assigned_socket.data_class))
-            return False
-
         return True
 
     def log_scene_objects(self, item):

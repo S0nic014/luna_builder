@@ -54,6 +54,7 @@ class Socket(node_serializable.Serializable):
         self.max_connections = max_connections
         self.count_on_this_side = count_on_this_side
         self._value = self.data_type.get('default') if value is None else value
+        self._default_value = self.value
 
         # Graphics
         self.gr_socket = graphics_socket.QLGraphicsSocket(self)
@@ -94,6 +95,14 @@ class Socket(node_serializable.Serializable):
         self.signals.value_changed.emit()
 
     @property
+    def default_value(self):
+        return self._default_value
+
+    @default_value.setter
+    def default_value(self, value):
+        self._default_value = value
+
+    @property
     def data_type(self):
         return self._data_type
 
@@ -131,6 +140,9 @@ class Socket(node_serializable.Serializable):
 
     def set_value(self, value):
         self.value = value
+
+    def reset_value_to_default(self):
+        self.value = self.default_value
 
     def has_edge(self):
         return bool(self.edges)
@@ -209,7 +221,7 @@ class InputSocket(Socket):
         self.signals.connection_changed.emit()
 
     def on_connection_changed(self):
-        if not self.has_edge() and self.data_type in editor_conf.DataType.runtime_types():
+        if not self.has_edge() and self.is_runtime_data():
             self.value = self.data_type['default']
 
     def update_matching_outputs(self):

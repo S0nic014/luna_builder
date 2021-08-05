@@ -239,7 +239,7 @@ class VarAttribWidget(QtWidgets.QGroupBox):
 
         # Widget creation
         self.data_type_box = QtWidgets.QComboBox()
-        types_list = editor_conf.DATATYPE_REGISTER.keys()  # type: list
+        types_list = list(editor_conf.DATATYPE_REGISTER.keys())  # type: list
         types_list.sort()
         types_list.remove('EXEC')
 

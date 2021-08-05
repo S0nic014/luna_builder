@@ -194,7 +194,7 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
                     continue
             func_map = editor_conf.FUNCTION_REGISTER[datatype_name]
             func_signatures_list = func_map.keys()
-            func_signatures_list.sort()
+            func_signatures_list = list(func_signatures_list) if not isinstance(func_signatures_list, list) else func_signatures_list
             for func_sign in func_signatures_list:
                 if datatype_name != editor_conf.UNBOUND_FUNCTION_DATATYPE:
                     expanded = self.nodes_palette.functions_first

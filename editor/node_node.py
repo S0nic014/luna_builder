@@ -352,10 +352,15 @@ class Node(node_serializable.Serializable):
             exec_children += [socket.node for socket in exec_out.list_connections()]
         return exec_children
 
+    def update_affected_outputs(self):
+        for input in self.inputs:
+            input.update_affected()
+
     def _exec(self):
         Logger.debug('Executing {0}...'.format(self))
         try:
             self.execute()
+            self.update_affected_outputs()
         except Exception:
             Logger.exception('Failed to execute {0} {1}'.format(self.title, self))
             self.set_invalid(True)

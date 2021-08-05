@@ -45,6 +45,7 @@ class Socket(node_serializable.Serializable):
         super(Socket, self).__init__()
         self.signals = SocketSignals()
         self.edges = []
+        self._affected_sockets = set()
 
         self.node = node
         self.index = index
@@ -144,6 +145,9 @@ class Socket(node_serializable.Serializable):
 
     def reset_value_to_default(self):
         self.value = self.default_value
+
+    def affects(self, other_socket):
+        self._affected_sockets.add(other_socket)
 
     # ============ Graphics objects methods ============= #
 
@@ -245,16 +249,21 @@ class Socket(node_serializable.Serializable):
         hashmap[data['id']] = self
         return True
 
+    def update_affected(self):
+        for socket in self._affected_sockets:
+            socket.value = self.value
+
 
 class InputSocket(Socket):
+
     def create_connections(self):
         self.signals.connection_changed.connect(self.on_connection_changed)
-        self.signals.value_changed.connect(self.update_matching_outputs)
         self.signals.value_changed.connect(self.node.set_compiled)
 
     def on_connection_changed(self):
         if not self.has_edge() and self.is_runtime_data():
             self.value = self.data_type['default']
+        self.update_affected()
 
     def can_be_connected(self, other_socket):
         super(InputSocket, self).can_be_connected(other_socket)
@@ -269,11 +278,6 @@ class InputSocket(Socket):
             self.edges[0].remove()
         self.edges = [edge]
         self.signals.connection_changed.emit()
-
-    def update_matching_outputs(self):
-        for output in self.node.outputs:
-            if output.label.lower() == self.label.lower():
-                output.value = self.value
 
 
 class OutputSocket(Socket):

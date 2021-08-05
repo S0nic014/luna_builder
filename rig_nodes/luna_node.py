@@ -18,6 +18,9 @@ class LunaGraphicsNode(graphics_node.QLGraphicsNode):
         super(LunaGraphicsNode, self).paint(painter, option, widget=widget)
         if self.node.scene.view.zoom < self.ICON_DRAW_ZOOM_LIMIT:
             return
+        if not self.node.IS_EXEC:
+            return
+
         if self.node.STATUS_ICON:
             icon_offset = 24.0
             if not self.node.is_compiled():

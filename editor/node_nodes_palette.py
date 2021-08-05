@@ -179,9 +179,9 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         keys = list(editor_conf.NODE_REGISTER.keys())
         keys.sort()
         for node_id in keys:
-            if node_id == editor_conf.FUNC_NODE_ID:
-                continue
             node_class = editor_conf.NODE_REGISTER[node_id]
+            if node_class.CATEGORY == editor_conf.INTERNAL_CATEGORY:
+                continue
             palette_label = node_class.PALETTE_LABEL if hasattr(node_class, 'PALETTE_LABEL') else node_class.DEFAULT_TITLE
             self.add_node_item(node_id, palette_label, category=node_class.CATEGORY, icon_name=node_class.ICON)
 

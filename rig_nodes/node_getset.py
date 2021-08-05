@@ -8,7 +8,7 @@ class VarNode(luna_node.LunaNode):
     IS_EXEC = True
     AUTO_INIT_EXECS = False
     DEFAULT_TITLE = ''
-    CATEGORY = 'Internal'
+    CATEGORY = editor_conf.INTERNAL_CATEGORY
 
     def __init__(self, scene, title=None, inputs=[], outputs=[]):
         self._var_name = None
@@ -31,6 +31,9 @@ class VarNode(luna_node.LunaNode):
 
     def pre_deserilization(self, data):
         self.var_name = data.get('var_name')
+
+    def get_attrib_widget(self):
+        return None
 
 
 class SetNode(VarNode):
@@ -60,7 +63,6 @@ class GetNode(VarNode):
     AUTO_INIT_EXECS = False
     ICON = None
     DEFAULT_TITLE = 'Get'
-    CATEGORY = 'Internal'
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         if not self.var_name:

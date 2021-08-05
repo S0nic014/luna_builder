@@ -39,7 +39,8 @@ class AttributesEditor(QtWidgets.QWidget):
 
         node = selected[-1]
         widget = node.get_attrib_widget()
-        self.current_widget = widget
+        if widget:
+            self.current_widget = widget
 
     def update_current_var_widget(self, list_item):
         self.clear_layout()

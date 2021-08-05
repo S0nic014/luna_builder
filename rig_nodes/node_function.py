@@ -9,7 +9,7 @@ class FunctionNode(luna_node.LunaNode):
     ICON = 'func.png'
     AUTO_INIT_EXECS = True
     DEFAULT_TITLE = 'Function'
-    CATEGORY = 'Functions'
+    CATEGORY = editor_conf.INTERNAL_CATEGORY
 
     def __init__(self, scene, title=None, inputs=[], outputs=[]):
         self._func_signature = ''

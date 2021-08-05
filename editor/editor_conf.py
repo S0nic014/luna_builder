@@ -13,6 +13,7 @@ import luna.static.directories as directories
 PALETTE_MIMETYPE = 'luna/x-node-palette_item'
 VARS_MIMETYPE = 'luna/x-vars_item'
 UNBOUND_FUNCTION_DATATYPE = 'UNBOUND'
+INTERNAL_CATEGORY = 'INTERNAL'
 FUNC_NODE_ID = 100
 INPUT_NODE_ID = 101
 OUTPUT_NODE_ID = 102

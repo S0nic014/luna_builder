@@ -156,3 +156,43 @@ def register_plugin():
                                   ]),
                                   nice_name='IK Curve',
                                   category='FKIK Spine')
+    editor_conf.register_function(FKIKSpineNode.COMPONENT_CLASS.get_root_hook_index,
+                                  editor_conf.DataType.FKIK_SPINE_COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('FKIK Spine', editor_conf.DataType.FKIK_SPINE_COMPONENT)
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Hook Root', editor_conf.DataType.NUMERIC)
+                                  ]),
+                                  nice_name='Get Root Hook',
+                                  category='FKIK Spine')
+    editor_conf.register_function(FKIKSpineNode.COMPONENT_CLASS.get_hips_hook_index,
+                                  editor_conf.DataType.FKIK_SPINE_COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('FKIK Spine', editor_conf.DataType.FKIK_SPINE_COMPONENT)
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Hook Hips', editor_conf.DataType.NUMERIC)
+                                  ]),
+                                  nice_name='Get Hips Hook',
+                                  category='FKIK Spine')
+    editor_conf.register_function(FKIKSpineNode.COMPONENT_CLASS.get_mid_hook_index,
+                                  editor_conf.DataType.FKIK_SPINE_COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('FKIK Spine', editor_conf.DataType.FKIK_SPINE_COMPONENT)
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Hook Mid', editor_conf.DataType.NUMERIC)
+                                  ]),
+                                  nice_name='Get Mid Hook',
+                                  category='FKIK Spine')
+    editor_conf.register_function(FKIKSpineNode.COMPONENT_CLASS.get_chest_hook_index,
+                                  editor_conf.DataType.FKIK_SPINE_COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('FKIK Spine', editor_conf.DataType.FKIK_SPINE_COMPONENT)
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Hook Chest', editor_conf.DataType.NUMERIC)
+                                  ]),
+                                  nice_name='Get Chest Hook',
+                                  category='FKIK Spine')

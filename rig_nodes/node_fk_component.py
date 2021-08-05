@@ -116,3 +116,23 @@ def register_plugin():
                                   ]),
                                   nice_name='Add Orient Attr',
                                   category='Head Component')
+    editor_conf.register_function(HeadComponentNode.COMPONENT_CLASS.get_head_hook_index,
+                                  editor_conf.DataType.HEAD_COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('Head', editor_conf.DataType.HEAD_COMPONENT)
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Hook Head', editor_conf.DataType.NUMERIC)
+                                  ]),
+                                  nice_name='Get Head Hook',
+                                  category='Head Component')
+    editor_conf.register_function(HeadComponentNode.COMPONENT_CLASS.get_neck_base_hook_index,
+                                  editor_conf.DataType.HEAD_COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('Head', editor_conf.DataType.HEAD_COMPONENT)
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Hook Neck', editor_conf.DataType.NUMERIC)
+                                  ]),
+                                  nice_name='Get Neck Hook',
+                                  category='Head Component')

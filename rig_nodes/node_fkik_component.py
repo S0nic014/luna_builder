@@ -126,3 +126,23 @@ def register_plugin():
                                   ]),
                                   nice_name='Get FK Control At',
                                   category='FKIK Component')
+    editor_conf.register_function(FKIKComponentNode.COMPONENT_CLASS.get_start_hook_index,
+                                  editor_conf.DataType.FKIK_COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('FKIK Component', editor_conf.DataType.FKIK_COMPONENT),
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Hook Start', editor_conf.DataType.NUMERIC)
+                                  ]),
+                                  nice_name='Get Start Hook',
+                                  category='FKIK Component')
+    editor_conf.register_function(FKIKComponentNode.COMPONENT_CLASS.get_end_hook_index,
+                                  editor_conf.DataType.FKIK_COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('FKIK Component', editor_conf.DataType.FKIK_COMPONENT),
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Hook End', editor_conf.DataType.NUMERIC)
+                                  ]),
+                                  nice_name='Get End Hook',
+                                  category='FKIK Component')

@@ -10,7 +10,8 @@ import luna.static.directories as directories
 
 
 # ====== CONSTANTS ======== #
-PALETTE_MIMETYPE = 'luna/x-item'
+PALETTE_MIMETYPE = 'luna/x-node-palette_item'
+VARS_MIMETYPE = 'luna/x-vars_item'
 UNBOUND_FUNCTION_DATATYPE = 'UNBOUND'
 FUNC_NODE_ID = 100
 INPUT_NODE_ID = 101

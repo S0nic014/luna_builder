@@ -76,7 +76,7 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
 
     PIXMAP_ROLE = QtCore.Qt.UserRole
     NODE_ID_ROLE = QtCore.Qt.UserRole + 1
-    FUNCTION_DT_ID = QtCore.Qt.UserRole + 2
+    JSON_DATA_ROLE = QtCore.Qt.UserRole + 2
 
     def __init__(self, nodes_palette, parent=None):
         super(QLDragTreeWidget, self).__init__(parent)
@@ -110,7 +110,12 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         # Setup item
         item.setData(0, QLDragTreeWidget.PIXMAP_ROLE, pixmap)
         item.setData(0, QLDragTreeWidget.NODE_ID_ROLE, node_id)
-        item.setData(0, QLDragTreeWidget.FUNCTION_DT_ID, func_signature)
+        json_data = {
+            'title': item.text(0),
+            'func_signature': func_signature
+        }
+
+        item.setData(0, QLDragTreeWidget.JSON_DATA_ROLE, json_data)
         return item
 
     def add_category(self, name, expanded=True, parent=None):
@@ -128,13 +133,6 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         item = found_items[0] if found_items else self.add_category(name, expanded=expanded, parent=parent)
         return item
 
-    def get_item_json_data(self, item):
-        json_data = {
-            'title': item.text(0),
-            'func_signature': item.data(0, QLDragTreeWidget.FUNCTION_DT_ID)
-        }
-        return json_data
-
     def startDrag(self, event):
         Logger.debug('Palette::startDrag')
         try:
@@ -143,7 +141,7 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
             pixmap = QtGui.QPixmap(item.data(0, QLDragTreeWidget.PIXMAP_ROLE))
 
             # Pack data to json
-            json_data = self.get_item_json_data(item)
+            json_data = item.data(0, QLDragTreeWidget.JSON_DATA_ROLE)
 
             # Pack data to data stream
             item_data = QtCore.QByteArray()

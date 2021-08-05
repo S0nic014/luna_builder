@@ -84,7 +84,7 @@ class NodeCreatorDialog(QtWidgets.QDialog):
             return
 
         node_id = item.data(0, node_nodes_palette.QLDragTreeWidget.NODE_ID_ROLE)
-        json_data = self.nodes_palette.nodes_tree.get_item_json_data(item)
+        json_data = item.data(0, node_nodes_palette.QLDragTreeWidget.JSON_DATA_ROLE)
         # !FIXME Find position under cursor
         # position = self.view.mapToScene(QtGui.QCursor.pos())
         position = self.view.mapToScene(self.pos())

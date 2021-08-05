@@ -15,8 +15,8 @@ class WindowMenu(QtWidgets.QMenu):
         self.create_connections()
 
     def create_actions(self):
-        self.nodes_palette_action = QtWidgets.QAction('Nodes Palette', self)
-        self.nodes_palette_action.setCheckable(True)
+        self.palette_vars_action = QtWidgets.QAction('Nodes/Vars Palette', self)
+        self.palette_vars_action.setCheckable(True)
 
         self.edge_type_group = QtWidgets.QActionGroup(self)
         self.edge_type_bezier_action = QtWidgets.QAction('Bezier', self)
@@ -44,7 +44,7 @@ class WindowMenu(QtWidgets.QMenu):
         self.edge_type_bezier_action.toggled.connect(self.on_bezier_edge_toggled)
         self.edge_type_direct_action.toggled.connect(self.on_direct_edge_toggled)
         # Actions
-        self.nodes_palette_action.triggered.connect(self.toggle_nodes_palette)
+        self.palette_vars_action.triggered.connect(self.toggle_palette_vars_widgets)
         self.close_current_action.triggered.connect(self.main_dialog.mdi_area.closeActiveSubWindow)
         self.close_all_action.triggered.connect(self.main_dialog.mdi_area.closeAllSubWindows)
         self.tile_action.triggered.connect(self.main_dialog.mdi_area.tileSubWindows)
@@ -52,7 +52,7 @@ class WindowMenu(QtWidgets.QMenu):
         self.previous_wnd_action.triggered.connect(self.main_dialog.mdi_area.activatePreviousSubWindow)
 
     def populate(self):
-        self.addAction(self.nodes_palette_action)
+        self.addAction(self.palette_vars_action)
         self.addMenu(self.scene_edge_type_menu)
         # self.scene_edge_type_menu.addAction(self.edge_type_group)
         self.scene_edge_type_menu.addAction(self.edge_type_bezier_action)
@@ -68,7 +68,7 @@ class WindowMenu(QtWidgets.QMenu):
         self.addAction(self.previous_wnd_action)
 
     def update_actions_state(self):
-        self.nodes_palette_action.setChecked(self.main_dialog.nodes_palette.isVisible())
+        self.palette_vars_action.setChecked(self.main_dialog.splitter_pallette_vars.isVisible())
         has_mdi_child = self.main_dialog.current_editor is not None
         self.close_current_action.setEnabled(has_mdi_child)
         self.close_all_action.setEnabled(has_mdi_child)
@@ -76,8 +76,8 @@ class WindowMenu(QtWidgets.QMenu):
         self.next_wnd_action.setEnabled(has_mdi_child)
         self.previous_wnd_action.setEnabled(has_mdi_child)
 
-    def toggle_nodes_palette(self):
-        self.main_dialog.nodes_palette.setVisible(not self.main_dialog.nodes_palette.isVisible())
+    def toggle_palette_vars_widgets(self):
+        self.main_dialog.splitter_pallette_vars.setVisible(not self.main_dialog.splitter_pallette_vars.isVisible())
 
     def update_edge_type_menu(self):
         if not self.main_dialog.current_editor:

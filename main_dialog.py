@@ -15,7 +15,9 @@ import luna_builder.tabs.tab_attributes as tab_attributes
 import luna_builder.menus as menus
 import luna_builder.editor.node_editor as node_editor
 import luna_builder.editor.node_nodes_palette as node_nodes_palette
+import luna_builder.editor.node_scene_vars as node_scene_vars
 
+imp.reload(node_scene_vars)
 imp.reload(node_editor)
 imp.reload(tab_attributes)
 imp.reload(node_nodes_palette)
@@ -110,9 +112,15 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.menu_bar.addMenu(self.help_menu)
 
     def create_widgets(self):
-        self.splitter_pallete_mdi = QtWidgets.QSplitter()
+        # Nodes palette, vars widget
         self.nodes_palette = node_nodes_palette.NodesPalette()
+        self.vars_widget = node_scene_vars.SceneVarsWidget(self)
+        self.splitter_pallette_vars = QtWidgets.QSplitter()
+        self.splitter_pallette_vars.setOrientation(QtCore.Qt.Vertical)
+        self.splitter_pallette_vars.addWidget(self.nodes_palette)
+        self.splitter_pallette_vars.addWidget(self.vars_widget)
 
+        # Mdis
         self.mdi_area = QtWidgets.QMdiArea()
         self.mdi_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.mdi_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
@@ -120,9 +128,12 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.mdi_area.setDocumentMode(True)
         self.mdi_area.setTabsClosable(True)
         self.mdi_area.setTabsMovable(True)
-        self.splitter_pallete_mdi.addWidget(self.nodes_palette)
+
+        self.splitter_pallete_mdi = QtWidgets.QSplitter()
+        self.splitter_pallete_mdi.addWidget(self.splitter_pallette_vars)
         self.splitter_pallete_mdi.addWidget(self.mdi_area)
 
+        # Right tabs
         self.tab_widget = QtWidgets.QTabWidget()
         self.tab_widget.setTabPosition(self.tab_widget.East)
         self.tab_widget.setMaximumWidth(500)
@@ -148,6 +159,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.update_tab_btn.clicked.connect(lambda: self.tab_widget.currentWidget().update_data())
         self.update_tab_btn.clicked.connect(self.nodes_palette.update_node_tree)
         self.mdi_area.subWindowActivated.connect(self.update_title)
+        self.mdi_area.subWindowActivated.connect(self.vars_widget.update_var_list)
 
     @property
     def current_editor(self):

@@ -16,7 +16,7 @@ import luna_builder.editor.node_serializable as node_serializable
 import luna_builder.editor.node_scene_history as scene_history
 import luna_builder.editor.node_scene_clipboard as scene_clipboard
 import luna_builder.editor.node_scene_vars as node_scene_vars
-imp.reload(node_scene_vars)
+# imp.reload(node_scene_vars)
 imp.reload(scene_history)
 imp.reload(scene_clipboard)
 imp.reload(graphics_scene)
@@ -276,6 +276,17 @@ class Scene(node_serializable.Serializable):
             return new_node
         except Exception:
             Logger.exception('Failed to instance node')
+
+    def spawn_getset(self, var_name, scene_pos, setter=False):
+        node_id = editor_conf.SET_NODE_ID if setter else editor_conf.GET_NODE_ID
+        try:
+            node = editor_conf.get_node_class_from_id(node_id)(self)
+            node.var_name = var_name
+            node.set_position(scene_pos.x(), scene_pos.y())
+            self.history.store_history('Created Node {0}'.format(node.as_str(name_only=True)))
+            return node
+        except Exception:
+            Logger.exception('Failed to instance getter node')
 
     def serialize(self):
         nodes, edges = [], []

@@ -121,40 +121,65 @@ class NodeEditor(QtWidgets.QWidget):
 
     def on_item_drag_enter(self, event):
         Logger.debug('On item drag enter')
-        if event.mimeData().hasFormat(editor_conf.PALETTE_MIMETYPE):
+        if event.mimeData().hasFormat(editor_conf.PALETTE_MIMETYPE) or event.mimeData().hasFormat(editor_conf.VARS_MIMETYPE):
             event.acceptProposedAction()
         else:
-            Logger.warning('Unsupported item: {0}'.format(event.mimeData().text()))
+            Logger.warning('Unsupported item: {0}'.format(event.mimeData().formats()))
             event.setAccepted(False)
 
     def on_item_drop(self, event):
         Logger.debug('On item drop')
-        if not event.mimeData().hasFormat(editor_conf.PALETTE_MIMETYPE):
-            Logger.warning('Unsupported item format: {0}'.format(event.mimeData().text()))
+        if event.mimeData().hasFormat(editor_conf.PALETTE_MIMETYPE):
+            # Retrive data from droped item
+            event_data = event.mimeData().data(editor_conf.PALETTE_MIMETYPE)
+            data_stream = QtCore.QDataStream(event_data, QtCore.QIODevice.ReadOnly)
+            pixmap = QtGui.QPixmap()
+            data_stream >> pixmap
+            node_id = data_stream.readInt32()
+            json_data = json.loads(data_stream.readQString())  # type: dict
+            # Position
+            mouse_pos = event.pos()
+            scene_pos = self.scene.view.mapToScene(mouse_pos)
+
+            Logger.debug('''Dropped Item:
+                        > NODE_ID: {node_id}
+                        > DATA: {data}
+                        > MOUSE POS: {mouse_pos}
+                        > SCENE POS {scene_pos}'''.format(node_id=node_id, data=json_data, mouse_pos=mouse_pos, scene_pos=scene_pos))
+
+            self.scene.spawn_node_from_data(node_id, json_data, scene_pos)
+
+            event.setDropAction(QtCore.Qt.MoveAction)
+            event.accept()
+        elif event.mimeData().hasFormat(editor_conf.VARS_MIMETYPE):
+            event_data = event.mimeData().data(editor_conf.VARS_MIMETYPE)
+            data_stream = QtCore.QDataStream(event_data, QtCore.QIODevice.ReadOnly)
+            json_data = json.loads(data_stream.readQString())  # type: dict
+            # Position
+            mouse_pos = event.pos()
+            scene_pos = self.scene.view.mapToScene(mouse_pos)
+            Logger.debug('''Dropped Varible:
+                        > DATA: {data}
+                        > SCENE POS {scene_pos}'''.format(data=json_data, scene_pos=scene_pos))
+
+            # Choose getter/setter
+            var_name = json_data['var_name']
+            get_set_menu = QtWidgets.QMenu(self)
+            getter_action = QtWidgets.QAction('Get', get_set_menu)
+            setter_action = QtWidgets.QAction('Set', get_set_menu)
+            get_set_menu.addAction(getter_action)
+            get_set_menu.addAction(setter_action)
+            result_action = get_set_menu.exec_(self.mapToGlobal(event.pos()))
+            # Spawn node
+            self.scene.spawn_getset(var_name, scene_pos, setter=result_action == setter_action)
+
+            # self.scene.spawn_getter_setter(json_data, scene_pos)
+            event.setDropAction(QtCore.Qt.MoveAction)
+            event.accept()
+        else:
+            Logger.warning('Unsupported item format: {0}'.format(event.mimeData()))
             event.ignore()
             return
-
-        # Retrive data from droped item
-        event_data = event.mimeData().data(editor_conf.PALETTE_MIMETYPE)
-        data_stream = QtCore.QDataStream(event_data, QtCore.QIODevice.ReadOnly)
-        pixmap = QtGui.QPixmap()
-        data_stream >> pixmap
-        node_id = data_stream.readInt32()
-        json_data = json.loads(data_stream.readQString())  # type: dict
-        # Position
-        mouse_pos = event.pos()
-        scene_pos = self.scene.view.mapToScene(mouse_pos)
-
-        Logger.debug('''Dropped Item:
-                       > NODE_ID: {node_id}
-                       > DATA: {data}
-                       > MOUSE POS: {mouse_pos}
-                       > SCENE POS {scene_pos}'''.format(node_id=node_id, data=json_data, mouse_pos=mouse_pos, scene_pos=scene_pos))
-
-        self.scene.spawn_node_from_data(node_id, json_data, scene_pos)
-
-        event.setDropAction(QtCore.Qt.MoveAction)
-        event.accept()
 
     # ======== Methods ======== #
 

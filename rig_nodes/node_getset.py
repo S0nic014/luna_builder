@@ -18,11 +18,11 @@ class VarNode(luna_node.LunaNode):
     def var_name(self):
         return self._var_name
 
-    @var_name.setter
-    def var_name(self, name):
+    def set_var_name(self, name, init_sockets=False):
         self._var_name = name
         self.title = '{0} {1}'.format(self.DEFAULT_TITLE, self._var_name)
-        self.init_sockets()
+        if init_sockets:
+            self.init_sockets()
 
     def serialize(self):
         result = super(VarNode, self).serialize()
@@ -30,7 +30,7 @@ class VarNode(luna_node.LunaNode):
         return result
 
     def pre_deserilization(self, data):
-        self.var_name = data.get('var_name')
+        self.set_var_name(data.get('var_name'), init_sockets=True)
 
     def get_attrib_widget(self):
         return None

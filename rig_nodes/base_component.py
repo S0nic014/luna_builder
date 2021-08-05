@@ -29,6 +29,12 @@ class ComponentNode(luna_node.LunaNode):
         self.out_side = self.add_output(editor_conf.DataType.STRING, label='Side', value='c')
         self.out_name = self.add_output(editor_conf.DataType.STRING, label='Name', value='component')
         self.out_tag = self.add_output(editor_conf.DataType.STRING, label='Tag', value='')
+
+        self.in_meta_parent.affects(self.out_meta_parent)
+        self.in_side.affects(self.out_side)
+        self.in_name.affects(self.out_name)
+        self.in_tag.affects(self.in_tag)
+
         self.update_node_title()
 
     def create_connections(self):
@@ -60,12 +66,46 @@ class AnimComponentNode(ComponentNode):
         self.out_character = self.add_output(editor_conf.DataType.CHARACTER, label='Character')
         self.out_in_hook = self.add_output(editor_conf.DataType.NUMERIC, label='In Hook')
 
+        # Affects
+        self.in_character.affects(self.out_character)
+        self.in_hook.affects(self.out_in_hook)
+
         # Set default
         self.in_hook.value = None
 
 
 def register_plugin():
     # Component methods
+    editor_conf.register_function(ComponentNode.COMPONENT_CLASS.get_side,
+                                  editor_conf.DataType.COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('Component', editor_conf.DataType.COMPONENT),
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Side', editor_conf.DataType.STRING),
+                                  ]),
+                                  nice_name='Get Side',
+                                  category='Component')
+    editor_conf.register_function(ComponentNode.COMPONENT_CLASS.get_name,
+                                  editor_conf.DataType.COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('Component', editor_conf.DataType.COMPONENT),
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Name', editor_conf.DataType.STRING),
+                                  ]),
+                                  nice_name='Get Name',
+                                  category='Component')
+    editor_conf.register_function(ComponentNode.COMPONENT_CLASS.get_tag,
+                                  editor_conf.DataType.COMPONENT,
+                                  inputs_dict=OrderedDict([
+                                      ('Component', editor_conf.DataType.COMPONENT),
+                                  ]),
+                                  outputs_dict=OrderedDict([
+                                      ('Tag', editor_conf.DataType.STRING),
+                                  ]),
+                                  nice_name='Get Tag',
+                                  category='Component')
     editor_conf.register_function(ComponentNode.COMPONENT_CLASS.get_meta_parent,
                                   editor_conf.DataType.COMPONENT,
                                   inputs_dict=OrderedDict([

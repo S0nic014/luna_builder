@@ -22,9 +22,13 @@ class FunctionNode(luna_node.LunaNode):
             return
 
         for socket_name, socket_datatype in self.func_desc.get('inputs').items():
+            if isinstance(socket_datatype, str):
+                socket_datatype = editor_conf.DATATYPE_REGISTER[socket_datatype]
             self.add_input(socket_datatype, socket_name)
 
         for socket_name, socket_datatype in self.func_desc.get('outputs').items():
+            if isinstance(socket_datatype, str):
+                socket_datatype = editor_conf.DATATYPE_REGISTER[socket_datatype]
             self.add_output(socket_datatype, socket_name)
 
         # Set default input values

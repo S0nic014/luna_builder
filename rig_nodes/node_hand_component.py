@@ -32,7 +32,7 @@ class HandComponentNode(base_component.AnimComponentNode):
 
 
 def register_plugin():
-    editor_conf.DataType.register_datatype('HAND_COMPONENT', luna_rig.components.TwistComponent,
+    editor_conf.DataType.register_datatype('HAND_COMPONENT', luna_rig.components.HandComponent,
                                            editor_conf.DataType.COMPONENT.get('color'),
                                            label='Hand',
                                            default_value=None)
@@ -48,7 +48,7 @@ def register_plugin():
                                       ('Tip Control', editor_conf.DataType.BOOLEAN)
                                   ]),
                                   outputs_dict=OrderedDict([
-                                      ('FK Component', editor_conf.DataType.FK_COMPONENT)
+                                      ('FK Component', 'FK_COMPONENT')
                                   ]),
                                   default_values=[None, '', '', 'finger', False],
                                   nice_name='Add FK Finger',
@@ -66,11 +66,11 @@ def register_plugin():
                                       ('Tip Control', editor_conf.DataType.BOOLEAN)
                                   ]),
                                   outputs_dict=OrderedDict([
-                                      ('Thumb', editor_conf.DataType.FK_COMPONENT),
-                                      ('Index', editor_conf.DataType.FK_COMPONENT),
-                                      ('Middle', editor_conf.DataType.FK_COMPONENT),
-                                      ('Ring', editor_conf.DataType.FK_COMPONENT),
-                                      ('Pinky', editor_conf.DataType.FK_COMPONENT)
+                                      ('Thumb', 'FK_COMPONENT'),
+                                      ('Index', 'FK_COMPONENT'),
+                                      ('Middle', 'FK_COMPONENT'),
+                                      ('Ring', 'FK_COMPONENT'),
+                                      ('Pinky', 'FK_COMPONENT')
                                   ]),
                                   nice_name='Five Finger Setup',
                                   category='Hand Component'

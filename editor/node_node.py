@@ -12,7 +12,7 @@ imp.reload(graphics_node)
 
 
 class NodeSignals(QtCore.QObject):
-    dirty_changed = QtCore.Signal(bool)
+    compiled_changed = QtCore.Signal(bool)
     invalid_changed = QtCore.Signal(bool)
 
 
@@ -40,7 +40,7 @@ class Node(node_serializable.Serializable):
         self.outputs = []
 
         # Evaluation
-        self._is_dirty = False
+        self._is_compiled = False
         self._is_invalid = False
 
         # Members init
@@ -79,7 +79,7 @@ class Node(node_serializable.Serializable):
             self.add_output(datatype, label=None, value=None)
 
     def create_connections(self):
-        self.signals.dirty_changed.connect(self.on_dirty_change)
+        self.signals.compiled_changed.connect(self.on_compiled_change)
         self.signals.invalid_changed.connect(self.on_invalid_change)
 
     def remove_existing_sockets(self):
@@ -181,15 +181,17 @@ class Node(node_serializable.Serializable):
             Logger.exception('Failed to delete node {0}'.format(self))
 
     # ========= Evaluation ============= #
-    def is_dirty(self):
-        return self._is_dirty
+    def is_compiled(self):
+        return self._is_compiled
 
-    def set_dirty(self, value=True):
-        self._is_dirty = value
-        self.signals.dirty_changed.emit(self._is_dirty)
+    def set_compiled(self, value=False):
+        if self._is_compiled == value:
+            return
+        self._is_compiled = value
+        self.signals.compiled_changed.emit(self._is_compiled)
 
-    def on_dirty_change(self, state):
-        self.mark_children_dirty(state)
+    def on_compiled_change(self, state):
+        self.mark_children_compiled(state)
 
     def is_invalid(self):
         return self._is_invalid
@@ -202,16 +204,12 @@ class Node(node_serializable.Serializable):
         if state:
             Logger.debug('{0} marked invalid'.format(self))
 
-    def mark_children_dirty(self, state, start_node=None):
-        if not state:
-            return
-        if start_node in self.list_children():
-            Logger.warning('Cycle')
+    def mark_children_compiled(self, state):
+        if state:
             return
         for child_node in self.list_children():
-            child_node.set_dirty(state)
-            child_node.mark_children_dirty(state, start_node=self)
-            return
+            child_node.set_compiled(state)
+            child_node.mark_children_compiled(state)
 
     # ========= Serialization methods ========== #
 
@@ -354,7 +352,7 @@ class Node(node_serializable.Serializable):
             self.set_invalid(True)
             raise
 
-        self.set_dirty(False)
+        self.set_compiled(True)
         self.set_invalid(False)
         self.exec_children()
         return 0

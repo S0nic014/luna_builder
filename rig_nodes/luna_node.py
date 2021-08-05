@@ -20,7 +20,7 @@ class LunaGraphicsNode(graphics_node.QLGraphicsNode):
             return
         if self.node.STATUS_ICON:
             icon_offset = 24.0
-            if self.node.is_dirty():
+            if not self.node.is_compiled():
                 icon_offset = 0.0
             if self.node.is_invalid():
                 icon_offset = 48.0

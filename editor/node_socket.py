@@ -244,7 +244,7 @@ class InputSocket(Socket):
     def create_connections(self):
         self.signals.connection_changed.connect(self.on_connection_changed)
         self.signals.value_changed.connect(self.update_matching_outputs)
-        self.signals.value_changed.connect(self.node.set_dirty)
+        self.signals.value_changed.connect(self.node.set_compiled)
 
     def on_connection_changed(self):
         if not self.has_edge() and self.is_runtime_data():

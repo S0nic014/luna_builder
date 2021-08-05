@@ -22,9 +22,14 @@ class GraphExecutor(object):
         input_node = self.find_input_node()
         if not input_node:
             return
+        # Execute
         self.reset_nodes_compiled_state()
-        input_node._exec()
-        Logger.info("Build finished in {0:.2f}s".format(timeit.default_timer() - start_time))
+        try:
+            self.scene.is_executing = True
+            input_node._exec()
+            Logger.info("Build finished in {0:.2f}s".format(timeit.default_timer() - start_time))
+        except Exception:
+            self.scene.is_executing = False
 
     def reset_nodes_compiled_state(self):
         for node in self.scene.nodes:

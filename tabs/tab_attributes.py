@@ -1,4 +1,6 @@
+from luna import Logger
 from PySide2 import QtWidgets
+import luna_builder.editor.node_scene_vars as node_scene_vars
 
 
 class AttributesEditor(QtWidgets.QWidget):
@@ -15,6 +17,10 @@ class AttributesEditor(QtWidgets.QWidget):
     def current_widget(self):
         return self._current_widget
 
+    @property
+    def current_editor(self):
+        return self.main_window.current_editor
+
     @current_widget.setter
     def current_widget(self, widget):
         self.clear_layout()
@@ -22,18 +28,26 @@ class AttributesEditor(QtWidgets.QWidget):
         self.main_layout.addWidget(self._current_widget)
         self._current_widget.show()
 
-    def update_current_widget(self):
+    def update_current_node_widget(self):
+        self.clear_layout()
         if not self.main_window.current_editor:
             return
 
-        selected = self.main_window.current_editor.scene.selected_nodes
+        selected = self.current_editor.scene.selected_nodes
         if not selected:
-            self.clear_layout()
             return
 
         node = selected[-1]
-        widget = node.ATTRIB_WIDGET(node)
+        widget = node.get_attrib_widget()
         self.current_widget = widget
+
+    def update_current_var_widget(self, list_item):
+        self.clear_layout()
+        if not self.current_editor:
+            return
+        var_widget = node_scene_vars.VarAttribWidget(list_item, self.current_editor.scene)
+        self.current_widget = var_widget
+        var_widget.data_type_switched.connect(self.update_current_var_widget)
 
     def clear_layout(self):
         if self.current_widget:

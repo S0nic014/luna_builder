@@ -12,13 +12,7 @@ class VarNode(luna_node.LunaNode):
 
     def __init__(self, scene, title=None, inputs=[], outputs=[]):
         self._var_name = None
-        self._var_name = 'test'
         super(VarNode, self).__init__(scene, title=title, inputs=inputs, outputs=outputs)
-
-    def init_sockets(self, inputs, outputs, reset):
-        if not self.var_name:
-            return
-        super(VarNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
 
     @property
     def var_name(self):
@@ -27,6 +21,7 @@ class VarNode(luna_node.LunaNode):
     @var_name.setter
     def var_name(self, name):
         self._var_name = name
+        self.title = '{0} {1}'.format(self.DEFAULT_TITLE, self._var_name)
         self.init_sockets()
 
     def serialize(self):
@@ -47,13 +42,16 @@ class SetNode(VarNode):
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(SetNode, self).init_sockets(inputs, outputs, reset)
-        self.in_value = self.add_input(self.scene.vars.get_data_type(self.var_name), label='Value')
+        if not self.var_name:
+            return
+
+        self.in_value = self.add_input(self.scene.vars.get_data_type(self.var_name, as_dict=True))
 
     def execute(self):
         if not self.var_name:
             Logger.error('{0}: var_name is not set'.format(self))
             raise ValueError
-        self.scene.vars.set_var(self.var_name, self.in_value.value, self.in_value.data_type)
+        self.scene.vars.set_value(self.var_name, self.in_value.value)
 
 
 class GetNode(VarNode):
@@ -65,8 +63,11 @@ class GetNode(VarNode):
     CATEGORY = 'Internal'
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
+        if not self.var_name:
+            return
+
         super(GetNode, self).init_sockets(inputs, outputs, reset)
-        self.out_value = self.add_output(self.scene.vars.get_data_type(self.var_name), label='Value', value=self.scene.vars.get_value(self.var_name))
+        self.out_value = self.add_output(self.scene.vars.get_data_type(self.var_name, as_dict=True), value=self.scene.vars.get_value(self.var_name))
 
 
 def register_plugin():

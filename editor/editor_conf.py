@@ -122,8 +122,17 @@ class DataType(object):
         DATATYPE_REGISTER[type_name.upper()] = type_dict
 
     @classmethod
-    def runtime_types(cls):
-        return [cls.COMPONENT, cls.LIST, cls.CONTROL]
+    def runtime_types(cls, names=False, classes=False):
+        result = []
+        for type_name, type_desc in DATATYPE_REGISTER.items():
+            if issubclass(type_desc['class'], (cls.COMPONENT['class'], cls.LIST['class'], cls.CONTROL['class'])):
+                if names:
+                    result.append(type_name)
+                elif classes:
+                    result.append(type_desc['class'])
+                else:
+                    result.append(DATATYPE_REGISTER[type_name])
+        return result
 
     @classmethod
     def list_base_types(cls, of_type):

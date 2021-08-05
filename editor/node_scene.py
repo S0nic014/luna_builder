@@ -44,6 +44,7 @@ class Scene(node_serializable.Serializable):
 
         self.nodes = []
         self.edges = []
+        self.is_executing = False
         self.vars = node_scene_vars.SceneVars(self)
         self.gr_scene = None  # type: graphics_scene.QLGraphicsScene
 
@@ -244,7 +245,7 @@ class Scene(node_serializable.Serializable):
     def load_from_file(self, file_path):
         try:
             start_time = timeit.default_timer()
-            data = fileFn.load_json(file_path)
+            data = fileFn.load_json(file_path, object_pairs_hook=OrderedDict)
             self.deserialize(data)
             Logger.info("Rig build loaded in {0:.2f}s".format(timeit.default_timer() - start_time))
             self.history.clear()
@@ -300,6 +301,7 @@ class Scene(node_serializable.Serializable):
 
         return OrderedDict([
             ('id', self.id),
+            ('vars', self.vars.serialize()),
             ('scene_width', self.scene_width),
             ('scene_height', self.scene_height),
             ('nodes', nodes),
@@ -312,6 +314,8 @@ class Scene(node_serializable.Serializable):
 
         if restore_id:
             self.id = data.get('id')
+
+        self.vars.deserialize(data.get('vars', OrderedDict()))
 
         # create nodes
         for node_data in data.get('nodes'):

@@ -107,6 +107,14 @@ class Edge(node_serializable.Serializable):
         self.gr_edge = None
         self.scene.remove_edge(self)
 
+    def get_other_socket(self, this_socket):
+        result = None
+        if this_socket is self.start_socket:
+            result = self.end_socket
+        elif this_socket is self.end_socket:
+            result = self.start_socket
+        return result
+
     def get_assigned_socket(self):
         if self.start_socket and self.end_socket:
             return (self.start_socket, self.end_socket)

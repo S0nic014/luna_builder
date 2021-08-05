@@ -107,6 +107,10 @@ class Node(node_serializable.Serializable):
         self._title = value
         self.gr_node.title = self._title
 
+    # ======= Attrib widget ======= #
+    def get_attrib_widget(self):
+        return self.ATTRIB_WIDGET(self)
+
     # ======= Socket Utils ======= #
 
     def get_new_input_index(self):
@@ -172,8 +176,7 @@ class Node(node_serializable.Serializable):
 
     def remove(self):
         try:
-            for socket in self.inputs + self.outputs:
-                socket.remove_all_edges()
+            self.remove_all_connections(include_exec=True)
             self.scene.gr_scene.removeItem(self.gr_node)
             self.gr_node = None
             self.scene.remove_node(self)
@@ -181,6 +184,12 @@ class Node(node_serializable.Serializable):
             Logger.exception('Failed to delete node {0}'.format(self))
 
     # ========= Evaluation ============= #
+    def remove_all_connections(self, include_exec=False):
+        for socket in self.inputs + self.outputs:
+            if not include_exec and socket.data_type == editor_conf.DataType.EXEC:
+                continue
+            socket.remove_all_edges()
+
     def is_compiled(self):
         return self._is_compiled
 

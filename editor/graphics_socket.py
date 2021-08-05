@@ -36,6 +36,8 @@ class QLGraphicsSocket(QtWidgets.QGraphicsItem):
         self.text_item.setVisible(self.socket.node.scene.view.zoom > self.TEXT_ZOOM_OUT_LIMIT)
         if self.socket.node.scene.view.zoom < self.SOCKET_ZOOM_OUT_LIMIT:
             return
+        # Update background color
+        self._brush.setColor(self._color_background)
 
         painter.setBrush(self._brush)
         painter.setPen(self._pen)

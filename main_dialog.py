@@ -160,6 +160,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.update_tab_btn.clicked.connect(self.nodes_palette.update_node_tree)
         self.mdi_area.subWindowActivated.connect(self.update_title)
         self.mdi_area.subWindowActivated.connect(self.vars_widget.update_var_list)
+        self.vars_widget.var_list.itemClicked.connect(self.attrib_editor.update_current_var_widget)
 
     @property
     def current_editor(self):
@@ -179,7 +180,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         # Signal connections
         new_editor.scene.signals.file_name_changed.connect(self.update_title)
         new_editor.scene.signals.modified.connect(self.update_title)
-        new_editor.scene.signals.selection_changed.connect(self.attrib_editor.update_current_widget)
+        new_editor.scene.signals.selection_changed.connect(self.attrib_editor.update_current_node_widget)
         new_editor.signals.about_to_close.connect(self.on_sub_window_close)
         return sub_wnd
 

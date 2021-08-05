@@ -1,14 +1,17 @@
 import json
+from collections import OrderedDict
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
 from luna import Logger
+import luna.utils.pysideFn as pysideFn
 import luna_builder.editor.editor_conf as editor_conf
 import luna_builder.editor.node_serializable as node_serializable
 
 
 class VarsSignals(QtCore.QObject):
     value_changed = QtCore.Signal(str)
+    data_type_changed = QtCore.Signal(str)
 
 
 class SceneVars(node_serializable.Serializable):
@@ -16,39 +19,85 @@ class SceneVars(node_serializable.Serializable):
         super(SceneVars, self).__init__()
         self.scene = scene
         self.signals = VarsSignals()
-        self._vars = {'test': (2.0, editor_conf.DataType.NUMERIC)}
+        self._vars = OrderedDict()
         self.create_connections()
 
     def create_connections(self):
         self.signals.value_changed.connect(self.update_getters)
+        self.signals.data_type_changed.connect(self.update_setters)
+        self.signals.data_type_changed.connect(self.update_getters)
+
+    def set_value(self, name, value):
+        self._vars[name][0] = value
+        self.signals.value_changed.emit(name)
+
+    def set_data_type(self, name, typ_name):
+        self._vars[name][0] = editor_conf.DATATYPE_REGISTER[typ_name]['default']
+        self._vars[name][1] = typ_name
+        self.signals.data_type_changed.emit(name)
 
     def set_var(self, name, value, datatype):
         self._vars[name] = (value, datatype)
         self.signals.value_changed.emit(name)
 
+    def add_new_var(self, name):
+        index = 1
+        if name in self._vars.keys():
+            while '{0}{1}'.format(name, index) in self._vars.keys():
+                index += 1
+            name = '{0}{1}'.format(name, index)
+        self._vars[name] = [0.0, 'NUMERIC']
+
+    def var_setters_set(self, var_name):
+        return {node for node in self.scene.nodes if node.ID == editor_conf.SET_NODE_ID and node.var_name == var_name}
+
+    def var_getters_set(self, var_name):
+        return {node for node in self.scene.nodes if node.ID == editor_conf.GET_NODE_ID and node.var_name == var_name}
+
+    def delete_var(self, name):
+        self._vars.pop(name)
+        for getter in self.var_getters_set(name):
+            getter.remove()
+        for setter in self.var_setters_set(name):
+            setter.remove()
+
+    def update_setters(self, var_name):
+        for setter_node in self.var_setters_set(var_name):
+            if setter_node.in_value.data_type != self.get_data_type(var_name, as_dict=True):
+                setter_node.in_value.data_type = self.get_data_type(var_name, as_dict=True)
+
     def update_getters(self, var_name):
-        Logger.debug('Updating getters...')
-        for getter_node in {node for node in self.scene.nodes if node.ID == editor_conf.GET_NODE_ID and node.var_name == var_name}:
-            Logger.debug('   > Updating {0}'.format(getter_node))
-            if not getter_node.out_value.data_type == self.get_data_type(var_name):
-                getter_node.out_value.data_type = self.get_data_type(var_name)
+        for getter_node in self.var_getters_set(var_name):
+            if not getter_node.out_value.data_type == self.get_data_type(var_name, as_dict=True):
+                getter_node.out_value.data_type = self.get_data_type(var_name, as_dict=True)
 
             getter_node.out_value.value = self.get_value(var_name)
 
     def get_value(self, name):
         return self._vars[name][0]
 
-    def get_data_type(self, name):
-        return self._vars[name][1]
+    def get_data_type(self, name, as_dict=False):
+        typ_name = self._vars[name][1]
+        if not as_dict:
+            return typ_name
+        return editor_conf.DATATYPE_REGISTER[typ_name]
 
     def serialize(self):
-        return {}
+        copy_dict = self._vars.copy()
+        for var_name, value_type_pair in copy_dict.items():
+            if value_type_pair[1] in editor_conf.DataType.runtime_types(names=True):
+                value_type_pair[0] = editor_conf.DATATYPE_REGISTER[value_type_pair[1]]['default']
+        return copy_dict
 
     def deserialize(self, data, hashmap={}):
-        super(SceneVars, self).deserialize(data, hashmap=hashmap)
+        self._vars = data
+        Logger.debug(self._vars)
 
 
 class SceneVarsWidget(QtWidgets.QGroupBox):
+
+    JSON_DATA_ROLE = QtCore.Qt.UserRole + 1
+
     def __init__(self, main_dialog, parent=None):
         super(SceneVarsWidget, self).__init__(parent)
         self.main_dialog = main_dialog
@@ -65,14 +114,43 @@ class SceneVarsWidget(QtWidgets.QGroupBox):
 
     def create_widgets(self):
         self.var_list = QLVarsListWidget(self)
+        self.add_var_btn = QtWidgets.QPushButton()
+        self.delete_var_btn = QtWidgets.QPushButton()
+        self.add_var_btn.setIcon(pysideFn.get_QIcon('plus.png'))
+        self.delete_var_btn.setIcon(pysideFn.get_QIcon('delete.png'))
 
     def create_layouts(self):
+        buttons_layout = QtWidgets.QHBoxLayout()
+        buttons_layout.addStretch()
+        buttons_layout.addWidget(self.add_var_btn)
+        buttons_layout.addWidget(self.delete_var_btn)
+
         self.main_layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.main_layout)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.addWidget(self.var_list)
+        self.main_layout.addLayout(buttons_layout)
 
     def create_connections(self):
-        pass
+        self.add_var_btn.clicked.connect(self.add_variable)
+        self.delete_var_btn.clicked.connect(self.delete_selected_var)
+
+    def add_variable(self, name='new_var'):
+        if not self.scene_vars:
+            return
+        self.scene_vars.add_new_var(name)
+        self.update_var_list()
+
+    def delete_selected_var(self):
+        sel = self.var_list.selectedItems()
+        if not sel:
+            return
+        var_name = sel[-1].data(QLVarsListWidget.JSON_DATA_ROLE)['var_name']
+        if not self.scene_vars:
+            Logger.error('Scene vars is {0}, cant delete'.format(self.scene_vars))
+            return
+        self.scene_vars.delete_var(var_name)
+        self.update_var_list()
 
     def update_var_list(self):
         self.var_list.populate(self.scene_vars)
@@ -135,3 +213,75 @@ class QLVarsListWidget(QtWidgets.QListWidget):
 
         except Exception:
             Logger.exception('Vars drag exception')
+
+
+class VarAttribWidget(QtWidgets.QGroupBox):
+
+    data_type_switched = QtCore.Signal(QtWidgets.QListWidgetItem, str)
+
+    def __init__(self, list_item, scene, parent=None):
+        super(VarAttribWidget, self).__init__(parent)
+        self.setTitle('Variable')
+        self.list_item = list_item  # type: QtWidgets.QListWidgetItem
+        self.scene = scene
+
+        # Get data
+        json_data = self.list_item.data(QLVarsListWidget.JSON_DATA_ROLE)
+        self.var_name = json_data['var_name']
+
+        self.create_widgets()
+        self.create_layouts()
+        self.create_connections()
+
+    def create_widgets(self):
+        var_data_type_name = self.scene.vars.get_data_type(self.var_name, as_dict=False)
+        var_data_type = self.scene.vars.get_data_type(self.var_name, as_dict=True)
+        var_value = self.scene.vars.get_value(self.var_name)
+
+        # Widget creation
+        self.data_type_box = QtWidgets.QComboBox()
+        types_list = editor_conf.DATATYPE_REGISTER.keys()  # type: list
+        types_list.sort()
+        types_list.remove('EXEC')
+
+        self.data_type_box.addItems(types_list)
+        self.data_type_box.setCurrentText(var_data_type_name)
+
+        self.value_widget = None
+        if var_data_type['class'] in editor_conf.DataType.runtime_types(classes=True):
+            self.value_widget = QtWidgets.QLineEdit()
+            self.value_widget.setText(str(var_value))
+            self.value_widget.setEnabled(False)
+        elif var_data_type == editor_conf.DataType.NUMERIC:
+            self.value_widget = QtWidgets.QDoubleSpinBox()
+            self.value_widget.setValue(var_value)
+        elif var_data_type == editor_conf.DataType.STRING:
+            self.value_widget = QtWidgets.QLineEdit()
+            self.value_widget.setText(var_value)
+        elif var_data_type == editor_conf.DataType.BOOLEAN:
+            self.value_widget = QtWidgets.QCheckBox()
+            self.value_widget.setChecked(var_value)
+        else:
+            Logger.debug('Missing widget creation for data {0}'.format(var_data_type['class']))
+
+    def create_layouts(self):
+        self.main_layout = QtWidgets.QFormLayout()
+        self.setLayout(self.main_layout)
+        self.main_layout.addRow('Type:', self.data_type_box)
+        if self.value_widget:
+            self.main_layout.addRow('Value:', self.value_widget)
+
+    def create_connections(self):
+        self.data_type_box.currentTextChanged.connect(lambda typ_name: self.scene.vars.set_data_type(self.var_name, typ_name))
+        self.data_type_box.currentTextChanged.connect(self.on_data_type_switched)
+
+        if self.value_widget:
+            if isinstance(self.value_widget, QtWidgets.QLineEdit):
+                self.value_widget.textChanged.connect(lambda text: self.scene.vars.set_value(self.var_name, text))
+            elif isinstance(self.value_widget, QtWidgets.QAbstractSpinBox):
+                self.value_widget.valueChanged.connect(lambda value: self.scene.vars.set_value(self.var_name, value))
+            elif isinstance(self.value_widget, QtWidgets.QCheckBox):
+                self.value_widget.toggled.connect(lambda state: self.scene.vars.set_value(self.var_name, state))
+
+    def on_data_type_switched(self):
+        self.data_type_switched.emit(self.list_item, self.var_name)

@@ -44,6 +44,7 @@ class Socket(node_serializable.Serializable):
                  count_on_this_side=0):
         super(Socket, self).__init__()
         self.signals = SocketSignals()
+        self.edges = []
 
         self.node = node
         self.index = index
@@ -60,8 +61,7 @@ class Socket(node_serializable.Serializable):
         self.gr_socket = graphics_socket.QLGraphicsSocket(self)
         self.update_positions()
 
-        # Edge
-        self.edges = []
+        # Signals
         self.create_connections()
 
     def create_connections(self):
@@ -109,7 +109,7 @@ class Socket(node_serializable.Serializable):
     @data_type.setter
     def data_type(self, value):
         if isinstance(value, str):
-            self._data_type = getattr(editor_conf.DataType, value)
+            self._data_type = editor_conf.DATATYPE_REGISTER[value]
         elif isinstance(value, dict):
             self._data_type = value
         else:
@@ -117,8 +117,13 @@ class Socket(node_serializable.Serializable):
             raise ValueError
         if hasattr(self, 'gr_socket'):
             self.gr_socket._color_background = self._data_type.get('color')
+            self.gr_socket.update()
+        # Remove not valid connections
+        for edge in self.edges:
+            if not self.can_be_connected(edge.get_other_socket(self)):
+                edge.remove()
 
-    @property
+    @ property
     def data_class(self):
         return self.data_type.get('class')
 
@@ -130,7 +135,8 @@ class Socket(node_serializable.Serializable):
     # ============ Datatype methods ============= #
 
     def is_runtime_data(self):
-        return any([issubclass(self.data_class, dt['class']) for dt in editor_conf.DataType.runtime_types()])
+        # return any([issubclass(self.data_class, dt['class']) for dt in editor_conf.DataType.runtime_types()])
+        return self.data_class in editor_conf.DataType.runtime_types(classes=True)
     # ============ Value methods ============= #
 
     def set_value(self, value):

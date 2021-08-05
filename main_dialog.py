@@ -182,6 +182,7 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         new_editor.scene.signals.modified.connect(self.update_title)
         new_editor.scene.signals.selection_changed.connect(self.attrib_editor.update_current_node_widget)
         new_editor.signals.about_to_close.connect(self.on_sub_window_close)
+        new_editor.scene.signals.file_load_finished.connect(self.vars_widget.update_var_list)
         return sub_wnd
 
     def find_mdi_child(self, file_name):

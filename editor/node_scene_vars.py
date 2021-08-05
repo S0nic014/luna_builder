@@ -91,7 +91,6 @@ class SceneVars(node_serializable.Serializable):
 
     def deserialize(self, data, hashmap={}):
         self._vars = data
-        Logger.debug(self._vars)
 
 
 class SceneVarsWidget(QtWidgets.QGroupBox):
@@ -132,8 +131,8 @@ class SceneVarsWidget(QtWidgets.QGroupBox):
         self.main_layout.addLayout(buttons_layout)
 
     def create_connections(self):
-        self.add_var_btn.clicked.connect(self.add_variable)
-        self.delete_var_btn.clicked.connect(self.delete_selected_var)
+        self.add_var_btn.clicked.connect(lambda *args: self.add_variable())
+        self.delete_var_btn.clicked.connect(lambda *args: self.delete_selected_var())
 
     def add_variable(self, name='new_var'):
         if not self.scene_vars:

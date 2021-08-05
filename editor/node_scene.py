@@ -30,6 +30,7 @@ class SceneSignals(QtCore.QObject):
     item_drag_entered = QtCore.Signal(QtCore.QEvent)
     item_dropped = QtCore.Signal(QtCore.QEvent)
     selection_changed = QtCore.Signal()
+    file_load_finished = QtCore.Signal()
 
 
 class Scene(node_serializable.Serializable):
@@ -252,6 +253,7 @@ class Scene(node_serializable.Serializable):
             self.file_name = file_path
             self.has_been_modified = False
             self.set_history_init_point()
+            self.signals.file_load_finished.emit()
         except Exception:
             Logger.exception('Failed to load rig build file')
 

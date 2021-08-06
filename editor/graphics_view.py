@@ -346,6 +346,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
         if not item:
             Logger.debug('SCENE:')
+            Logger.debug('VARS: {0}'.format(self.scene.vars._vars))
             Logger.debug('  Nodes:')
             for node in self.gr_scene.scene.nodes:
                 Logger.debug('    {0}'.format(node))

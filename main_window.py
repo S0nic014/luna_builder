@@ -197,6 +197,9 @@ class BuilderMainWindow(QtWidgets.QMainWindow):
         if window:
             self.mdi_area.setActiveSubWindow(window)
 
+    def refresh_variables(self):
+        self.vars_widget.update_var_list()
+
     def update_title(self):
         if not self.current_editor:
             self.setWindowTitle(self.WINDOW_TITLE)

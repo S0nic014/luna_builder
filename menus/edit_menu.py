@@ -74,11 +74,19 @@ class EditMenu(QtWidgets.QMenu):
 
     def on_undo(self):
         if self.node_scene is not None:
-            self.node_scene.history.undo()
+            try:
+                self.node_scene.history.undo()
+                self.main_window.refresh_variables()
+            except Exception:
+                Logger.exception('Undo exception')
 
     def on_redo(self):
         if self.node_scene is not None:
-            self.node_scene.history.redo()
+            try:
+                self.node_scene.history.redo()
+                self.main_window.refresh_variables()
+            except Exception:
+                Logger.exception('Redo exception')
 
     def on_copy(self):
         if self.node_scene:

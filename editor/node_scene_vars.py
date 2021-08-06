@@ -27,43 +27,57 @@ class SceneVars(node_serializable.Serializable):
         self.signals.data_type_changed.connect(self.update_setters)
         self.signals.data_type_changed.connect(self.update_getters)
 
+    def get_value(self, name):
+        return self._vars[name][0]
+
     def set_value(self, name, value):
         self._vars[name][0] = value
         self.signals.value_changed.emit(name)
+
+    def get_data_type(self, name, as_dict=False):
+        typ_name = self._vars[name][1]
+        if not as_dict:
+            return typ_name
+        return editor_conf.DATATYPE_REGISTER[typ_name]
 
     def set_data_type(self, name, typ_name):
         self._vars[name][0] = editor_conf.DATATYPE_REGISTER[typ_name]['default']
         self._vars[name][1] = typ_name
         self.signals.data_type_changed.emit(name)
+        self.scene.history.store_history('Variable {0} data type changed to {1}'.format(name, typ_name))
 
-    def set_var(self, name, value, datatype):
-        self._vars[name] = (value, datatype)
-        self.signals.value_changed.emit(name)
-
-    def add_new_var(self, name):
+    def unique_var_name(self, name):
         index = 1
         if name in self._vars.keys():
             while '{0}{1}'.format(name, index) in self._vars.keys():
                 index += 1
             name = '{0}{1}'.format(name, index)
+        return name
+
+    def add_new_var(self, name):
+        name = self.unique_var_name(name)
         self._vars[name] = [0.0, 'NUMERIC']
+        self.scene.history.store_history('Added variable {0}'.format(name))
+
+    def delete_var(self, var_name):
+        for node in self.list_setters(var_name) + self.list_getters(var_name):
+            node.remove()
+        self._vars.pop(var_name)
+        self.scene.history.store_history('Deleted variable {0}'.format(var_name))
+
+    def rename_var(self, old_name, new_name):
+        new_name = self.unique_var_name(new_name)
+        old_value = self._vars[old_name]
+        self._vars = OrderedDict([(new_name, old_value) if k == old_name else (k, v) for k, v in self._vars.items()])
+        for node in self.list_setters(old_name) + self.list_getters(old_name):
+            node.set_var_name(new_name)
+        self.scene.history.store_history('Renamed variable {0} -> {1}'.format(old_name, new_name))
 
     def list_setters(self, var_name):
         return [node for node in self.scene.nodes if node.ID == editor_conf.SET_NODE_ID and node.var_name == var_name]
 
     def list_getters(self, var_name):
         return [node for node in self.scene.nodes if node.ID == editor_conf.GET_NODE_ID and node.var_name == var_name]
-
-    def delete_var(self, var_name):
-        self._vars.pop(var_name)
-        for node in self.list_setters(var_name) + self.list_getters(var_name):
-            node.remove()
-
-    def rename_var(self, old_name, new_name):
-        old_value = self._vars[old_name]
-        self._vars = OrderedDict([(new_name, old_value) if k == old_name else (k, v) for k, v in self._vars.items()])
-        for node in self.list_setters(old_name) + self.list_getters(old_name):
-            node.set_var_name(new_name)
 
     def update_setters(self, var_name):
         for setter_node in self.list_setters(var_name):
@@ -77,15 +91,6 @@ class SceneVars(node_serializable.Serializable):
 
             getter_node.out_value.value = self.get_value(var_name)
 
-    def get_value(self, name):
-        return self._vars[name][0]
-
-    def get_data_type(self, name, as_dict=False):
-        typ_name = self._vars[name][1]
-        if not as_dict:
-            return typ_name
-        return editor_conf.DATATYPE_REGISTER[typ_name]
-
     def serialize(self):
         copy_dict = self._vars.copy()
         for var_name, value_type_pair in copy_dict.items():
@@ -94,7 +99,9 @@ class SceneVars(node_serializable.Serializable):
         return copy_dict
 
     def deserialize(self, data, hashmap={}):
-        self._vars = data
+        # Direct assignment of _vars = data results in KeyError
+        self._vars.clear()
+        self._vars.update(data)
 
 
 class SceneVarsWidget(QtWidgets.QWidget):

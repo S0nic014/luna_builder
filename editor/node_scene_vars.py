@@ -54,9 +54,9 @@ class SceneVars(node_serializable.Serializable):
     def list_getters(self, var_name):
         return [node for node in self.scene.nodes if node.ID == editor_conf.GET_NODE_ID and node.var_name == var_name]
 
-    def delete_var(self, name):
-        self._vars.pop(name)
-        for node in self.list_setters(name) + self.list_getters():
+    def delete_var(self, var_name):
+        self._vars.pop(var_name)
+        for node in self.list_setters(var_name) + self.list_getters(var_name):
             node.remove()
 
     def rename_var(self, old_name, new_name):

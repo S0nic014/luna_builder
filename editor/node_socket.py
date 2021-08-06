@@ -45,7 +45,7 @@ class Socket(node_serializable.Serializable):
         super(Socket, self).__init__()
         self.signals = SocketSignals()
         self.edges = []
-        self._affected_sockets = set()
+        self._affected_sockets = []
 
         self.node = node
         self.index = index
@@ -147,7 +147,7 @@ class Socket(node_serializable.Serializable):
         self.value = self.default_value
 
     def affects(self, other_socket):
-        self._affected_sockets.add(other_socket)
+        self._affected_sockets.append(other_socket)
 
     # ============ Graphics objects methods ============= #
 

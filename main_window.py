@@ -38,6 +38,7 @@ class BuilderMainWindow(QtWidgets.QMainWindow):
         else:
             cls.INSTANCE.raise_()
             cls.INSTANCE.activateWindow()
+        cls.INSTANCE.restoreGeometry(cls.GEOMETRY)
 
     @classmethod
     def close_and_delete(cls):
@@ -49,7 +50,7 @@ class BuilderMainWindow(QtWidgets.QMainWindow):
 
     def closeEvent(self, event):
         BuilderMainWindow.GEOMETRY = self.saveGeometry()
-        return super(BuilderMainWindow, self).closeEvent(event)
+        super(BuilderMainWindow, self).closeEvent(event)
 
     def __init__(self, parent=pysideFn.maya_main_window()):
         super(BuilderMainWindow, self).__init__(parent)
@@ -66,7 +67,6 @@ class BuilderMainWindow(QtWidgets.QMainWindow):
         self.create_menu_bar()
         self.create_layouts()
         self.create_connections()
-        self.restoreGeometry(BuilderMainWindow.GEOMETRY)
 
     def create_actions(self):
         pass

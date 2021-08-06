@@ -4,9 +4,9 @@ from luna import Logger
 
 
 class EditMenu(QtWidgets.QMenu):
-    def __init__(self, main_dialog, parent=None):
+    def __init__(self, main_window, parent=None):
         super(EditMenu, self).__init__("&Edit", parent)
-        self.main_dialog = main_dialog
+        self.main_window = main_window
 
         self.setTearOffEnabled(True)
         self.create_actions()
@@ -15,14 +15,14 @@ class EditMenu(QtWidgets.QMenu):
 
     @property
     def node_scene(self):
-        editor = self.main_dialog.current_editor
+        editor = self.main_window.current_editor
         if not editor:
             return None
         return editor.scene
 
     @property
     def gr_view(self):
-        editor = self.main_dialog.current_editor
+        editor = self.main_window.current_editor
         if not editor:
             return None
         return editor.gr_view
@@ -43,7 +43,7 @@ class EditMenu(QtWidgets.QMenu):
         self.delete_action.setShortcut('Del')
 
     def create_connections(self):
-        self.main_dialog.mdi_area.subWindowActivated.connect(self.update_actions_state)
+        self.main_window.mdi_area.subWindowActivated.connect(self.update_actions_state)
         self.aboutToShow.connect(self.update_actions_state)
         # Actions
         self.undo_action.triggered.connect(self.on_undo)

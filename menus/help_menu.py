@@ -4,9 +4,9 @@ import luna_builder.editor.editor_conf as editor_conf
 
 
 class HelpMenu(QtWidgets.QMenu):
-    def __init__(self, main_dialog, parent=None):
+    def __init__(self, main_window, parent=None):
         super(HelpMenu, self).__init__("Help", parent)
-        self.main_dialog = main_dialog
+        self.main_window = main_window
         self.setTearOffEnabled(True)
         self.create_actions()
         self.create_sub_menus()
@@ -22,7 +22,7 @@ class HelpMenu(QtWidgets.QMenu):
 
     def create_connections(self):
         self.reload_editor_plugins_action.triggered.connect(editor_conf.load_plugins)
-        self.reload_editor_plugins_action.triggered.connect(self.main_dialog.nodes_palette.update_node_tree)
+        self.reload_editor_plugins_action.triggered.connect(self.main_window.nodes_palette.update_node_tree)
 
     def populate(self):
         self.addAction(self.reload_editor_plugins_action)

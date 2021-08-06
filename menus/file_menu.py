@@ -6,10 +6,10 @@ import luna_rig.functions.asset_files as asset_files
 
 
 class FileMenu(QtWidgets.QMenu):
-    def __init__(self, main_dialog, parent=None):
+    def __init__(self, main_window, parent=None):
         super(FileMenu, self).__init__("File", parent)
-        self.main_dialog = main_dialog
-        self.workspace_widget = main_dialog.workspace_wgt
+        self.main_window = main_window
+        self.workspace_widget = main_window.workspace_wgt
 
         self.setTearOffEnabled(True)
         self.create_actions()
@@ -41,7 +41,7 @@ class FileMenu(QtWidgets.QMenu):
         self.save_build_as_action.setShortcut('Ctrl+Shift+S')
 
     def create_connections(self):
-        self.main_dialog.mdi_area.subWindowActivated.connect(self.update_actions_state)
+        self.main_window.mdi_area.subWindowActivated.connect(self.update_actions_state)
         self.aboutToShow.connect(self.update_recent_projects)
         self.aboutToShow.connect(self.update_actions_state)
         # Actions
@@ -52,11 +52,11 @@ class FileMenu(QtWidgets.QMenu):
         self.save_rig_as_action.triggered.connect(lambda: asset_files.save_file_as(typ="rig"))
         self.save_new_skeleton_action.triggered.connect(self.workspace_widget.update_data)
         # Build actions
-        self.new_build_action.triggered.connect(self.main_dialog.on_build_new)
-        self.open_build_file_action.triggered.connect(self.main_dialog.on_build_open)
-        self.open_build_tab_action.triggered.connect(self.main_dialog.on_build_open_tabbed)
-        self.save_build_action.triggered.connect(self.main_dialog.on_build_save)
-        self.save_build_as_action.triggered.connect(self.main_dialog.on_build_save_as)
+        self.new_build_action.triggered.connect(self.main_window.on_build_new)
+        self.open_build_file_action.triggered.connect(self.main_window.on_build_open)
+        self.open_build_tab_action.triggered.connect(self.main_window.on_build_open_tabbed)
+        self.save_build_action.triggered.connect(self.main_window.on_build_save)
+        self.save_build_as_action.triggered.connect(self.main_window.on_build_save_as)
 
     def populate(self):
         self.addSection("Project")
@@ -90,7 +90,7 @@ class FileMenu(QtWidgets.QMenu):
 
     def update_actions_state(self):
         is_asset_set = True if luna.workspace.Asset.get() else False
-        is_current_editor = self.main_dialog.current_editor is not None
+        is_current_editor = self.main_window.current_editor is not None
         self.model_reference_action.setEnabled(is_asset_set)
         self.save_skeleton_as_action.setEnabled(is_asset_set)
         self.save_new_skeleton_action.setEnabled(is_asset_set)

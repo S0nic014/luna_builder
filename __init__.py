@@ -1,1 +1,1 @@
-from luna_builder.main_dialog import BuilderMainWindow
+from luna_builder.main_window import BuilderMainWindow

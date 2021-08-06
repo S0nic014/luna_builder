@@ -101,22 +101,22 @@ class SceneVarsWidget(QtWidgets.QWidget):
 
     JSON_DATA_ROLE = QtCore.Qt.UserRole + 1
 
-    def __init__(self, main_dialog, parent=None):
+    def __init__(self, main_window, parent=None):
         super(SceneVarsWidget, self).__init__(parent)
-        self.main_dialog = main_dialog
+        self.main_window = main_window
         self.create_widgets()
         self.create_layouts()
         self.create_connections()
 
     @property
     def scene_vars(self):
-        if not self.main_dialog.current_editor:
+        if not self.main_window.current_editor:
             return None
-        return self.main_dialog.current_editor.scene.vars
+        return self.main_window.current_editor.scene.vars
 
     @property
     def attrib_editor(self):
-        return self.main_dialog.attrib_editor
+        return self.main_window.attrib_editor
 
     def create_widgets(self):
         self.var_list = QLVarsListWidget(self)

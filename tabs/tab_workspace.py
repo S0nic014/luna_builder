@@ -19,6 +19,7 @@ class WorkspaceWidget(QtWidgets.QWidget):
         super(WorkspaceWidget, self).__init__(parent)
 
         self.label = "Workspace"
+        self.setMinimumWidth(300)
         # self.icon = pysideFn.get_QIcon("workspace.png")
 
         self.create_widgets()

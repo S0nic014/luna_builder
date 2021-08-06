@@ -10,9 +10,9 @@ import luna.static.directories as directories
 import luna_builder.editor.editor_conf as editor_conf
 
 
-class NodesPalette(QtWidgets.QGroupBox):
+class NodesPalette(QtWidgets.QWidget):
     def __init__(self, parent=None, icon_size=32, data_type_filter=None, functions_first=False):
-        super(NodesPalette, self).__init__('Nodes Palette', parent)
+        super(NodesPalette, self).__init__(parent)
 
         self.icon_size = QtCore.QSize(icon_size, icon_size)
         self.data_type_filter = data_type_filter

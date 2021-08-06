@@ -97,14 +97,13 @@ class SceneVars(node_serializable.Serializable):
         self._vars = data
 
 
-class SceneVarsWidget(QtWidgets.QGroupBox):
+class SceneVarsWidget(QtWidgets.QWidget):
 
     JSON_DATA_ROLE = QtCore.Qt.UserRole + 1
 
     def __init__(self, main_dialog, parent=None):
         super(SceneVarsWidget, self).__init__(parent)
         self.main_dialog = main_dialog
-        self.setTitle('Variables')
         self.create_widgets()
         self.create_layouts()
         self.create_connections()
@@ -128,15 +127,18 @@ class SceneVarsWidget(QtWidgets.QGroupBox):
 
     def create_layouts(self):
         buttons_layout = QtWidgets.QHBoxLayout()
-        buttons_layout.addStretch()
+        # buttons_layout.addStretch()
+        buttons_layout.setContentsMargins(0, 0, 0, 0)
+        buttons_layout.setSpacing(2)
         buttons_layout.addWidget(self.add_var_btn)
         buttons_layout.addWidget(self.delete_var_btn)
 
         self.main_layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.main_layout)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
-        self.main_layout.addWidget(self.var_list)
+        self.main_layout.setSpacing(0)
         self.main_layout.addLayout(buttons_layout)
+        self.main_layout.addWidget(self.var_list)
 
     def create_connections(self):
         self.add_var_btn.clicked.connect(self.add_variable)

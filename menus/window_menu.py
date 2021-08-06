@@ -4,9 +4,9 @@ import luna_builder.editor.node_edge as node_edge
 
 
 class WindowMenu(QtWidgets.QMenu):
-    def __init__(self, main_dialog, parent=None):
+    def __init__(self, main_window, parent=None):
         super(WindowMenu, self).__init__("&Window", parent)
-        self.main_dialog = main_dialog
+        self.main_window = main_window
 
         self.setTearOffEnabled(True)
         self.create_actions()
@@ -15,9 +15,6 @@ class WindowMenu(QtWidgets.QMenu):
         self.create_connections()
 
     def create_actions(self):
-        self.palette_vars_action = QtWidgets.QAction('Nodes/Vars Palette', self)
-        self.palette_vars_action.setCheckable(True)
-
         self.edge_type_group = QtWidgets.QActionGroup(self)
         self.edge_type_bezier_action = QtWidgets.QAction('Bezier', self)
         self.edge_type_direct_action = QtWidgets.QAction('Direct', self)
@@ -44,17 +41,19 @@ class WindowMenu(QtWidgets.QMenu):
         self.edge_type_bezier_action.toggled.connect(self.on_bezier_edge_toggled)
         self.edge_type_direct_action.toggled.connect(self.on_direct_edge_toggled)
         # Actions
-        self.palette_vars_action.triggered.connect(self.toggle_palette_vars_widgets)
-        self.close_current_action.triggered.connect(self.main_dialog.mdi_area.closeActiveSubWindow)
-        self.close_all_action.triggered.connect(self.main_dialog.mdi_area.closeAllSubWindows)
-        self.tile_action.triggered.connect(self.main_dialog.mdi_area.tileSubWindows)
-        self.next_wnd_action.triggered.connect(self.main_dialog.mdi_area.activateNextSubWindow)
-        self.previous_wnd_action.triggered.connect(self.main_dialog.mdi_area.activatePreviousSubWindow)
+        self.close_current_action.triggered.connect(self.main_window.mdi_area.closeActiveSubWindow)
+        self.close_all_action.triggered.connect(self.main_window.mdi_area.closeAllSubWindows)
+        self.tile_action.triggered.connect(self.main_window.mdi_area.tileSubWindows)
+        self.next_wnd_action.triggered.connect(self.main_window.mdi_area.activateNextSubWindow)
+        self.previous_wnd_action.triggered.connect(self.main_window.mdi_area.activatePreviousSubWindow)
 
     def populate(self):
-        self.addAction(self.palette_vars_action)
+        self.addAction(self.main_window.nodes_palette_dock.toggleViewAction())
+        self.addAction(self.main_window.vars_dock.toggleViewAction())
+        self.addAction(self.main_window.workspace_dock.toggleViewAction())
+        self.addAction(self.main_window.attrib_editor_dock.toggleViewAction())
+
         self.addMenu(self.scene_edge_type_menu)
-        # self.scene_edge_type_menu.addAction(self.edge_type_group)
         self.scene_edge_type_menu.addAction(self.edge_type_bezier_action)
         self.scene_edge_type_menu.addAction(self.edge_type_direct_action)
 
@@ -68,39 +67,33 @@ class WindowMenu(QtWidgets.QMenu):
         self.addAction(self.previous_wnd_action)
 
     def update_actions_state(self):
-        self.palette_vars_action.setChecked(self.main_dialog.splitter_pallette_vars.isVisible())
-        has_mdi_child = self.main_dialog.current_editor is not None
+        has_mdi_child = self.main_window.current_editor is not None
         self.close_current_action.setEnabled(has_mdi_child)
         self.close_all_action.setEnabled(has_mdi_child)
         self.tile_action.setEnabled(has_mdi_child)
         self.next_wnd_action.setEnabled(has_mdi_child)
         self.previous_wnd_action.setEnabled(has_mdi_child)
 
-    def toggle_palette_vars_widgets(self):
-        self.main_dialog.splitter_pallette_vars.setVisible(not self.main_dialog.splitter_pallette_vars.isVisible())
-
     def update_edge_type_menu(self):
-        if not self.main_dialog.current_editor:
-            # self.edge_type_bezier_action.setChecked(False)
+        if not self.main_window.current_editor:
             self.edge_type_bezier_action.setEnabled(False)
             self.edge_type_direct_action.setEnabled(False)
-            # self.edge_type_direct_action.setChecked(False)
             return
 
         self.edge_type_bezier_action.setEnabled(True)
         self.edge_type_direct_action.setEnabled(True)
-        bezier_selected = self.main_dialog.current_editor.scene.edge_type == node_edge.Edge.Type.BEZIER
+        bezier_selected = self.main_window.current_editor.scene.edge_type == node_edge.Edge.Type.BEZIER
         self.edge_type_bezier_action.setChecked(bezier_selected)
         self.edge_type_direct_action.setChecked(not bezier_selected)
 
     def on_bezier_edge_toggled(self, state):
-        if not self.main_dialog.current_editor or not state:
+        if not self.main_window.current_editor or not state:
             return
 
-        self.main_dialog.current_editor.scene.edge_type = node_edge.Edge.Type.BEZIER
+        self.main_window.current_editor.scene.edge_type = node_edge.Edge.Type.BEZIER
 
     def on_direct_edge_toggled(self, state):
-        if not self.main_dialog.current_editor or not state:
+        if not self.main_window.current_editor or not state:
             return
 
-        self.main_dialog.current_editor.scene.edge_type = node_edge.Edge.Type.DIRECT
+        self.main_window.current_editor.scene.edge_type = node_edge.Edge.Type.DIRECT

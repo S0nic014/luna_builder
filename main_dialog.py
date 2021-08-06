@@ -2,8 +2,6 @@
 import imp
 from PySide2 import QtCore
 from PySide2 import QtWidgets
-import pymel.core as pm
-from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
 from luna import Logger
 from luna import __version__
@@ -20,24 +18,23 @@ import luna_builder.editor.node_scene_vars as node_scene_vars
 imp.reload(node_scene_vars)
 imp.reload(node_editor)
 imp.reload(tab_attributes)
+imp.reload(tab_workspace)
 imp.reload(node_nodes_palette)
 
 
-class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
+class BuilderMainWindow(QtWidgets.QMainWindow):
     WINDOW_TITLE = "Luna builder v" + __version__
     DOCKED_TITLE = "Luna builder"
-    UI_NAME = "lunaBuildManager"
-    UI_SCRIPT = "import luna_builder\nluna_builder.MainDialog()"
-    INSTANCE = None
+    INSTANCE = None  # type: BuilderMainWindow
+    GEOMETRY = None
     MINIMUM_SIZE = [400, 500]
 
     @classmethod
     def display(cls):
         if not cls.INSTANCE:
-            cls.INSTANCE = MainDialog()
-
+            cls.INSTANCE = cls()
         if cls.INSTANCE.isHidden():
-            cls.INSTANCE.show(dockable=1, uiScript=cls.UI_SCRIPT)
+            cls.INSTANCE.show()
         else:
             cls.INSTANCE.raise_()
             cls.INSTANCE.activateWindow()
@@ -50,26 +47,18 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         cls.INSTANCE.deleteLater()
         cls.INSTANCE = None
 
-    def showEvent(self, event):
-        if self.isFloating():
-            self.setWindowTitle(self.WINDOW_TITLE)
-        else:
-            self.setWindowTitle(self.DOCKED_TITLE)
-        super(MainDialog, self).showEvent(event)
+    def closeEvent(self, event):
+        BuilderMainWindow.GEOMETRY = self.saveGeometry()
+        return super(BuilderMainWindow, self).closeEvent(event)
 
-    def __init__(self):
-        super(MainDialog, self).__init__()
+    def __init__(self, parent=pysideFn.maya_main_window()):
+        super(BuilderMainWindow, self).__init__(parent)
 
         # Window adjustments
-        self.__class__.INSTANCE = self
-        self.setObjectName(self.__class__.UI_NAME)
+        self.setWindowTitle(self.WINDOW_TITLE)
         self.setWindowIcon(pysideFn.get_QIcon("builder.svg"))
         self.setMinimumSize(*self.MINIMUM_SIZE)
         self.setProperty("saveWindowPref", True)
-
-        # Workspace control
-        self.workspaceControlName = "{0}WorkspaceControl".format(self.UI_NAME)
-        pysideFn.add_widget_to_layout(self, self.workspaceControlName)
 
         # UI setup
         self.create_actions()
@@ -77,12 +66,14 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.create_menu_bar()
         self.create_layouts()
         self.create_connections()
+        self.restoreGeometry(BuilderMainWindow.GEOMETRY)
 
     def create_actions(self):
         pass
 
     def create_menu_bar(self):
         self.menu_bar = QtWidgets.QMenuBar()
+        self.setMenuBar(self.menu_bar)
         # Corner button
         self.update_tab_btn = QtWidgets.QPushButton()
         self.update_tab_btn.setFlat(True)
@@ -113,25 +104,16 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
     def create_widgets(self):
         # Right tabs
-        self.tab_widget = QtWidgets.QTabWidget()
-        self.tab_widget.setTabPosition(self.tab_widget.East)
-        self.tab_widget.setMaximumWidth(500)
-        self.tab_widget.setMinimumWidth(400)
         self.workspace_wgt = tab_workspace.WorkspaceWidget()
         self.attrib_editor = tab_attributes.AttributesEditor(self)
-        self.tab_widget.addTab(self.workspace_wgt, self.workspace_wgt.label)
-        self.tab_widget.addTab(self.attrib_editor, 'Attributes')
 
         # Nodes palette, vars widget
         self.nodes_palette = node_nodes_palette.NodesPalette()
         self.vars_widget = node_scene_vars.SceneVarsWidget(self)
-        self.splitter_pallette_vars = QtWidgets.QSplitter()
-        self.splitter_pallette_vars.setOrientation(QtCore.Qt.Vertical)
-        self.splitter_pallette_vars.addWidget(self.nodes_palette)
-        self.splitter_pallette_vars.addWidget(self.vars_widget)
 
         # Mdis
         self.mdi_area = QtWidgets.QMdiArea()
+        self.setCentralWidget(self.mdi_area)
         self.mdi_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.mdi_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.mdi_area.setViewMode(QtWidgets.QMdiArea.TabbedView)
@@ -139,20 +121,40 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.mdi_area.setTabsClosable(True)
         self.mdi_area.setTabsMovable(True)
 
-        self.splitter_pallete_mdi = QtWidgets.QSplitter()
-        self.splitter_pallete_mdi.addWidget(self.splitter_pallette_vars)
-        self.splitter_pallete_mdi.addWidget(self.mdi_area)
+        # Dock Widgets
+        self.setTabPosition(QtCore.Qt.RightDockWidgetArea, QtWidgets.QTabWidget.East)
+        self.setTabPosition(QtCore.Qt.LeftDockWidgetArea, QtWidgets.QTabWidget.North)
+        # Workspace
+        self.workspace_dock = QtWidgets.QDockWidget(self.workspace_wgt.label)
+        self.workspace_dock.setWidget(self.workspace_wgt)
+        self.workspace_dock.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
+        # Attrib editor
+        self.attrib_editor_dock = QtWidgets.QDockWidget('Attributes')
+        self.attrib_editor_dock.setWidget(self.attrib_editor)
+        self.attrib_editor_dock.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
+        # Nodes palette
+        self.nodes_palette_dock = QtWidgets.QDockWidget('Nodes Palette')
+        self.nodes_palette_dock.setWidget(self.nodes_palette)
+        self.nodes_palette_dock.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea)
+        # Variables
+        self.vars_dock = QtWidgets.QDockWidget('Variables')
+        self.vars_dock.setWidget(self.vars_widget)
+        self.vars_dock.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea)
+
+        # Add docks right
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.workspace_dock)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.attrib_editor_dock)
+        self.tabifyDockWidget(self.workspace_dock, self.attrib_editor_dock)
+        # Add docks left
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.nodes_palette_dock)
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.vars_dock)
 
     def create_layouts(self):
         self.hor_layout = QtWidgets.QHBoxLayout()
         self.hor_layout.setContentsMargins(0, 0, 0, 0)
-        self.hor_layout.addWidget(self.splitter_pallete_mdi)
-        self.hor_layout.addWidget(self.tab_widget)
 
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
-        self.main_layout.setMenuBar(self.menu_bar)
-        self.main_layout.addLayout(self.hor_layout)
 
     def create_connections(self):
         # Other
@@ -239,14 +241,5 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
 
 if __name__ == "__main__":
-    try:
-        if testTool and testTool.parent():  # noqa: F821
-            workspaceControlName = testTool.parent().objectName()  # noqa: F821
-
-            if pm.window(workspaceControlName, ex=1, q=1):
-                pm.deleteUI(workspaceControlName)
-    except Exception:
-        pass
-
-    testTool = MainDialog()
-    testTool.show(dockable=1, uiScript="")
+    BuilderMainWindow.INSTANCE = None
+    BuilderMainWindow.display()

@@ -48,26 +48,30 @@ class SceneVars(node_serializable.Serializable):
             name = '{0}{1}'.format(name, index)
         self._vars[name] = [0.0, 'NUMERIC']
 
-    def var_setters_set(self, var_name):
-        return {node for node in self.scene.nodes if node.ID == editor_conf.SET_NODE_ID and node.var_name == var_name}
+    def list_setters(self, var_name):
+        return [node for node in self.scene.nodes if node.ID == editor_conf.SET_NODE_ID and node.var_name == var_name]
 
-    def var_getters_set(self, var_name):
-        return {node for node in self.scene.nodes if node.ID == editor_conf.GET_NODE_ID and node.var_name == var_name}
+    def list_getters(self, var_name):
+        return [node for node in self.scene.nodes if node.ID == editor_conf.GET_NODE_ID and node.var_name == var_name]
 
     def delete_var(self, name):
         self._vars.pop(name)
-        for getter in self.var_getters_set(name):
-            getter.remove()
-        for setter in self.var_setters_set(name):
-            setter.remove()
+        for node in self.list_setters(name) + self.list_getters():
+            node.remove()
+
+    def rename_var(self, old_name, new_name):
+        old_value = self._vars[old_name]
+        self._vars = OrderedDict([(new_name, old_value) if k == old_name else (k, v) for k, v in self._vars.items()])
+        for node in self.list_setters(old_name) + self.list_getters(old_name):
+            node.set_var_name(new_name)
 
     def update_setters(self, var_name):
-        for setter_node in self.var_setters_set(var_name):
+        for setter_node in self.list_setters(var_name):
             if setter_node.in_value.data_type != self.get_data_type(var_name, as_dict=True):
                 setter_node.in_value.data_type = self.get_data_type(var_name, as_dict=True)
 
     def update_getters(self, var_name):
-        for getter_node in self.var_getters_set(var_name):
+        for getter_node in self.list_getters(var_name):
             if not getter_node.out_value.data_type == self.get_data_type(var_name, as_dict=True):
                 getter_node.out_value.data_type = self.get_data_type(var_name, as_dict=True)
 
@@ -111,6 +115,10 @@ class SceneVarsWidget(QtWidgets.QGroupBox):
             return None
         return self.main_dialog.current_editor.scene.vars
 
+    @property
+    def attrib_editor(self):
+        return self.main_dialog.attrib_editor
+
     def create_widgets(self):
         self.var_list = QLVarsListWidget(self)
         self.add_var_btn = QtWidgets.QPushButton()
@@ -131,13 +139,13 @@ class SceneVarsWidget(QtWidgets.QGroupBox):
         self.main_layout.addLayout(buttons_layout)
 
     def create_connections(self):
-        self.add_var_btn.clicked.connect(lambda *args: self.add_variable())
-        self.delete_var_btn.clicked.connect(lambda *args: self.delete_selected_var())
+        self.add_var_btn.clicked.connect(self.add_variable)
+        self.delete_var_btn.clicked.connect(self.delete_selected_var)
 
-    def add_variable(self, name='new_var'):
+    def add_variable(self):
         if not self.scene_vars:
             return
-        self.scene_vars.add_new_var(name)
+        self.scene_vars.add_new_var('variable')
         self.update_var_list()
 
     def delete_selected_var(self):
@@ -152,10 +160,12 @@ class SceneVarsWidget(QtWidgets.QGroupBox):
         self.update_var_list()
 
     def update_var_list(self):
-        self.var_list.populate(self.scene_vars)
+        self.var_list.populate()
 
 
 class QLVarsListWidget(QtWidgets.QListWidget):
+
+    variable_renamed = QtCore.Signal(QtWidgets.QListWidgetItem)
 
     PIXMAP_ROLE = QtCore.Qt.UserRole
     JSON_DATA_ROLE = QtCore.Qt.UserRole + 1
@@ -168,21 +178,49 @@ class QLVarsListWidget(QtWidgets.QListWidget):
         self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.setDragEnabled(True)
 
-    def populate(self, scene_vars):
-        self.clear()
-        if not scene_vars:
-            Logger.error('Failed to populate Vars list, scene_vars is {0}'.format(scene_vars))
+        self.create_connections()
+
+    @property
+    def scene_vars(self):
+        return self.vars_widget.scene_vars
+
+    def create_connections(self):
+        self.itemDoubleClicked.connect(self.editItem)
+        self.itemChanged.connect(self.on_item_changed)
+        self.variable_renamed.connect(self.vars_widget.attrib_editor.update_current_var_widget)
+
+    def on_item_changed(self, item):
+        json_data = item.data(QLVarsListWidget.JSON_DATA_ROLE)
+        if not json_data:
             return
 
-        for var_name, value_dt_pair in scene_vars._vars.items():
+        # Compare item new and old var names
+        old_var_name = json_data['var_name']
+        if item.text() == old_var_name:
+            return
+        # Do renaming if was changed
+        old_row = self.row(item)
+        self.scene_vars.rename_var(old_var_name, item.text())
+        # Repopulate
+        self.populate()
+        new_item = self.item(old_row)
+        self.variable_renamed.emit(new_item)
+
+    def populate(self):
+        self.clear()
+        if not self.scene_vars:
+            Logger.error('Failed to populate Vars list, scene_vars is {0}'.format(self.scene_vars))
+            return
+
+        for var_name, value_dt_pair in self.scene_vars._vars.items():
             new_item = QtWidgets.QListWidgetItem()
-            self.addItem(new_item)
-            new_item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)
+            new_item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEditable)
             new_item.setText(var_name)
             # new_item.setIcon()
             # new_item.setSizeHint()
             json_data = {'var_name': var_name}
             new_item.setData(QLVarsListWidget.JSON_DATA_ROLE, json_data)
+            self.addItem(new_item)
 
     def startDrag(self, event):
         Logger.debug('Vars::startDrag')
@@ -220,13 +258,13 @@ class VarAttribWidget(QtWidgets.QGroupBox):
 
     def __init__(self, list_item, scene, parent=None):
         super(VarAttribWidget, self).__init__(parent)
-        self.setTitle('Variable')
         self.list_item = list_item  # type: QtWidgets.QListWidgetItem
         self.scene = scene
 
         # Get data
         json_data = self.list_item.data(QLVarsListWidget.JSON_DATA_ROLE)
         self.var_name = json_data['var_name']
+        self.setTitle('Varible: {0}'.format(self.var_name))
 
         self.create_widgets()
         self.create_layouts()

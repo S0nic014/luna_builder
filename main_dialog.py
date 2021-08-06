@@ -112,6 +112,16 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.menu_bar.addMenu(self.help_menu)
 
     def create_widgets(self):
+        # Right tabs
+        self.tab_widget = QtWidgets.QTabWidget()
+        self.tab_widget.setTabPosition(self.tab_widget.East)
+        self.tab_widget.setMaximumWidth(500)
+        self.tab_widget.setMinimumWidth(400)
+        self.workspace_wgt = tab_workspace.WorkspaceWidget()
+        self.attrib_editor = tab_attributes.AttributesEditor(self)
+        self.tab_widget.addTab(self.workspace_wgt, self.workspace_wgt.label)
+        self.tab_widget.addTab(self.attrib_editor, 'Attributes')
+
         # Nodes palette, vars widget
         self.nodes_palette = node_nodes_palette.NodesPalette()
         self.vars_widget = node_scene_vars.SceneVarsWidget(self)
@@ -132,16 +142,6 @@ class MainDialog(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.splitter_pallete_mdi = QtWidgets.QSplitter()
         self.splitter_pallete_mdi.addWidget(self.splitter_pallette_vars)
         self.splitter_pallete_mdi.addWidget(self.mdi_area)
-
-        # Right tabs
-        self.tab_widget = QtWidgets.QTabWidget()
-        self.tab_widget.setTabPosition(self.tab_widget.East)
-        self.tab_widget.setMaximumWidth(500)
-        self.tab_widget.setMinimumWidth(400)
-        self.workspace_wgt = tab_workspace.WorkspaceWidget()
-        self.attrib_editor = tab_attributes.AttributesEditor(self)
-        self.tab_widget.addTab(self.workspace_wgt, self.workspace_wgt.label)
-        self.tab_widget.addTab(self.attrib_editor, 'Attributes')
 
     def create_layouts(self):
         self.hor_layout = QtWidgets.QHBoxLayout()

@@ -22,7 +22,7 @@ class ConstantNode(luna_node.LunaNode):
         self.out_value.signals.value_changed.connect(self.update_title)
 
     def update_title(self):
-        self.title = '{0}: {1}'.format(self.DEFAULT_TITLE, self.out_value.value)
+        self.title = '{0}: {1}'.format(self.DEFAULT_TITLE, self.out_value.value())
 
 
 class ConstantFloatNode(ConstantNode):

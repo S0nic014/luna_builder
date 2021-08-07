@@ -56,7 +56,7 @@ class Socket(node_serializable.Serializable):
         self.max_connections = max_connections
         self.count_on_this_side = count_on_this_side
         self._value = self.data_type.get('default') if value is None else value
-        self._default_value = self.value
+        self._default_value = self.value()
 
         # Graphics
         self.gr_socket = graphics_socket.QLGraphicsSocket(self)
@@ -78,22 +78,6 @@ class Socket(node_serializable.Serializable):
     def label(self, text):
         self._label = text
         self.gr_socket.text_item.setPlainText(self._label)
-
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, value):
-        if self.data_type == editor_conf.DataType.EXEC:
-            return
-        if self._value == value:
-            return
-        if isinstance(value, pm.PyNode):
-            value = str(value)
-
-        self._value = value
-        self.signals.value_changed.emit()
 
     @property
     def default_value(self):
@@ -136,15 +120,25 @@ class Socket(node_serializable.Serializable):
     # ============ Datatype methods ============= #
 
     def is_runtime_data(self):
-        # return any([issubclass(self.data_class, dt['class']) for dt in editor_conf.DataType.runtime_types()])
         return self.data_class in editor_conf.DataType.runtime_types(classes=True)
     # ============ Value methods ============= #
 
+    def value(self):
+        return self._value
+
     def set_value(self, value):
-        self.value = value
+        if self.data_type == editor_conf.DataType.EXEC:
+            return
+        if self._value == value:
+            return
+        if isinstance(value, pm.PyNode):
+            value = str(value)
+
+        self._value = value
+        self.signals.value_changed.emit()
 
     def reset_value_to_default(self):
-        self.value = self.default_value
+        self.set_value(self.default_value)
 
     def affects(self, other_socket):
         self._affected_sockets.append(other_socket)
@@ -227,7 +221,7 @@ class Socket(node_serializable.Serializable):
         if self.is_runtime_data():
             value = None
         else:
-            value = self.value
+            value = self.value()
 
         return OrderedDict([
             ('id', self.id),
@@ -245,16 +239,21 @@ class Socket(node_serializable.Serializable):
         data_type = editor_conf.DataType.get_type(data['data_type'])
         value = data.get('value', data_type['default'])
         self.data_type = data_type
-        self.value = value
+        self.set_value(value)
         hashmap[data['id']] = self
         return True
 
     def update_affected(self):
         for socket in self._affected_sockets:
-            socket.value = self.value
+            socket.set_value(self.value())
 
 
 class InputSocket(Socket):
+
+    def value(self):
+        if self.has_edge():
+            return self.edges[0].get_other_socket(self).value()
+        return self._value
 
     def create_connections(self):
         self.signals.connection_changed.connect(self.on_connection_changed)
@@ -262,7 +261,7 @@ class InputSocket(Socket):
 
     def on_connection_changed(self):
         if not self.has_edge() and self.is_runtime_data():
-            self.value = self.data_type['default']
+            self.set_value(self.data_type['default'])
         self.update_affected()
 
     def can_be_connected(self, other_socket):
@@ -298,4 +297,5 @@ class OutputSocket(Socket):
 
     def update_connected_inputs(self):
         for socket in self.list_connections():
-            socket.value = self.value
+            # socket.set_value(self.value())
+            self.update_affected()

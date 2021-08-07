@@ -29,6 +29,20 @@ class VarNode(luna_node.LunaNode):
         if init_sockets:
             self.init_sockets()
 
+    def get_var_value(self):
+        try:
+            return self.scene.vars.get_value(self.var_name)
+        except KeyError:
+            Logger.error('Variable {0} does not exist!')
+            raise
+
+    def set_var_value(self, value):
+        try:
+            self.scene.vars.set_value(self.var_name, value)
+        except KeyError:
+            Logger.error('Variable {0} does not exist!')
+            raise
+
     def update(self):
         raise NotImplementedError
 
@@ -72,7 +86,7 @@ class SetNode(VarNode):
         if not self.var_name:
             Logger.error('{0}: var_name is not set'.format(self))
             raise ValueError
-        self.scene.vars.set_value(self.var_name, self.in_value.value)
+        self.set_var_value(self.in_value.value())
 
 
 class GetNode(VarNode):
@@ -89,11 +103,10 @@ class GetNode(VarNode):
 
         super(GetNode, self).init_sockets(inputs, outputs, reset)
         self.out_value = self.add_output(self.scene.vars.get_data_type(self.var_name, as_dict=True), value=self.scene.vars.get_value(self.var_name))
+        self.out_value.value = self.get_var_value
 
     def update(self):
-        var_value = self.scene.vars.get_value(self.var_name)
         var_type = self.scene.vars.get_data_type(self.var_name, as_dict=True)
-        self.out_value.value = var_value
         if not self.out_value.data_type == var_type:
             self.out_value.label = var_type['label']
             self.out_value.data_type = var_type

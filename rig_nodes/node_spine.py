@@ -17,8 +17,8 @@ class SpineNode(base_component.AnimComponentNode):
 
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(SpineNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
-        self.in_name.value = 'spine'
-        self.in_tag.value = 'body'
+        self.in_name.set_value('spine')
+        self.in_tag.set_value('body')
         self.out_self.data_type = editor_conf.DataType.SPINE_COMPONENT
         self.update_node_title()
 
@@ -43,16 +43,16 @@ class FKIKSpineNode(SpineNode):
         self.out_hook_chest = self.add_output(editor_conf.DataType.NUMERIC, label='Hook Chest', value=self.COMPONENT_CLASS.Hooks.CHEST.value)
 
     def execute(self):
-        self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value,
-                                                              hook=self.in_hook.value,
-                                                              character=self.in_character.value,
-                                                              side=self.in_side.value,
-                                                              name=self.in_name.value,
-                                                              start_joint=self.in_start_joint.value,
-                                                              end_joint=self.in_end_joint.value,
-                                                              tag=self.in_tag.value)
+        self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value(),
+                                                              hook=self.in_hook.value(),
+                                                              character=self.in_character.value(),
+                                                              side=self.in_side.value(),
+                                                              name=self.in_name.value(),
+                                                              start_joint=self.in_start_joint.value(),
+                                                              end_joint=self.in_end_joint.value(),
+                                                              tag=self.in_tag.value())
         # Set outputs
-        self.out_self.value = self.component_instance
+        self.out_self.set_value(self.component_instance)
 
 
 def register_plugin():

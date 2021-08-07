@@ -24,15 +24,15 @@ class LoggerNode(luna_node.LunaNode):
         self.in_message.signals.value_changed.connect(self.update_title)
 
     def update_title(self):
-        self.title = '{0}: {1}'.format(self.DEFAULT_TITLE, self.in_message.value)
+        self.title = '{0}: {1}'.format(self.DEFAULT_TITLE, self.in_message.value())
 
     def execute(self):
-        if self.in_info.value:
-            Logger.info(self.in_message.value)
-        if self.in_warning.value:
-            Logger.warning(self.in_message.value)
-        if self.in_error.value:
-            Logger.error(self.in_message.value)
+        if self.in_info.value():
+            Logger.info(self.in_message.value())
+        if self.in_warning.value():
+            Logger.warning(self.in_message.value())
+        if self.in_error.value():
+            Logger.error(self.in_message.value())
 
 
 def register_plugin():

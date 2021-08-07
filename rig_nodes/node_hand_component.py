@@ -16,19 +16,19 @@ class HandComponentNode(base_component.AnimComponentNode):
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(HandComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
         # Override inputs
-        self.in_name.value = self.out_name.value = 'hand'
+        self.in_name.set_value('hand')
 
         # Override Outputs
         self.out_self.data_type = editor_conf.DataType.HAND_COMPONENT
 
     def execute(self):
-        self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value,
-                                                              character=self.in_character.value,
-                                                              side=self.in_side.value,
-                                                              name=self.in_name.value,
-                                                              hook=self.in_hook.value,
-                                                              tag=self.in_tag.value)
-        self.out_self.value = self.component_instance
+        self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value(),
+                                                              character=self.in_character.value(),
+                                                              side=self.in_side.value(),
+                                                              name=self.in_name.value(),
+                                                              hook=self.in_hook.value(),
+                                                              tag=self.in_tag.value())
+        self.out_self.set_value(self.component_instance)
 
 
 def register_plugin():

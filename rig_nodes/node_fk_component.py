@@ -16,7 +16,7 @@ class FKComponentNode(base_component.AnimComponentNode):
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(FKComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
         # Override inputs
-        self.in_name.value = self.out_name.value = 'fk_component'
+        self.in_name.set_value('fk_component')
 
         # Override Outputs
         self.out_self.data_type = editor_conf.DataType.FK_COMPONENT
@@ -28,17 +28,17 @@ class FKComponentNode(base_component.AnimComponentNode):
         self.in_add_end_ctl = self.add_input(editor_conf.DataType.BOOLEAN, label='End Control', value=True)
 
     def execute(self):
-        self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value,
-                                                              hook=self.in_hook.value,
-                                                              character=self.in_character.value,
-                                                              side=self.in_side.value,
-                                                              name=self.in_name.value,
-                                                              start_joint=self.in_start_joint.value,
-                                                              end_joint=self.in_end_joint.value,
-                                                              add_end_ctl=self.in_add_end_ctl.value,
-                                                              lock_translate=self.in_lock_translate.value,
-                                                              tag=self.in_tag.value)
-        self.out_self.value = self.component_instance
+        self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value(),
+                                                              hook=self.in_hook.value(),
+                                                              character=self.in_character.value(),
+                                                              side=self.in_side.value(),
+                                                              name=self.in_name.value(),
+                                                              start_joint=self.in_start_joint.value(),
+                                                              end_joint=self.in_end_joint.value(),
+                                                              add_end_ctl=self.in_add_end_ctl.value(),
+                                                              lock_translate=self.in_lock_translate.value(),
+                                                              tag=self.in_tag.value())
+        self.out_self.set_value(self.component_instance)
 
 
 class HeadComponentNode(FKComponentNode):
@@ -53,7 +53,7 @@ class HeadComponentNode(FKComponentNode):
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(HeadComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
         # Override inputs
-        self.in_name.value = self.out_name.value = 'head'
+        self.in_name.set_value('head')
 
         # Override Outputs
         self.out_self.data_type = editor_conf.DataType.HEAD_COMPONENT
@@ -66,17 +66,17 @@ class HeadComponentNode(FKComponentNode):
         self.out_base_hook = self.add_output(editor_conf.DataType.NUMERIC, label='Hook Base', value=self.COMPONENT_CLASS.Hooks.NECK_BASE)
 
     def execute(self):
-        self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value,
-                                                              hook=self.in_hook.value,
-                                                              character=self.in_character.value,
-                                                              side=self.in_side.value,
-                                                              name=self.in_name.value,
-                                                              start_joint=self.in_start_joint.value,
-                                                              end_joint=self.in_end_joint.value,
-                                                              head_joint_index=self.in_head_joint_index.value,
-                                                              lock_translate=self.in_lock_translate.value,
-                                                              tag=self.in_tag.value)
-        self.out_self.value = self.component_instance
+        self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value(),
+                                                              hook=self.in_hook.value(),
+                                                              character=self.in_character.value(),
+                                                              side=self.in_side.value(),
+                                                              name=self.in_name.value(),
+                                                              start_joint=self.in_start_joint.value(),
+                                                              end_joint=self.in_end_joint.value(),
+                                                              head_joint_index=self.in_head_joint_index.value(),
+                                                              lock_translate=self.in_lock_translate.value(),
+                                                              tag=self.in_tag.value())
+        self.out_self.set_value(self.component_instance)
 
 
 def register_plugin():

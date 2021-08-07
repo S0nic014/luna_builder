@@ -15,7 +15,7 @@ class WireComponentNode(base_component.AnimComponentNode):
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(WireComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
         # Override inputs
-        self.in_name.value = self.out_name.value = 'wire'
+        self.in_name.set_value('wire')
 
         # Override Outputs
         self.out_self.data_type = editor_conf.DataType.WIRE_COMPONENT
@@ -28,18 +28,18 @@ class WireComponentNode(base_component.AnimComponentNode):
         self.in_control_lines = self.add_input(editor_conf.DataType.BOOLEAN, label='Control Lines', value=True)
 
     def execute(self):
-        self.component_instance = self.COMPONENT_CLASS.create(character=self.in_character.value,
-                                                              meta_parent=self.in_meta_parent.value,
-                                                              side=self.in_side.value,
-                                                              name=self.in_side.value,
-                                                              hook=self.in_hook.value,
-                                                              tag=self.in_tag.value,
-                                                              curve=self.in_curve.value,
-                                                              geometry=self.in_geometry.value,
-                                                              dropoff_distance=self.in_dropoff_distance.value,
-                                                              num_controls=self.in_num_controls.value,
-                                                              control_lines=self.in_control_lines.value)
-        self.out_self.value = self.component_instance
+        self.component_instance = self.COMPONENT_CLASS.create(character=self.in_character.value(),
+                                                              meta_parent=self.in_meta_parent.value(),
+                                                              side=self.in_side.value(),
+                                                              name=self.in_name.value(),
+                                                              hook=self.in_hook.value(),
+                                                              tag=self.in_tag.value(),
+                                                              curve=self.in_curve.value(),
+                                                              geometry=self.in_geometry.value(),
+                                                              dropoff_distance=self.in_dropoff_distance.value(),
+                                                              num_controls=self.in_num_controls.value(),
+                                                              control_lines=self.in_control_lines.value())
+        self.out_self.set_value(self.component_instance)
 
 
 def register_plugin():

@@ -15,7 +15,7 @@ class IKSplineStretchComponentNode(base_component.ComponentNode):
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(IKSplineStretchComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
         # Override inputs
-        self.in_name.value = 'stretch'
+        self.in_name.set_value('stretch')
 
         # Override Outputs
         self.out_self.data_type = editor_conf.DataType.IK_SPLINE_STRETCH_COMPONENT
@@ -26,15 +26,15 @@ class IKSplineStretchComponentNode(base_component.ComponentNode):
         self.in_stretch_axis = self.add_input(editor_conf.DataType.STRING, label='Stretch Axis', value='x')
 
     def execute(self):
-        self.component_instance = self.COMPONENT_CLASS.create(self.in_meta_parent.value,
-                                                              side=self.in_side.value,
-                                                              name=self.in_name.value,
-                                                              switch_control=self.in_switch_control.value,
-                                                              default_state=self.in_default_state.value,
-                                                              switch_attr=self.in_switch_attr_name.value,
-                                                              stretch_axis=self.in_stretch_axis.value,
-                                                              tag=self.in_tag.value)
-        self.out_self.value = self.component_instance
+        self.component_instance = self.COMPONENT_CLASS.create(self.in_meta_parent.value(),
+                                                              side=self.in_side.value(),
+                                                              name=self.in_name.value(),
+                                                              switch_control=self.in_switch_control.value(),
+                                                              default_state=self.in_default_state.value(),
+                                                              switch_attr=self.in_switch_attr_name.value(),
+                                                              stretch_axis=self.in_stretch_axis.value(),
+                                                              tag=self.in_tag.value())
+        self.out_self.set_value(self.component_instance)
 
 
 class IKStretchComponentNode(base_component.ComponentNode):
@@ -48,7 +48,7 @@ class IKStretchComponentNode(base_component.ComponentNode):
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(IKStretchComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
         # Override inputs
-        self.in_name.value = 'stretch'
+        self.in_name.set_value('stretch')
 
         # Override Outputs
         self.out_self.data_type = editor_conf.DataType.IK_STRETCH_COMPONENT
@@ -61,17 +61,17 @@ class IKStretchComponentNode(base_component.ComponentNode):
         self.in_threshold_attr_name = self.add_input(editor_conf.DataType.STRING, label='Threshold Attribute', value='stretchThreshold')
 
     def execute(self):
-        self.component_instance = self.COMPONENT_CLASS.create(self.in_meta_parent.value,
-                                                              side=self.in_side.value,
-                                                              name=self.in_name.value,
-                                                              switch_control=self.in_switch_control.value,
-                                                              default_state=self.in_default_state.value,
-                                                              toggle_attr_name=self.in_toggle_attr_name.value,
-                                                              stretch_axis=self.in_stretch_axis.value,
-                                                              threshold=self.in_threshold.value,
-                                                              threshold_attr_name=self.in_threshold_attr_name.value,
-                                                              tag=self.in_tag.value)
-        self.out_self.value = self.component_instance
+        self.component_instance = self.COMPONENT_CLASS.create(self.in_meta_parent.value(),
+                                                              side=self.in_side.value(),
+                                                              name=self.in_name.value(),
+                                                              switch_control=self.in_switch_control.value(),
+                                                              default_state=self.in_default_state.value(),
+                                                              toggle_attr_name=self.in_toggle_attr_name.value(),
+                                                              stretch_axis=self.in_stretch_axis.value(),
+                                                              threshold=self.in_threshold.value(),
+                                                              threshold_attr_name=self.in_threshold_attr_name.value(),
+                                                              tag=self.in_tag.value())
+        self.out_self.set_value(self.component_instance)
 
 
 def register_plugin():

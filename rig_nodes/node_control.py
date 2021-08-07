@@ -37,30 +37,30 @@ class ControlNode(luna_node.LunaNode):
         self.out_transform = self.add_output(editor_conf.DataType.STRING, label='Transform', value='')
 
     def execute(self):
-        attribs = self.in_attribs.value
+        attribs = self.in_attribs.value()
         attribs = attribs.split(',') if 'x' in attribs or 'y' in attribs or 'z' in attribs else attribs
-        parent = self.in_parent.value if self.in_parent.value else None
+        parent = self.in_parent.value() if self.in_parent.value() else None
 
-        self.control_instance = luna_rig.Control.create(name=self.in_name.value,
-                                                        side=self.in_side.value,
-                                                        guide=self.in_guide.value,
+        self.control_instance = luna_rig.Control.create(name=self.in_name.value(),
+                                                        side=self.in_side.value(),
+                                                        guide=self.in_guide.value(),
                                                         parent=parent,
                                                         attributes=attribs,
-                                                        delete_guide=self.in_delete_guide.value,
-                                                        match_pos=self.in_match_pos.value,
-                                                        match_orient=self.in_match_orient.value,
-                                                        match_pivot=self.in_match_pivot.value,
-                                                        color=self.in_color_index.value,
-                                                        offset_grp=self.in_offset_grp.value,
-                                                        joint=self.in_joint.value,
-                                                        shape=self.in_shape.value,
-                                                        tag=self.in_tag.value,
-                                                        component=self.in_component.value,
-                                                        orient_axis=self.in_orient_axis.value,
-                                                        scale=self.in_scale.value)
+                                                        delete_guide=self.in_delete_guide.value(),
+                                                        match_pos=self.in_match_pos.value(),
+                                                        match_orient=self.in_match_orient.value(),
+                                                        match_pivot=self.in_match_pivot.value(),
+                                                        color=self.in_color_index.value(),
+                                                        offset_grp=self.in_offset_grp.value(),
+                                                        joint=self.in_joint.value(),
+                                                        shape=self.in_shape.value(),
+                                                        tag=self.in_tag.value(),
+                                                        component=self.in_component.value(),
+                                                        orient_axis=self.in_orient_axis.value(),
+                                                        scale=self.in_scale.value())
 
-        self.out_control.value = self.control_instance
-        self.out_transform.value = self.control_instance.transform
+        self.out_control.set_value(self.control_instance)
+        self.out_transform.set_value(self.control_instance.transform)
 
         # Set new title
         self.title = self.control_instance.transform.name() if self.control_instance else self.DEFAULT_TITLE

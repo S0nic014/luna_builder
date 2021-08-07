@@ -86,24 +86,24 @@ class AttribWidget(QtWidgets.QGroupBox):
     def update_widget_value(self, socket, widget):
         try:
             if issubclass(socket.data_class, editor_conf.DataType.STRING.get('class')):
-                widget.setText(socket.value)
+                widget.setText(socket.value())
             elif issubclass(socket.data_class, editor_conf.DataType.BOOLEAN.get('class')):
-                widget.setChecked(socket.value)
+                widget.setChecked(socket.value())
             elif issubclass(socket.data_class, editor_conf.DataType.NUMERIC.get('class')):
-                if socket.value:
-                    widget.setValue(socket.value)
+                if socket.value():
+                    widget.setValue(socket.value())
             # elif issubclass(socket.data_class, editor_conf.DataType.LIST.get('class')):
             elif issubclass(socket.data_class, editor_conf.DataType.CONTROL.get('class')):
-                if socket.value:
-                    widget.setText(str(socket.value.transform))
+                if socket.value():
+                    widget.setText(str(socket.value().transform))
                 else:
                     widget.clear()
             elif issubclass(socket.data_class, editor_conf.DataType.COMPONENT.get('class')):
-                if socket.value:
-                    if hasattr(socket, 'pynode'):
-                        widget.setText(str(socket.value.pynode.name()))
+                if socket.value():
+                    if hasattr(socket.value(), 'pynode'):
+                        widget.setText(str(socket.value().pynode.name()))
                     else:
-                        widget.setText(str(socket.value))
+                        widget.setText(str(socket.value()))
             else:
                 Logger.error('Failed to create attribute field: {0}::{1}'.format(socket, socket.data_class))
         except Exception:

@@ -33,7 +33,7 @@ class FunctionNode(luna_node.LunaNode):
 
         # Set default input values
         for socket, input_value in zip(self.list_non_exec_inputs(), self.func_desc.get('default_values')):
-            socket.value = input_value
+            socket.set_value(input_value)
 
     @property
     def func_signature(self):
@@ -71,7 +71,7 @@ class FunctionNode(luna_node.LunaNode):
         self.func_signature = data.get('func_signature')
 
     def execute(self):
-        attr_values = [socket.value for socket in self.list_non_exec_inputs()]
+        attr_values = [socket.value() for socket in self.list_non_exec_inputs()]
         func_result = self.func_ref(*attr_values)
         Logger.debug('Function result: {0}'.format(func_result))
 
@@ -81,11 +81,11 @@ class FunctionNode(luna_node.LunaNode):
 
         non_exec_outs = self.list_non_exec_outputs()
         if non_exec_outs and non_exec_outs[0].data_type == editor_conf.DataType.LIST:
-            non_exec_outs[0].value = func_result
+            non_exec_outs[0].set_value(func_result)
         else:
             for index, out_socket in enumerate(self.list_non_exec_outputs()):
                 try:
-                    out_socket.value = func_result[index]
+                    out_socket.set_value(func_result[index])
                 except IndexError:
                     Logger.error('Missing return result for function {0}, at index {1}'.format(self.func_ref, index))
                     raise

@@ -418,7 +418,7 @@ class Node(node_serializable.Serializable):
         if not isinstance(socket, node_socket.Socket):
             Logger.error('Socket {0} does not exist.'.format(socket_name))
             raise AttributeError
-        return socket.value
+        return socket.value()
 
     def list_exec_outputs(self):
         return [socket for socket in self.outputs if socket.data_type == editor_conf.DataType.EXEC]

@@ -16,7 +16,7 @@ class TwistComponentNode(base_component.AnimComponentNode):
     def init_sockets(self, inputs=[], outputs=[], reset=True):
         super(TwistComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
         # Override inputs
-        self.in_name.value = self.out_name.value = 'twist'
+        self.in_name.set_value('twist')
 
         # Override Outputs
         self.out_self.data_type = editor_conf.DataType.TWIST_COMPONENT
@@ -34,17 +34,17 @@ class TwistComponentNode(base_component.AnimComponentNode):
         self.in_is_mirrored = self.add_input(editor_conf.DataType.BOOLEAN, label='Is Mirrored', value=False)
 
     def execute(self):
-        self.component_instance = self.COMPONENT_CLASS.create(self.in_meta_parent.value,
-                                                              character=self.in_character.value,
-                                                              side=self.in_side.value,
-                                                              name=self.in_name.value,
-                                                              start_joint=self.in_start_joint.value,
-                                                              end_joint=self.in_end_joint.value,
-                                                              start_object=self.in_start_object.value,
-                                                              end_object=self.in_end_object.value,
-                                                              mirrored_chain=self.in_is_mirrored.value,
-                                                              tag=self.in_tag.value)
-        self.out_self.value = self.component_instance
+        self.component_instance = self.COMPONENT_CLASS.create(self.in_meta_parent.value(),
+                                                              character=self.in_character.value(),
+                                                              side=self.in_side.value(),
+                                                              name=self.in_name.value(),
+                                                              start_joint=self.in_start_joint.value(),
+                                                              end_joint=self.in_end_joint.value(),
+                                                              start_object=self.in_start_object.value(),
+                                                              end_object=self.in_end_object.value(),
+                                                              mirrored_chain=self.in_is_mirrored.value(),
+                                                              tag=self.in_tag.value())
+        self.out_self.set_value(self.component_instance)
 
 
 def register_plugin():

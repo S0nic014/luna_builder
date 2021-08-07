@@ -24,7 +24,6 @@ class SceneVars(node_serializable.Serializable):
         self.create_connections()
 
     def create_connections(self):
-        self.signals.value_changed.connect(self.update_getters)
         self.signals.data_type_changed.connect(self.update_setters)
         self.signals.data_type_changed.connect(self.update_getters)
 

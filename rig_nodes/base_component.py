@@ -43,7 +43,7 @@ class ComponentNode(luna_node.LunaNode):
         self.in_side.signals.value_changed.connect(self.update_node_title)
 
     def update_node_title(self):
-        self.title = "{0} - {1} ({2})".format(self.DEFAULT_TITLE, self.in_name.value, self.in_side.value)
+        self.title = "{0} - {1} ({2})".format(self.DEFAULT_TITLE, self.in_name.value(), self.in_side.value())
 
 
 class AnimComponentNode(ComponentNode):
@@ -56,7 +56,7 @@ class AnimComponentNode(ComponentNode):
         # Override types
         self.out_self.data_type = editor_conf.DataType.ANIM_COMPONENT
         self.in_meta_parent.data_type = self.out_meta_parent.data_type = editor_conf.DataType.ANIM_COMPONENT
-        self.in_name.value = 'anim_component'
+        self.in_name.set_value('anim_component')
 
         # Inputs
         self.in_character = self.add_input(editor_conf.DataType.CHARACTER, label='Character')
@@ -71,7 +71,7 @@ class AnimComponentNode(ComponentNode):
         self.in_hook.affects(self.out_in_hook)
 
         # Set default
-        self.in_hook.value = None
+        self.in_hook.set_value(None)
 
 
 def register_plugin():

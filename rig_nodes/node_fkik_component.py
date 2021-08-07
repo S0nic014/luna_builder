@@ -17,7 +17,7 @@ class FKIKComponentNode(base_component.AnimComponentNode):
         super(FKIKComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
         self.out_self.data_type = editor_conf.DataType.FKIK_COMPONENT
 
-        self.in_name.value = self.out_name.value = 'fkik_component'
+        self.in_name.set_value('fkik_component')
         self.in_start_joint = self.add_input(editor_conf.DataType.STRING, label='Start Joint', value=None)
         self.in_end_joint = self.add_input(editor_conf.DataType.STRING, label='End Joint', value=None)
         self.in_ik_world_orient = self.add_input(editor_conf.DataType.BOOLEAN, label='IK World Orient', value=False)
@@ -28,18 +28,18 @@ class FKIKComponentNode(base_component.AnimComponentNode):
         self.out_hook_end_jnt = self.add_output(editor_conf.DataType.NUMERIC, label='Hook End', value=self.COMPONENT_CLASS.Hooks.END_JNT.value)
 
     def execute(self):
-        self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value,
-                                                              hook=self.in_hook.value,
-                                                              character=self.in_character.value,
-                                                              side=self.in_side.value,
-                                                              name=self.in_name.value,
-                                                              start_joint=self.in_start_joint.value,
-                                                              end_joint=self.in_end_joint.value,
-                                                              ik_world_orient=self.in_ik_world_orient.value,
-                                                              default_state=self.in_default_state.value,
-                                                              param_locator=self.in_param_locator.value,
-                                                              tag=self.in_tag.value)
-        self.out_self.value = self.component_instance
+        self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value(),
+                                                              hook=self.in_hook.value(),
+                                                              character=self.in_character.value(),
+                                                              side=self.in_side.value(),
+                                                              name=self.in_name.value(),
+                                                              start_joint=self.in_start_joint.value(),
+                                                              end_joint=self.in_end_joint.value(),
+                                                              ik_world_orient=self.in_ik_world_orient.value(),
+                                                              default_state=self.in_default_state.value(),
+                                                              param_locator=self.in_param_locator.value(),
+                                                              tag=self.in_tag.value())
+        self.out_self.set_value(self.component_instance)
 
 
 def register_plugin():

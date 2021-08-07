@@ -24,10 +24,10 @@ class BranchNode(luna_node.LunaNode):
         self.in_condition.signals.value_changed.connect(self.update_title)
 
     def update_title(self):
-        self.title = '{0}: {1}'.format(self.DEFAULT_TITLE, self.in_condition.value)
+        self.title = '{0}: {1}'.format(self.DEFAULT_TITLE, self.in_condition.value())
 
     def list_exec_outputs(self):
-        if self.in_condition.value:
+        if self.in_condition.value():
             return [self.out_true]
         else:
             return [self.out_false]

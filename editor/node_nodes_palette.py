@@ -1,6 +1,6 @@
 import os
 import json
-import pymel.core as pm
+import re
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
@@ -25,6 +25,7 @@ class NodesPalette(QtWidgets.QWidget):
         self.create_connections()
 
         self.update_node_tree()
+        self.update_completer()
 
     @property
     def functions_first(self):
@@ -36,25 +37,17 @@ class NodesPalette(QtWidgets.QWidget):
         self.update_node_tree()
 
     def create_widgets(self):
-        self.completer = QtWidgets.QCompleter()
-        self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        self.completer.setModelSorting(QtWidgets.QCompleter.CaseInsensitivelySortedModel)
-
         self.search_line = QtWidgets.QLineEdit()
         self.search_line.setPlaceholderText('Search')
-        self.search_line.setCompleter(self.completer)
         self.nodes_tree = QLDragTreeWidget(self)
-        # self.nodes_tree.setModel(self.completer.completionModel())
 
-    def create_model(self):
-
+    def update_completer(self):
         all_items = self.nodes_tree.findItems("*", QtCore.Qt.MatchWrap | QtCore.Qt.MatchWildcard | QtCore.Qt.MatchRecursive)
         item_labels = [item.text(0) for item in all_items]
-        # item_labels.sort(key=str.lower)
-        if int(pm.about(v=1)) < 2020:
-            self.completer.setModel(QtGui.QStringListModel(item_labels))
-        else:
-            self.completer.setModel(QtCore.QStringListModel(item_labels))
+        item_labels = list(set(item_labels))
+        self.search_completer = QtWidgets.QCompleter(item_labels)
+        self.search_line.setCompleter(self.search_completer)
+        self.search_completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
     def create_layouts(self):
         self.main_layout = QtWidgets.QVBoxLayout()
@@ -65,11 +58,11 @@ class NodesPalette(QtWidgets.QWidget):
         self.main_layout.addWidget(self.nodes_tree)
 
     def create_connections(self):
-        self.search_line.textChanged.connect(self.completer.setCompletionPrefix)
+        self.search_line.textChanged.connect(lambda text: self.nodes_tree.populate(search_filter=text))
 
     def update_node_tree(self):
         self.nodes_tree.populate()
-        self.create_model()
+        self.update_completer()
 
 
 class QLDragTreeWidget(QtWidgets.QTreeWidget):
@@ -166,16 +159,16 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         except Exception:
             Logger.exception('Palette drag exception')
 
-    def populate(self):
+    def populate(self, search_filter=''):
         self.clear()
         if self.nodes_palette.functions_first:
-            self.add_registered_functions()
-            self.add_registered_nodes()
+            self.add_registered_functions(search_filter=search_filter)
+            self.add_registered_nodes(search_filter=search_filter)
         else:
-            self.add_registered_nodes()
-            self.add_registered_functions()
+            self.add_registered_nodes(search_filter=search_filter)
+            self.add_registered_functions(search_filter=search_filter)
 
-    def add_registered_nodes(self):
+    def add_registered_nodes(self, search_filter=''):
         keys = list(editor_conf.NODE_REGISTER.keys())
         keys.sort()
         for node_id in keys:
@@ -183,9 +176,14 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
             if node_class.CATEGORY == editor_conf.INTERNAL_CATEGORY:
                 continue
             palette_label = node_class.PALETTE_LABEL if hasattr(node_class, 'PALETTE_LABEL') else node_class.DEFAULT_TITLE
+            filter_matched = bool(search_filter) and (re.search(search_filter, palette_label, re.IGNORECASE)
+                                                      is not None or re.search(search_filter, node_class.CATEGORY, re.IGNORECASE) is not None)
+            # Filter
+            if search_filter and not filter_matched:
+                continue
             self.add_node_item(node_id, palette_label, category=node_class.CATEGORY, icon_name=node_class.ICON)
 
-    def add_registered_functions(self):
+    def add_registered_functions(self, search_filter=''):
         keys = list(editor_conf.FUNCTION_REGISTER.keys())
         keys.sort()
         for datatype_name in keys:
@@ -197,7 +195,7 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
             func_signatures_list = list(func_signatures_list) if not isinstance(func_signatures_list, list) else func_signatures_list
             for func_sign in func_signatures_list:
                 if datatype_name != editor_conf.UNBOUND_FUNCTION_DATATYPE:
-                    expanded = self.nodes_palette.functions_first
+                    expanded = self.nodes_palette.functions_first or bool(search_filter)
                 else:
                     expanded = True
                 func_dict = func_map[func_sign]
@@ -205,6 +203,11 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
                 nice_name = func_dict.get('nice_name')
                 sub_category_name = func_dict.get('category', 'General')
                 palette_name = nice_name if nice_name else func_sign
+                # Filter
+                filter_matched = bool(search_filter) and (re.search(search_filter, palette_name, re.IGNORECASE)
+                                                          is not None or re.search(search_filter, sub_category_name, re.IGNORECASE is not None))
+                if search_filter and not filter_matched:
+                    continue
 
                 self.add_node_item(editor_conf.FUNC_NODE_ID,
                                    palette_name,

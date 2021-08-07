@@ -61,6 +61,9 @@ class SceneVars(node_serializable.Serializable):
         self.scene.history.store_history('Added variable {0}'.format(name))
 
     def delete_var(self, var_name):
+        if var_name not in self._vars.keys():
+            Logger.error("Can't delete non existing variable {0}".format(var_name))
+            return
         for node in self.list_setters(var_name) + self.list_getters(var_name):
             node.set_invalid(True)
         self._vars.pop(var_name)
@@ -95,11 +98,17 @@ class SceneVars(node_serializable.Serializable):
             Logger.exception('Failed to update setters')
 
     def serialize(self):
-        copy_dict = copy.deepcopy(self._vars)
-        for var_name, value_type_pair in copy_dict.items():
-            if value_type_pair[1] in editor_conf.DataType.runtime_types(names=True):
-                value_type_pair[0] = editor_conf.DATATYPE_REGISTER[value_type_pair[1]]['default']
-        return copy_dict
+        try:
+            result = copy.deepcopy(self._vars)
+        except Exception:
+            Logger.exception('ScenVars serializedeepcopy exception')
+            raise
+        for var_name, var_type in result.items():
+            if var_type in editor_conf.DataType.runtime_types(names=True):
+                result[var_name] = editor_conf.DATATYPE_REGISTER[var_type]['default']
+            else:
+                result[var_name] = var_type
+        return result
 
     def deserialize(self, data, hashmap={}):
         # Direct assignment of _vars = data results in KeyError

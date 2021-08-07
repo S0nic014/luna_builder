@@ -23,10 +23,11 @@ class LunaGraphicsNode(graphics_node.QLGraphicsNode):
             icon_offset = 48.0
             self.paint_status_icon(painter, icon_offset)
 
-        if self.node.STATUS_ICON or self.node.IS_EXEC:
+        elif self.node.STATUS_ICON or self.node.IS_EXEC:
             icon_offset = 24.0
             if not self.node.is_compiled():
                 icon_offset = 0.0
+            self.paint_status_icon(painter, icon_offset)
 
     def paint_status_icon(self, painter, offset):
         painter.drawImage(

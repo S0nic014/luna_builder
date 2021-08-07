@@ -209,6 +209,9 @@ class Node(node_serializable.Serializable):
         self._is_invalid = value
         self.signals.invalid_changed.emit(self._is_invalid)
 
+    def verify(self):
+        return True
+
     def on_invalid_change(self, state):
         if state:
             Logger.debug('{0} marked invalid'.format(self))

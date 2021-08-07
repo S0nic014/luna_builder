@@ -19,6 +19,11 @@ class VarNode(luna_node.LunaNode):
         return self._var_name
 
     def set_var_name(self, name, init_sockets=False):
+        if name not in self.scene.vars._vars.keys():
+            Logger.error('Variable "{0}" no longer exists'.format(name))
+            self.set_invalid(True)
+            return
+
         self._var_name = name
         self.title = '{0} {1}'.format(self.DEFAULT_TITLE, self._var_name)
         if init_sockets:
@@ -26,6 +31,9 @@ class VarNode(luna_node.LunaNode):
 
     def update(self):
         raise NotImplementedError
+
+    def verify(self):
+        return self.var_name in self.scene.vars._vars.keys()
 
     def serialize(self):
         result = super(VarNode, self).serialize()
@@ -56,8 +64,9 @@ class SetNode(VarNode):
     def update(self):
         var_type = self.scene.vars.get_data_type(self.var_name, as_dict=True)
         if not self.in_value.data_type == var_type:
-            self.in_value.data_type = var_type
             self.in_value.label = var_type['label']
+            self.in_value.data_type = var_type
+            self.in_value.update_positions()
 
     def execute(self):
         if not self.var_name:
@@ -69,6 +78,7 @@ class SetNode(VarNode):
 class GetNode(VarNode):
     ID = editor_conf.GET_NODE_ID
     IS_EXEC = False
+    STATUS_ICON = False
     AUTO_INIT_EXECS = False
     ICON = None
     DEFAULT_TITLE = 'Get'
@@ -85,8 +95,9 @@ class GetNode(VarNode):
         var_type = self.scene.vars.get_data_type(self.var_name, as_dict=True)
         self.out_value.value = var_value
         if not self.out_value.data_type == var_type:
-            self.out_value.data_type = var_type
             self.out_value.label = var_type['label']
+            self.out_value.data_type = var_type
+            self.out_value.update_positions()
 
 
 def register_plugin():

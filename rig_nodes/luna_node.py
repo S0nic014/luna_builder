@@ -18,20 +18,22 @@ class LunaGraphicsNode(graphics_node.QLGraphicsNode):
         super(LunaGraphicsNode, self).paint(painter, option, widget=widget)
         if self.node.scene.view.zoom < self.ICON_DRAW_ZOOM_LIMIT:
             return
-        if not self.node.IS_EXEC:
-            return
 
-        if self.node.STATUS_ICON:
+        if self.node.is_invalid():
+            icon_offset = 48.0
+            self.paint_status_icon(painter, icon_offset)
+
+        if self.node.STATUS_ICON or self.node.IS_EXEC:
             icon_offset = 24.0
             if not self.node.is_compiled():
                 icon_offset = 0.0
-            if self.node.is_invalid():
-                icon_offset = 48.0
-            painter.drawImage(
-                QtCore.QRectF(-13.0, -13.0, 24.0, 24.0),
-                self.status_icons,
-                QtCore.QRectF(icon_offset, 0, 24.0, 24.0)
-            )
+
+    def paint_status_icon(self, painter, offset):
+        painter.drawImage(
+            QtCore.QRectF(-13.0, -13.0, 24.0, 24.0),
+            self.status_icons,
+            QtCore.QRectF(offset, 0, 24.0, 24.0)
+        )
 
 
 class LunaNode(node_node.Node):

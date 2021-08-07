@@ -168,9 +168,10 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_H:
-            Logger.debug(' len({0}) -- Current step: {1}'.format(len(self.scene.history), self.scene.history.current_step))
-            for index, item in enumerate(self.scene.history.stack):
-                Logger.debug('# {0} -- {1}'.format(index, item.get('desc')))
+            self.scene.history.debug_varibles()
+            # Logger.debug(' len({0}) -- Current step: {1}'.format(len(self.scene.history), self.scene.history.current_step))
+            # for index, item in enumerate(self.scene.history.stack):
+            #     Logger.debug('# {0} -- {1}'.format(index, item.get('desc')))
         elif event.key() == QtCore.Qt.Key_K:
             creator_dialog = node_context_menus.NodeCreatorDialog(self, parent=self)
             creator_dialog.move(QtGui.QCursor.pos())

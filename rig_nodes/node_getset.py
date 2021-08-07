@@ -24,6 +24,9 @@ class VarNode(luna_node.LunaNode):
         if init_sockets:
             self.init_sockets()
 
+    def update(self):
+        raise NotImplementedError
+
     def serialize(self):
         result = super(VarNode, self).serialize()
         result['var_name'] = self.var_name
@@ -50,6 +53,12 @@ class SetNode(VarNode):
 
         self.in_value = self.add_input(self.scene.vars.get_data_type(self.var_name, as_dict=True))
 
+    def update(self):
+        var_type = self.scene.vars.get_data_type(self.var_name, as_dict=True)
+        if not self.in_value.data_type == var_type:
+            self.in_value.data_type = var_type
+            self.in_value.label = var_type['label']
+
     def execute(self):
         if not self.var_name:
             Logger.error('{0}: var_name is not set'.format(self))
@@ -70,6 +79,14 @@ class GetNode(VarNode):
 
         super(GetNode, self).init_sockets(inputs, outputs, reset)
         self.out_value = self.add_output(self.scene.vars.get_data_type(self.var_name, as_dict=True), value=self.scene.vars.get_value(self.var_name))
+
+    def update(self):
+        var_value = self.scene.vars.get_value(self.var_name)
+        var_type = self.scene.vars.get_data_type(self.var_name, as_dict=True)
+        self.out_value.value = var_value
+        if not self.out_value.data_type == var_type:
+            self.out_value.data_type = var_type
+            self.out_value.label = var_type['label']
 
 
 def register_plugin():

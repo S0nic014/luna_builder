@@ -1,4 +1,5 @@
 import json
+import copy
 from collections import OrderedDict
 from PySide2 import QtCore
 from PySide2 import QtGui
@@ -61,7 +62,7 @@ class SceneVars(node_serializable.Serializable):
 
     def delete_var(self, var_name):
         for node in self.list_setters(var_name) + self.list_getters(var_name):
-            node.remove()
+            node.set_invalid(True)
         self._vars.pop(var_name)
         self.scene.history.store_history('Deleted variable {0}'.format(var_name))
 
@@ -80,19 +81,21 @@ class SceneVars(node_serializable.Serializable):
         return [node for node in self.scene.nodes if node.ID == editor_conf.GET_NODE_ID and node.var_name == var_name]
 
     def update_setters(self, var_name):
-        for setter_node in self.list_setters(var_name):
-            if setter_node.in_value.data_type != self.get_data_type(var_name, as_dict=True):
-                setter_node.in_value.data_type = self.get_data_type(var_name, as_dict=True)
+        try:
+            for setter_node in self.list_setters(var_name):
+                setter_node.update()
+        except Exception:
+            Logger.exception('Failed to update getters')
 
     def update_getters(self, var_name):
-        for getter_node in self.list_getters(var_name):
-            if not getter_node.out_value.data_type == self.get_data_type(var_name, as_dict=True):
-                getter_node.out_value.data_type = self.get_data_type(var_name, as_dict=True)
-
-            getter_node.out_value.value = self.get_value(var_name)
+        try:
+            for getter_node in self.list_getters(var_name):
+                getter_node.update()
+        except Exception:
+            Logger.exception('Failed to update setters')
 
     def serialize(self):
-        copy_dict = self._vars.copy()
+        copy_dict = copy.deepcopy(self._vars)
         for var_name, value_type_pair in copy_dict.items():
             if value_type_pair[1] in editor_conf.DataType.runtime_types(names=True):
                 value_type_pair[0] = editor_conf.DATATYPE_REGISTER[value_type_pair[1]]['default']
@@ -161,12 +164,16 @@ class SceneVarsWidget(QtWidgets.QWidget):
         sel = self.var_list.selectedItems()
         if not sel:
             return
-        var_name = sel[-1].data(QLVarsListWidget.JSON_DATA_ROLE)['var_name']
-        if not self.scene_vars:
-            Logger.error('Scene vars is {0}, cant delete'.format(self.scene_vars))
-            return
-        self.scene_vars.delete_var(var_name)
-        self.update_var_list()
+
+        try:
+            var_name = sel[-1].data(QLVarsListWidget.JSON_DATA_ROLE)['var_name']
+            if not self.scene_vars:
+                Logger.error('Scene vars is {0}, cant delete'.format(self.scene_vars))
+                return
+            self.scene_vars.delete_var(var_name)
+            self.update_var_list()
+        except Exception:
+            Logger.exception('Delete selected var exception')
 
     def update_var_list(self):
         self.var_list.populate()
@@ -226,7 +233,7 @@ class QLVarsListWidget(QtWidgets.QListWidget):
             new_item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEditable)
             new_item.setText(var_name)
             # new_item.setIcon()
-            # new_item.setSizeHint()
+            new_item.setSizeHint(QtCore.QSize(16, 16))
             json_data = {'var_name': var_name}
             new_item.setData(QLVarsListWidget.JSON_DATA_ROLE, json_data)
             self.addItem(new_item)

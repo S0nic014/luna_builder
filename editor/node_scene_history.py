@@ -96,3 +96,7 @@ class SceneHistory(object):
                 if node.id == node_id:
                     node.gr_node.setSelected(True)
                     break
+
+    def debug_varibles(self):
+        for step, stamp in enumerate(self.stack):
+            Logger.debug('Step {0} - {1}'.format(step, stamp['snapshot']['vars']))

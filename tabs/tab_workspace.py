@@ -19,6 +19,7 @@ class WorkspaceWidget(QtWidgets.QWidget):
         super(WorkspaceWidget, self).__init__(parent)
 
         self.label = "Workspace"
+        self.setMinimumWidth(300)
         # self.icon = pysideFn.get_QIcon("workspace.png")
 
         self.create_widgets()
@@ -43,7 +44,6 @@ class WorkspaceWidget(QtWidgets.QWidget):
         self.project_grp.project_changed.connect(lambda prj: self.asset_grp.setDisabled(prj is None))
         self.project_grp.project_changed.connect(self.asset_grp.update_asset_data)
         self.project_grp.project_changed.connect(self.asset_grp.update_asset_completion)
-        self.project_grp.project_changed.connect(lambda prj: self.asset_grp.asset_set_button.setDisabled(prj is None))
         self.project_grp.exit_btn.clicked.connect(self.asset_grp.reset_asset_data)
 
     def update_data(self):
@@ -137,7 +137,7 @@ class ProjectGroup(QtWidgets.QGroupBox):
 
 class AssetGroup(QtWidgets.QGroupBox):
 
-    ASSET_TYPES = ["character", "prop", "vehicle", "enviroment", "other"]
+    ASSET_TYPES = Config.get(luna.LunaVars.asset_types, default=['character'], cached=True)
     # Signals
     asset_changed = QtCore.Signal(object)
 
@@ -159,8 +159,6 @@ class AssetGroup(QtWidgets.QGroupBox):
         self.asset_type_cmbox.addItems(AssetGroup.ASSET_TYPES)
         self.asset_name_lineedit = QtWidgets.QLineEdit()
         self.asset_name_lineedit.setPlaceholderText("Name")
-        self.asset_set_button = QtWidgets.QPushButton("Set")
-        self.asset_set_button.setMinimumWidth(50)
 
         self.file_system = QtWidgets.QFileSystemModel()
         self.file_system.setNameFilterDisables(False)
@@ -190,10 +188,9 @@ class AssetGroup(QtWidgets.QGroupBox):
     def create_layouts(self):
         self.basic_info_layout = QtWidgets.QHBoxLayout()
         self.basic_info_layout.setContentsMargins(0, 0, 0, 0)
-        self.basic_info_layout.addWidget(QtWidgets.QLabel("Type:"))
+        # self.basic_info_layout.addWidget(QtWidgets.QLabel("Type:"))
         self.basic_info_layout.addWidget(self.asset_type_cmbox)
         self.basic_info_layout.addWidget(self.asset_name_lineedit)
-        self.basic_info_layout.addWidget(self.asset_set_button)
 
         self.main_layout = QtWidgets.QVBoxLayout()
         self.main_layout.setContentsMargins(0, 0, 0, 0)
@@ -207,7 +204,7 @@ class AssetGroup(QtWidgets.QGroupBox):
         self.asset_changed.connect(self.update_asset_data)
         # File
         self.file_tree.doubleClicked.connect(self.open_file)
-        self.asset_set_button.clicked.connect(self.set_asset)
+        self.asset_name_lineedit.returnPressed.connect(self.set_asset)
         self.asset_type_cmbox.currentIndexChanged.connect(self.update_asset_completion)
         self.model_path_wgt.line_edit.textChanged.connect(self.save_model_path)
         self.model_open_btn.clicked.connect(lambda file_type="model", *args: self.open_asset_file(file_type))

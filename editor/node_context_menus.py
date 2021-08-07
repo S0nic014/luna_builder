@@ -85,11 +85,7 @@ class NodeCreatorDialog(QtWidgets.QDialog):
 
         node_id = item.data(0, node_nodes_palette.QLDragTreeWidget.NODE_ID_ROLE)
         json_data = item.data(0, node_nodes_palette.QLDragTreeWidget.JSON_DATA_ROLE)
-        # !FIXME Find position under cursor
-        # position = self.view.mapToScene(QtGui.QCursor.pos())
-        position = self.view.mapToScene(self.pos())
-
-        new_node = self.scene.spawn_node_from_data(node_id, json_data, position)
+        new_node = self.scene.spawn_node_from_data(node_id, json_data, self.view.last_scene_mouse_pos)
 
         # Connect dragging edge
         if self.is_dragging_from_output():

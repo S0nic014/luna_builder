@@ -4,6 +4,7 @@ import luna_builder.editor.editor_conf as editor_conf
 
 
 class GraphExecutor(object):
+    # TODO: Step by step execution
     def __init__(self, scene):
         self.scene = scene
 

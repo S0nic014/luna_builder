@@ -29,7 +29,6 @@ class NodeEditor(QtWidgets.QWidget):
         super(NodeEditor, self).__init__(parent)
         self.signals = EditorSignals()
         self.init_ui()
-        self.add_debug_nodes()
 
     def init_ui(self):
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
@@ -110,9 +109,6 @@ class NodeEditor(QtWidgets.QWidget):
         ctx_menu.exec_(self.mapToGlobal(event.pos()))
 
     def handle_edge_context_menu(self, event):
-        pass
-
-    def handle_new_node_context_menu(self, event):
         pass
 
     # ======== Drag & Drop ======== #
@@ -248,8 +244,3 @@ class NodeEditor(QtWidgets.QWidget):
             return False
         self.scene.save_to_file(file_path)
         return True
-
-    def add_debug_nodes(self):
-        # Test nodes
-
-        self.scene.set_history_init_point()

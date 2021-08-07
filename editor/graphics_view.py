@@ -11,9 +11,7 @@ import luna_builder.editor.graphics_socket as graphics_socket
 import luna_builder.editor.graphics_node as graphics_node
 import luna_builder.editor.graphics_edge as graphics_edge
 import luna_builder.editor.graphics_cutline as graphics_cutline
-import luna_builder.editor.node_context_menus as node_context_menus
 imp.reload(node_socket)
-imp.reload(node_context_menus)
 
 
 def history(description, set_modified=True):
@@ -165,19 +163,6 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.last_scene_mouse_pos = scene_pos
 
         super(QLGraphicsView, self).mouseMoveEvent(event)
-
-    def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_H:
-            self.scene.history.debug_varibles()
-            # Logger.debug(' len({0}) -- Current step: {1}'.format(len(self.scene.history), self.scene.history.current_step))
-            # for index, item in enumerate(self.scene.history.stack):
-            #     Logger.debug('# {0} -- {1}'.format(index, item.get('desc')))
-        elif event.key() == QtCore.Qt.Key_K:
-            creator_dialog = node_context_menus.NodeCreatorDialog(self, parent=self)
-            creator_dialog.move(QtGui.QCursor.pos())
-            creator_dialog.exec_()
-        else:
-            super(QLGraphicsView, self).keyPressEvent(event)
 
     # =========== Handling button presses =========== #
     def middle_mouse_press(self, event):

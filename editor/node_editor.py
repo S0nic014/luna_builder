@@ -11,6 +11,7 @@ import luna_builder.editor.node_scene as node_scene
 import luna_builder.editor.graphics_view as graphics_view
 import luna_builder.editor.node_context_menus as context_menus
 import luna_builder.editor.graph_executor as graph_executor
+import luna_builder.editor.node_nodes_palette as node_nodes_palette
 
 imp.reload(context_menus)
 imp.reload(node_scene)
@@ -34,9 +35,13 @@ class NodeEditor(QtWidgets.QWidget):
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.setMinimumSize(200, 500)
         self.create_widgets()
+        self.create_actions()
         self.create_layouts()
         self.create_conections()
         self.update_title()
+
+    def create_actions(self):
+        self.addAction(node_nodes_palette.PopupNodesPalette.show_action(self, self.gr_view))
 
     def create_widgets(self):
         # Graphics scene
@@ -52,6 +57,7 @@ class NodeEditor(QtWidgets.QWidget):
         self.main_layout.addWidget(self.gr_view)
 
     def create_conections(self):
+        # self.popup_palette_action.triggered.connect(self.on_pop_up_palette)
         self.scene.signals.file_name_changed.connect(self.update_title)
         self.scene.signals.modified.connect(self.update_title)
         self.scene.signals.item_drag_entered.connect(self.on_item_drag_enter)
@@ -77,13 +83,6 @@ class NodeEditor(QtWidgets.QWidget):
         return filename
 
     # ======== Events ======== #
-
-    def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_B and event.modifiers() & QtCore.Qt.ControlModifier:
-            self.executor.execute_graph()
-        else:
-            super(NodeEditor, self).keyPressEvent(event)
-
     def closeEvent(self, event):
         self.signals.about_to_close.emit(self, event)
 
@@ -180,6 +179,10 @@ class NodeEditor(QtWidgets.QWidget):
             Logger.warning('Unsupported item format: {0}'.format(event.mimeData()))
             event.ignore()
             return
+
+    def on_pop_up_palette(self):
+        if self.gr_view:
+            node_context_menus.NodeCreatorDialog.popup_nodes_palette(self.gr_view)
 
     # ======== Methods ======== #
 

@@ -29,6 +29,7 @@ class NodeEditor(QtWidgets.QWidget):
         super(NodeEditor, self).__init__(parent)
         self.signals = EditorSignals()
         self.init_ui()
+        self.scene.set_history_init_point()
 
     def init_ui(self):
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)

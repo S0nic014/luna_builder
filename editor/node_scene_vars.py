@@ -181,6 +181,7 @@ class SceneVarsWidget(QtWidgets.QWidget):
                 return
             self.scene_vars.delete_var(var_name)
             self.update_var_list()
+            self.attrib_editor.update_current_var_widget(None)
         except Exception:
             Logger.exception('Delete selected var exception')
 

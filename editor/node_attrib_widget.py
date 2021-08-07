@@ -20,7 +20,10 @@ class AttribWidget(QtWidgets.QGroupBox):
         self.main_layout = QtWidgets.QFormLayout()
         self.setLayout(self.main_layout)
 
+        # On creation
         self.init_fields()
+        self.update_fields()
+        self.create_signal_connections()
 
     def showEvent(self, event):
         super(AttribWidget, self).showEvent(event)
@@ -40,11 +43,11 @@ class AttribWidget(QtWidgets.QGroupBox):
                 widget = None
                 if issubclass(socket.data_class, editor_conf.DataType.STRING.get('class')):
                     widget = QtWidgets.QLineEdit()
+                elif issubclass(socket.data_class, editor_conf.DataType.BOOLEAN.get('class')):
+                    widget = QtWidgets.QCheckBox()
                 elif issubclass(socket.data_class, editor_conf.DataType.NUMERIC.get('class')):
                     widget = QtWidgets.QDoubleSpinBox()
                     widget.setRange(-9999, 9999)
-                elif issubclass(socket.data_class, editor_conf.DataType.BOOLEAN.get('class')):
-                    widget = QtWidgets.QCheckBox()
                 # elif issubclass(socket.data_class, editor_conf.DataType.LIST.get('class')):
                 #     widget = QtWidgets.QListWidget()
                 elif issubclass(socket.data_class, editor_conf.DataType.CONTROL.get('class')):
@@ -60,9 +63,6 @@ class AttribWidget(QtWidgets.QGroupBox):
                 # Signals
             except Exception:
                 Logger.exception('Attribute field add exception')
-
-        self.update_fields()
-        self.create_signal_connections()
 
     def store_in_fields_map(self, socket, widget):
         self.fields_map[socket.label] = (socket, widget)
@@ -87,11 +87,11 @@ class AttribWidget(QtWidgets.QGroupBox):
         try:
             if issubclass(socket.data_class, editor_conf.DataType.STRING.get('class')):
                 widget.setText(socket.value)
+            elif issubclass(socket.data_class, editor_conf.DataType.BOOLEAN.get('class')):
+                widget.setChecked(socket.value)
             elif issubclass(socket.data_class, editor_conf.DataType.NUMERIC.get('class')):
                 if socket.value:
                     widget.setValue(socket.value)
-            elif issubclass(socket.data_class, editor_conf.DataType.BOOLEAN.get('class')):
-                widget.setChecked(socket.value)
             # elif issubclass(socket.data_class, editor_conf.DataType.LIST.get('class')):
             elif issubclass(socket.data_class, editor_conf.DataType.CONTROL.get('class')):
                 if socket.value:

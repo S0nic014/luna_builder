@@ -103,11 +103,12 @@ class SceneVars(node_serializable.Serializable):
         except Exception:
             Logger.exception('ScenVars serializedeepcopy exception')
             raise
-        for var_name, var_type in result.items():
-            if var_type in editor_conf.DataType.runtime_types(names=True):
-                result[var_name] = editor_conf.DATATYPE_REGISTER[var_type]['default']
+        for var_name, value_type_pair in result.items():
+            value, type_name = value_type_pair
+            if type_name in editor_conf.DataType.runtime_types(names=True):
+                result[var_name] = [editor_conf.DATATYPE_REGISTER[type_name]['default'], type_name]
             else:
-                result[var_name] = var_type
+                result[var_name] = [value, type_name]
         return result
 
     def deserialize(self, data, hashmap={}):

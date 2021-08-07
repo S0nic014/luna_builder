@@ -1,5 +1,6 @@
 import os
 import imp
+import numbers
 
 from collections import OrderedDict
 from PySide2 import QtGui
@@ -64,7 +65,7 @@ class DataType(object):
               'color': QtGui.QColor("#FF52e220"),
               'label': 'Name',
               'default': ''}
-    NUMERIC = {'class': float,
+    NUMERIC = {'class': numbers.Complex,
                'color': QtGui.QColor("#FFFF7700"),
                'label': 'Number',
                'default': 0.0}

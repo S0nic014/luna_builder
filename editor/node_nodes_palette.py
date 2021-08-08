@@ -26,7 +26,6 @@ class NodesPalette(QtWidgets.QWidget):
         self.create_connections()
 
         self.update_node_tree()
-        self.update_completer()
 
     @property
     def functions_first(self):
@@ -42,14 +41,6 @@ class NodesPalette(QtWidgets.QWidget):
         self.search_line.setPlaceholderText('Search')
         self.nodes_tree = QLDragTreeWidget(self)
 
-    def update_completer(self):
-        all_items = self.nodes_tree.findItems("*", QtCore.Qt.MatchWrap | QtCore.Qt.MatchWildcard | QtCore.Qt.MatchRecursive)
-        item_labels = [item.text(0) for item in all_items]
-        item_labels = list(set(item_labels))
-        self.search_completer = QtWidgets.QCompleter(item_labels)
-        self.search_line.setCompleter(self.search_completer)
-        self.search_completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
-
     def create_layouts(self):
         self.main_layout = QtWidgets.QVBoxLayout()
         self.main_layout.setContentsMargins(0, 0, 0, 0)
@@ -63,7 +54,6 @@ class NodesPalette(QtWidgets.QWidget):
 
     def update_node_tree(self):
         self.nodes_tree.populate()
-        self.update_completer()
 
 
 class QLDragTreeWidget(QtWidgets.QTreeWidget):
@@ -195,10 +185,7 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
             func_signatures_list = func_map.keys()
             func_signatures_list = list(func_signatures_list) if not isinstance(func_signatures_list, list) else func_signatures_list
             for func_sign in func_signatures_list:
-                if datatype_name != editor_conf.UNBOUND_FUNCTION_DATATYPE:
-                    expanded = self.nodes_palette.functions_first or bool(search_filter)
-                else:
-                    expanded = True
+                expanded = self.nodes_palette.functions_first or bool(search_filter)
                 func_dict = func_map[func_sign]
                 icon_name = func_dict['icon']
                 nice_name = func_dict.get('nice_name')

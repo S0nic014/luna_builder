@@ -1,4 +1,6 @@
 from luna import Logger
+from luna import Config
+from luna import BuilderVars
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
@@ -21,6 +23,7 @@ class QLGraphicsTitle(QtWidgets.QGraphicsTextItem):
         line_edit_proxy.setWidget(line_edit)
         line_edit.editingFinished.connect(lambda: self.apply_edit(line_edit.text()))
         line_edit.editingFinished.connect(line_edit_proxy.deleteLater)
+        line_edit.setFont(self.font())
 
         line_edit.setMaximumSize(self.boundingRect().width(), self.boundingRect().height())
         line_edit.setText(self.toPlainText())
@@ -65,18 +68,12 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         self.title_item.setPlainText(value)
 
     @property
-    def width(self):
-        return self.node.max_width_of_socket_labels()
-
-    @property
-    def height(self):
-        return self.node.max_height_of_sockets() + self.title_height + self.lower_padding
-
-    @property
     def title_height(self):
         return self.title_item.height
 
     def init_sizes(self):
+        self.width = self.node.MIN_WIDTH
+        self.height = self.node.MIN_HEIGHT
         self.edge_roundness = 10.0
         self.edge_padding = 10.0
         self.title_horizontal_padding = 4.0
@@ -86,7 +83,8 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
     def init_assets(self):
         # Fonts colors
         self._title_color = QtCore.Qt.white
-        self._title_font = QtGui.QFont("Arial", 10)
+        self._title_font = QtGui.QFont(*Config.get(BuilderVars.title_font, default=['Roboto', 10], cached=True))
+        self._title_font.setBold(True)
 
         # Pens, Brushes
         self._pen_default = QtGui.QPen(QtGui.QColor("#7F000000"))

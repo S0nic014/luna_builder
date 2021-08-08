@@ -15,15 +15,17 @@ class NodeSignals(QtCore.QObject):
     compiled_changed = QtCore.Signal(bool)
     invalid_changed = QtCore.Signal(bool)
     title_edited = QtCore.Signal(str)
+    socket_number_changed = QtCore.Signal()
 
 
 class Node(node_serializable.Serializable):
 
-    TITLE_HEIGHT = 24
     TITLE_EDITABLE = False
     DEFAULT_TITLE = 'Custom Node'
     IS_EXEC = True
     AUTO_INIT_EXECS = True
+    MIN_WIDTH = 180
+    MIN_HEIGHT = 30
     ATTRIB_WIDGET = node_attrib_widget.AttribWidget
     INPUT_POSITION = node_socket.Socket.Position.LEFT_TOP.value
     OUTPUT_POSITION = node_socket.Socket.Position.RIGHT_TOP.value
@@ -54,6 +56,7 @@ class Node(node_serializable.Serializable):
         self.scene.add_node(self)
         self.scene.gr_scene.addItem(self.gr_node)
         # Sockets
+        self.signals.socket_number_changed.connect(self.on_socket_number_change)
         self.init_sockets(inputs=inputs, outputs=outputs)
         self.create_connections()
 
@@ -155,26 +158,25 @@ class Node(node_serializable.Serializable):
 
         return [x, y]
 
-    def max_height_of_sockets(self):
-        min_size = 30
+    def recalculate_height(self):
         max_inputs = len(self.inputs) * self.socket_spacing
         max_outputs = len(self.outputs) * self.socket_spacing
-        return max(max_inputs, max_outputs, min_size)
+        total_socket_height = max(max_inputs, max_outputs, self.MIN_HEIGHT)
+        self.gr_node.height = total_socket_height + self.gr_node.title_height + self.gr_node.lower_padding
 
-    def max_width_of_socket_labels(self):
-        min_width = 180
-        max_outputs = 0
-        max_inputs = 0
-
+    def recalculate_width(self):
         input_widths = [socket.get_label_width() for socket in self.inputs] or [0, 0]
         output_widths = [socket.get_label_width() for socket in self.outputs] or [0, 0]
 
-        max_inputs = max(input_widths)
-        max_outputs = max(output_widths)
+        max_label_width = max(input_widths + output_widths)
 
-        return max(max_inputs + max_outputs, min_width)
+        if self.inputs and self.outputs:
+            self.gr_node.width = max(max_label_width * 2, self.MIN_WIDTH)
+        else:
+            self.gr_node.width = max(max_label_width, self.MIN_WIDTH)
 
     # ======== Update methods ========= #
+
     def update_connected_edges(self):
         for socket in self.inputs + self.outputs:
             socket.update_edges()
@@ -182,6 +184,12 @@ class Node(node_serializable.Serializable):
     def update_socket_positions(self):
         for socket in self.outputs + self.inputs:
             socket.update_positions()
+
+    def on_socket_number_change(self):
+        self.recalculate_width()
+        self.recalculate_height()
+        self.update_socket_positions()
+        self.update_connected_edges()
 
     def remove(self):
         try:
@@ -305,7 +313,7 @@ class Node(node_serializable.Serializable):
                 value = socket_data.get('value', data_type['default'])
                 found = self.add_output(data_type, socket_data['label'], value=value)
             found.deserialize(socket_data, hashmap, restore_id)
-        self.update_socket_positions()
+        self.signals.socket_number_changed.emit()
 
     # ========= Socket creation methods ========== #
     def add_input(self, data_type, label=None, value=None, *args, **kwargs):
@@ -320,7 +328,7 @@ class Node(node_serializable.Serializable):
                                          *args,
                                          **kwargs)
         self.inputs.append(socket)
-        self.update_socket_positions()
+        self.signals.socket_number_changed.emit()
         return socket
 
     def add_output(self, data_type, label=None, max_connections=0, value=None, *args, **kwargs):
@@ -337,7 +345,7 @@ class Node(node_serializable.Serializable):
                                           *args,
                                           **kwargs)
         self.outputs.append(socket)
-        self.update_socket_positions()
+        self.signals.socket_number_changed.emit()
         return socket
 
     def remove_socket(self, name, is_input=True):
@@ -353,7 +361,7 @@ class Node(node_serializable.Serializable):
                     self.outputs[socket_to_remove.index + 1].index -= 1
                 self.outputs.remove(socket_to_remove)
             socket_to_remove.remove()
-            self.update_socket_positions()
+            self.signals.socket_number_changed.emit()
         except IndexError:
             Logger.error('Failed to delete input, socket with name {0} does not exist'.format(name))
 

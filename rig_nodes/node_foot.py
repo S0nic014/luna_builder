@@ -27,7 +27,7 @@ class FootComponentNode(base_component.AnimComponentNode):
         self.in_start_joint = self.add_input(editor_conf.DataType.STRING, label='Start Joint', value=None)
         self.in_end_joint = self.add_input(editor_conf.DataType.STRING, label='End Joint', value=None)
         self.in_rv_chain = self.add_input(editor_conf.DataType.STRING, label='Reverse Chain', value=None)
-        self.in_foot_loc_grp = self.add_input(editor_conf.DataType.STRING, label='Foot Locators Group', value=None)
+        self.in_foot_loc_grp = self.add_input(editor_conf.DataType.STRING, label='Foot Locators', value=None)
         self.in_roll_axis = self.add_input(editor_conf.DataType.STRING, label='Rotate Axis', value='ry')
 
     def execute(self):

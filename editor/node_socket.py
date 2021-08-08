@@ -167,9 +167,9 @@ class Socket(node_serializable.Serializable):
     def has_edge(self):
         return bool(self.edges)
 
-    def set_connected_edge(self, edge=None):
+    def set_connected_edge(self, edge):
         if not edge:
-            self.edges.clear()
+            Logger.warning('{0}: Recieved edge {1}'.format(self, edge))
             return
         if self.edges and self.max_connections and len(self.edges) > self.max_connections:
             self.edges[0].remove()
@@ -181,6 +181,7 @@ class Socket(node_serializable.Serializable):
 
     def remove_edge(self, edge):
         self.edges.remove(edge)
+        self.signals.connection_changed.emit()
 
     def update_edges(self):
         for edge in self.edges:
@@ -250,19 +251,10 @@ class Socket(node_serializable.Serializable):
 
 class InputSocket(Socket):
 
-    def value(self):
-        if self.has_edge():
-            return self.edges[0].get_other_socket(self).value()
-        return self._value
-
     def create_connections(self):
-        self.signals.connection_changed.connect(self.on_connection_changed)
+        super(InputSocket, self).create_connections()
         self.signals.value_changed.connect(self.node.set_compiled)
-
-    def on_connection_changed(self):
-        if not self.has_edge() and self.is_runtime_data():
-            self.set_value(self.data_type['default'])
-        self.update_affected()
+        self.signals.connection_changed.connect(self.on_connection_changed)
 
     def can_be_connected(self, other_socket):
         super(InputSocket, self).can_be_connected(other_socket)
@@ -271,17 +263,29 @@ class InputSocket(Socket):
             return False
         return True
 
-    def set_connected_edge(self, edge=None):
-        super(InputSocket, self).set_connected_edge(edge=edge)
+    def set_connected_edge(self, edge):
+        super(InputSocket, self).set_connected_edge(edge)
+        if not edge:
+            return
         if self.edges and edge not in self.edges:
             self.edges[0].remove()
         self.edges = [edge]
         self.signals.connection_changed.emit()
 
+    def value(self):
+        if self.has_edge():
+            return self.edges[0].get_other_socket(self).value()
+        return self._value
+
+    def on_connection_changed(self):
+        if not self.has_edge() and self.is_runtime_data():
+            self.set_value(self.data_type['default'])
+
 
 class OutputSocket(Socket):
     def create_connections(self):
-        self.signals.value_changed.connect(self.update_connected_inputs)
+        super(OutputSocket, self).create_connections()
+        self.signals.value_changed.connect(self.notify_connected_inputs_value)
 
     def can_be_connected(self, other_socket):
         super(OutputSocket, self).can_be_connected(other_socket)
@@ -290,12 +294,14 @@ class OutputSocket(Socket):
             return False
         return True
 
-    def set_connected_edge(self, edge=None):
+    def set_connected_edge(self, edge):
         super(OutputSocket, self).set_connected_edge(edge=edge)
+        if not edge:
+            return
         if edge not in self.edges:
             self.edges.append(edge)
+        self.signals.connection_changed.emit()
 
-    def update_connected_inputs(self):
+    def notify_connected_inputs_value(self):
         for socket in self.list_connections():
-            # socket.set_value(self.value())
-            self.update_affected()
+            socket.signals.value_changed.emit()

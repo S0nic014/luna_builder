@@ -147,6 +147,7 @@ class BuilderMainWindow(QtWidgets.QMainWindow):
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.workspace_dock)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.attrib_editor_dock)
         self.tabifyDockWidget(self.workspace_dock, self.attrib_editor_dock)
+        self.workspace_dock.raise_()
         # Add docks left
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.nodes_palette_dock)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.vars_dock)

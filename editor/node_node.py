@@ -178,7 +178,6 @@ class Node(node_serializable.Serializable):
         # Calculate clamped title text width
         self.gr_node.title_item.setTextWidth(-1)
         if self.gr_node.title_width > self.MAX_TEXT_WIDTH:
-            Logger.debug('WIDTH {0} > {1}'.format(self.gr_node.title_width, self.MAX_TEXT_WIDTH))
             self.gr_node.title_item.setTextWidth(self.MAX_TEXT_WIDTH)
             title_with_padding = self.MAX_TEXT_WIDTH + self.gr_node.title_horizontal_padding * 2
         else:

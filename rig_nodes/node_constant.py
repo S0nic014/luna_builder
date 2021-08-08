@@ -7,6 +7,7 @@ class ConstantNode(luna_node.LunaNode):
     DEFAULT_TITLE = 'Constant'
     STATUS_ICON = False
     CATEGORY = 'Constants'
+    MIN_WIDTH = 100
     CONSTANT_DATA_TYPE = None
 
     def __init__(self, scene, title=None, inputs=[], outputs=[]):

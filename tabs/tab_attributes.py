@@ -8,7 +8,7 @@ class AttributesEditor(QtWidgets.QWidget):
         super(AttributesEditor, self).__init__(parent)
         self.main_window = main_window
         self._current_widget = None  # type: QtWidgets.QWidget
-        self.setMinimumWidth(200)
+        self.setMinimumWidth(250)
 
         self.main_layout = QtWidgets.QVBoxLayout()
         self.main_layout.setContentsMargins(0, 0, 0, 0)

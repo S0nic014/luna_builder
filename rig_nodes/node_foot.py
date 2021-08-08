@@ -30,8 +30,6 @@ class FootComponentNode(base_component.AnimComponentNode):
         self.in_foot_loc_grp = self.add_input(editor_conf.DataType.STRING, label='Foot Locators Group', value=None)
         self.in_roll_axis = self.add_input(editor_conf.DataType.STRING, label='Rotate Axis', value='ry')
 
-        self.update_node_title()
-
     def execute(self):
         super(FootComponentNode, self).execute()
         self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value(),

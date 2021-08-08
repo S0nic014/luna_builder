@@ -20,7 +20,6 @@ class SpineNode(base_component.AnimComponentNode):
         self.in_name.set_value('spine')
         self.in_tag.set_value('body')
         self.out_self.data_type = editor_conf.DataType.SPINE_COMPONENT
-        self.update_node_title()
 
 
 class FKIKSpineNode(SpineNode):

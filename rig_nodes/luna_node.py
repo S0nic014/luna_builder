@@ -43,6 +43,7 @@ class LunaNode(node_node.Node):
     ICON = None
     STATUS_ICON = True
     DEFAULT_TITLE = 'Luna Node'
+    TITLE_EDITABLE = False
     UNIQUE = False
     CATEGORY = 'Utils'
 

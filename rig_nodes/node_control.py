@@ -62,9 +62,6 @@ class ControlNode(luna_node.LunaNode):
         self.out_control.set_value(self.control_instance)
         self.out_transform.set_value(self.control_instance.transform)
 
-        # Set new title
-        self.title = self.control_instance.transform.name() if self.control_instance else self.DEFAULT_TITLE
-
 
 def register_plugin():
     editor_conf.register_node(ControlNode.ID, ControlNode)

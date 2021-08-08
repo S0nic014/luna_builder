@@ -8,6 +8,7 @@ class ComponentNode(luna_node.LunaNode):
 
     DEFAULT_TITLE = 'Component'
     COMPONENT_CLASS = luna_rig.Component
+    TITLE_EDITABLE = True
 
     def __init__(self, scene, title=None, inputs=[], outputs=[]):
         super(ComponentNode, self).__init__(scene, title=title, inputs=inputs, outputs=outputs)
@@ -34,16 +35,6 @@ class ComponentNode(luna_node.LunaNode):
         self.in_side.affects(self.out_side)
         self.in_name.affects(self.out_name)
         self.in_tag.affects(self.in_tag)
-
-        self.update_node_title()
-
-    def create_connections(self):
-        super(ComponentNode, self).create_connections()
-        self.in_name.signals.value_changed.connect(self.update_node_title)
-        self.in_side.signals.value_changed.connect(self.update_node_title)
-
-    def update_node_title(self):
-        self.title = "{0} - {1} ({2})".format(self.DEFAULT_TITLE, self.in_name.value(), self.in_side.value())
 
 
 class AnimComponentNode(ComponentNode):

@@ -105,10 +105,11 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
     def add_category(self, name, expanded=True, parent=None):
         if not parent:
             parent = self
-        tree_item = QtWidgets.QTreeWidgetItem(parent)
-        tree_item.setText(0, name)
-        tree_item.setExpanded(expanded)
-        return tree_item
+        category_item = QtWidgets.QTreeWidgetItem(parent)
+        category_item.setFlags(QtCore.Qt.ItemIsEnabled)
+        category_item.setText(0, name)
+        category_item.setExpanded(expanded)
+        return category_item
 
     def get_category(self, name, expanded=True, parent=None):
         found_items = self.findItems(name, QtCore.Qt.MatchExactly | QtCore.Qt.MatchRecursive, 0)
@@ -207,14 +208,14 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
 
 class PopupNodesPalette(QtWidgets.QDialog):
 
-    @classmethod
+    @ classmethod
     def show_action(cls, owner, gr_view, shortcut=QtGui.QKeySequence(QtCore.Qt.Key_Tab)):
         action = QtWidgets.QAction(owner)
         action.setShortcut(shortcut)
         action.triggered.connect(lambda: cls.create(gr_view))
         return action
 
-    @classmethod
+    @ classmethod
     def create(cls, gr_view):
         creator_dialog = cls(gr_view, parent=gr_view)
         creator_dialog.move(QtGui.QCursor.pos())
@@ -234,6 +235,7 @@ class PopupNodesPalette(QtWidgets.QDialog):
         data_type_filter = self.view.drag_edge.start_socket.data_type if self.is_dragging_from_output() else None
         self.nodes_palette = NodesPalette(icon_size=16, data_type_filter=data_type_filter, functions_first=True)
         self.nodes_palette.nodes_tree.setDragEnabled(False)
+        self.nodes_palette.nodes_tree.installEventFilter(self)
 
     def create_layouts(self):
         self.main_layout = QtWidgets.QVBoxLayout()
@@ -244,11 +246,18 @@ class PopupNodesPalette(QtWidgets.QDialog):
     def create_connections(self):
         self.nodes_palette.nodes_tree.itemClicked.connect(self.spawn_clicked_node)
 
+    def eventFilter(self, watched, event):
+        if event.type() == QtCore.QEvent.KeyPress and \
+                event.matches(QtGui.QKeySequence.InsertParagraphSeparator):
+            item = self.nodes_palette.nodes_tree.currentItem()
+            if item:
+                self.spawn_clicked_node(item)
+
     def is_dragging_from_output(self):
         return self.view.drag_edge and self.view.drag_edge.start_socket
 
     def spawn_clicked_node(self, item):
-        if not item.parent():
+        if not item.flags() & QtCore.Qt.ItemIsSelectable:
             return
 
         node_id = item.data(0, QLDragTreeWidget.NODE_ID_ROLE)

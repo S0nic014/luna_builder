@@ -94,6 +94,8 @@ class GetNode(VarNode):
     IS_EXEC = False
     STATUS_ICON = False
     AUTO_INIT_EXECS = False
+    MIN_WIDTH = 110
+    OUTPUT_POSITION = 5
     ICON = None
     DEFAULT_TITLE = 'Get'
 

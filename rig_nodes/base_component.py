@@ -126,7 +126,7 @@ def register_plugin():
                                       ('AnimComponent', editor_conf.DataType.ANIM_COMPONENT),
                                   ]),
                                   outputs_dict=OrderedDict([
-                                      ('Parent AnimComponent', editor_conf.DataType.ANIM_COMPONENT),
+                                      ('Parent', editor_conf.DataType.ANIM_COMPONENT),
                                   ]),
                                   nice_name='Get Parent',
                                   category='Anim Component')

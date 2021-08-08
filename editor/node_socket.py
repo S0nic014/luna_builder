@@ -107,6 +107,7 @@ class Socket(node_serializable.Serializable):
         for edge in self.edges:
             if not self.can_be_connected(edge.get_other_socket(self)):
                 edge.remove()
+        self.node.update_size()
 
     @ property
     def data_class(self):

@@ -27,6 +27,7 @@ class Node(node_serializable.Serializable):
     AUTO_INIT_EXECS = True
     MIN_WIDTH = 180
     MIN_HEIGHT = 30
+    MAX_TEXT_WIDTH = 200
     ATTRIB_WIDGET = node_attrib_widget.AttribWidget
     INPUT_POSITION = node_socket.Socket.Position.LEFT_TOP.value
     OUTPUT_POSITION = node_socket.Socket.Position.RIGHT_TOP.value
@@ -113,12 +114,13 @@ class Node(node_serializable.Serializable):
     @title.setter
     def title(self, value):
         old_height = self.gr_node.title_height
+        old_width = self.gr_node.title_width
         self._title = value
         self.gr_node.title = self._title
+        new_width = self.gr_node.title_width
         new_height = self.gr_node.title_height
-        if not old_height == new_height:
-            self.update_socket_positions()
-            self.update_connected_edges()
+        if old_height != new_height or old_width != new_width:
+            self.update_size()
 
     # ======= Attrib widget ======= #
     def get_attrib_widget(self):
@@ -160,24 +162,36 @@ class Node(node_serializable.Serializable):
         return [x, y]
 
     def recalculate_height(self):
+
         max_inputs = len(self.inputs) * self.socket_spacing
         max_outputs = len(self.outputs) * self.socket_spacing
         total_socket_height = max(max_inputs, max_outputs, self.MIN_HEIGHT)
         self.gr_node.height = total_socket_height + self.gr_node.title_height + self.gr_node.lower_padding
 
     def recalculate_width(self):
+        # Labels max width
         input_widths = [socket.get_label_width() for socket in self.inputs] or [0, 0]
         output_widths = [socket.get_label_width() for socket in self.outputs] or [0, 0]
 
         max_label_width = max(input_widths + output_widths)
 
-        if self.inputs and self.outputs:
-            self.gr_node.width = max(max_label_width * 2, self.MIN_WIDTH)
+        # Calculate clamped title text width
+        self.gr_node.title_item.setTextWidth(-1)
+        if self.gr_node.title_width > self.MAX_TEXT_WIDTH:
+            Logger.debug('WIDTH {0} > {1}'.format(self.gr_node.title_width, self.MAX_TEXT_WIDTH))
+            self.gr_node.title_item.setTextWidth(self.MAX_TEXT_WIDTH)
+            title_with_padding = self.MAX_TEXT_WIDTH + self.gr_node.title_horizontal_padding * 2
         else:
-            self.gr_node.width = max(max_label_width, self.MIN_WIDTH)
+            title_with_padding = self.gr_node.title_width + self.gr_node.title_horizontal_padding * 2
+
+        # Use the max value between widths of label, allowed min width, clamped text width
+        # Sockets on both sides or only one side
+        if self.inputs and self.outputs:
+            self.gr_node.width = max(max_label_width * 2, self.MIN_WIDTH, title_with_padding)
+        else:
+            self.gr_node.width = max(max_label_width + self.gr_node.one_side_horizontal_padding, self.MIN_WIDTH, title_with_padding)
 
     # ======== Update methods ========= #
-
     def update_connected_edges(self):
         for socket in self.inputs + self.outputs:
             socket.update_edges()
@@ -186,11 +200,14 @@ class Node(node_serializable.Serializable):
         for socket in self.outputs + self.inputs:
             socket.update_positions()
 
-    def on_socket_number_change(self):
+    def update_size(self):
         self.recalculate_width()
         self.recalculate_height()
         self.update_socket_positions()
         self.update_connected_edges()
+
+    def on_socket_number_change(self):
+        self.update_size()
 
     def remove(self):
         try:

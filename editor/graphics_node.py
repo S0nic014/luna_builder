@@ -71,6 +71,10 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
     def title_height(self):
         return self.title_item.height
 
+    @property
+    def title_color(self):
+        return QtGui.QColor(self.node.TITLE_COLOR) if not isinstance(self.node.TITLE_COLOR, QtGui.QColor) else self.node.TITLE_COLOR
+
     def init_sizes(self):
         self.width = self.node.MIN_WIDTH
         self.height = self.node.MIN_HEIGHT
@@ -89,8 +93,8 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         # Pens, Brushes
         self._pen_default = QtGui.QPen(QtGui.QColor("#7F000000"))
         self._pen_selected = QtGui.QPen(QtGui.QColor("#FFA637"))
-        self._brush_title = QtGui.QBrush(QtGui.QColor("#FF313131"))
         self._brush_background = QtGui.QBrush(QtGui.QColor("#E3212121"))
+        self._brush_title = QtGui.QBrush(self.title_color)
 
     def init_title(self):
         self.title_item = QLGraphicsTitle(self, is_editable=self.node.TITLE_EDITABLE)

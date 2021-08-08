@@ -3,6 +3,7 @@ import imp
 import numbers
 
 from collections import OrderedDict
+from PySide2 import QtCore
 from PySide2 import QtGui
 
 from luna import Logger
@@ -62,11 +63,11 @@ class DataType(object):
             'label': '',
             'default': None}
     STRING = {'class': str,
-              'color': QtGui.QColor("#FF52e220"),
+              'color': QtGui.QColor("#A203F2"),
               'label': 'Name',
               'default': ''}
     NUMERIC = {'class': numbers.Complex,
-               'color': QtGui.QColor("#FFFF7700"),
+               'color': QtGui.QColor("#DEC017"),
                'label': 'Number',
                'default': 0.0}
     BOOLEAN = {'class': bool,
@@ -74,23 +75,23 @@ class DataType(object):
                'label': 'Condition',
                'default': False}
     LIST = {'class': list,
-            'color': QtGui.QColor("#FF52e220"),
+            'color': QtGui.QColor("#0BC8F1"),
             'label': 'List',
             'default': []}
     CONTROL = {'class': luna_rig.Control,
-               'color': QtGui.QColor("#FF0056a6"),
+               'color': QtGui.QColor("#2BB12D"),
                'label': 'Control',
                'default': None}
     COMPONENT = {'class': luna_rig.Component,
-                 'color': QtGui.QColor("#FF0056a6"),
+                 'color': QtGui.QColor("#6495ED"),
                  'label': 'Component',
                  'default': None}
     ANIM_COMPONENT = {'class': luna_rig.AnimComponent,
-                      'color': QtGui.QColor("#FF0056a6"),
+                      'color': QtGui.QColor("#6495ED"),
                       'label': 'AnimComponent',
                       'default': None}
     CHARACTER = {'class': luna_rig.components.Character,
-                 'color': QtGui.QColor("#FF0056a6"),
+                 'color': QtGui.QColor("#5767FF"),
                  'label': 'Character',
                  'default': None}
 

@@ -21,6 +21,7 @@ class NodeSignals(QtCore.QObject):
 class Node(node_serializable.Serializable):
 
     TITLE_EDITABLE = False
+    TITLE_COLOR = '#FF313131'
     DEFAULT_TITLE = 'Custom Node'
     IS_EXEC = True
     AUTO_INIT_EXECS = True

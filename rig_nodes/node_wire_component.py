@@ -48,3 +48,41 @@ def register_plugin():
                                            label='Wire Component',
                                            default_value=None)
     editor_conf.register_node(WireComponentNode.ID, WireComponentNode)
+
+    editor_conf.register_function(WireComponentNode.COMPONENT_CLASS.get_wire_curve,
+                                  editor_conf.DataType.WIRE_COMPONENT,
+                                  inputs_dict={'Wire': editor_conf.DataType.WIRE_COMPONENT},
+                                  outputs_dict={'Curve': editor_conf.DataType.STRING},
+                                  nice_name='Get Wire Curve',
+                                  category='Wire Component')
+
+    editor_conf.register_function(WireComponentNode.COMPONENT_CLASS.get_geometry,
+                                  editor_conf.DataType.WIRE_COMPONENT,
+                                  inputs_dict={'Wire': editor_conf.DataType.WIRE_COMPONENT},
+                                  outputs_dict={'Geometry': editor_conf.DataType.STRING},
+                                  nice_name='Get Wire Geometry',
+                                  category='Wire Component')
+
+    editor_conf.register_function(WireComponentNode.COMPONENT_CLASS.get_wire_deformer,
+                                  editor_conf.DataType.WIRE_COMPONENT,
+                                  inputs_dict={'Wire': editor_conf.DataType.WIRE_COMPONENT},
+                                  outputs_dict={'Deformer': editor_conf.DataType.STRING},
+                                  nice_name='Get Wire Deformer',
+                                  category='Wire Component')
+
+    editor_conf.register_function(WireComponentNode.COMPONENT_CLASS.get_root_control,
+                                  editor_conf.DataType.WIRE_COMPONENT,
+                                  inputs_dict={'Wire': editor_conf.DataType.WIRE_COMPONENT},
+                                  outputs_dict={'Control': editor_conf.DataType.CONTROL},
+                                  nice_name='Get Root Control',
+                                  category='Wire Component')
+
+    editor_conf.register_function(WireComponentNode.COMPONENT_CLASS.get_shape_controls,
+                                  editor_conf.DataType.WIRE_COMPONENT,
+                                  inputs_dict={'Wire': editor_conf.DataType.WIRE_COMPONENT},
+                                  outputs_dict={'Curve': editor_conf.DataType.LIST},
+                                  nice_name='Get Shape Controls',
+                                  category='Wire Component')
+
+    # def get_shape_controls(self):
+    #     return self.shape_controls

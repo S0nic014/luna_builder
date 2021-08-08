@@ -6,65 +6,31 @@ from PySide2 import QtWidgets
 
 class QLGraphicsTitle(QtWidgets.QGraphicsTextItem):
 
-    EDIT_FLAGS = QtWidgets.QGraphicsItem.ItemIsFocusable
+    @property
+    def height(self):
+        return self.boundingRect().height()
 
     def __init__(self, gr_node, text='', is_editable=False):
         super(QLGraphicsTitle, self).__init__(text, gr_node)
         self.gr_node = gr_node
         self.is_editable = is_editable
-        self.default_flags = self.flags()
-        self.previous_text = None
-        self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
 
-    def set_text_interaction(self, state, select_all=False, cursor_at_end=True):
-        # Save previous text to compare later
-        # Title is not in edit mode already and becomes editable
-        if state and self.textInteractionFlags() == QtCore.Qt.NoTextInteraction:
-            # Define starting text
-            self.previous_text = self.toPlainText()
-            if self.previous_text == self.gr_node.node.DEFAULT_TITLE:
-                self.setPlainText('')
+    def edit(self):
+        line_edit = QtWidgets.QLineEdit()
+        line_edit_proxy = QtWidgets.QGraphicsProxyWidget(self)
+        line_edit_proxy.setWidget(line_edit)
+        line_edit.editingFinished.connect(lambda: self.apply_edit(line_edit.text()))
+        line_edit.editingFinished.connect(line_edit_proxy.deleteLater)
 
-            # Set flags and focus
-            self.setFlags(self.EDIT_FLAGS)
-            self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
-            # Set cursor
-            self.setFocus(QtCore.Qt.MouseFocusReason)
-            cursor = self.textCursor()  # type: QtGui.QTextCursor
-            if cursor_at_end:
-                cursor.movePosition(QtGui.QTextCursor.End)
-            elif select_all:
-                cursor.select(QtGui.QTextCursor.Document)
-            self.setTextCursor(cursor)
-        # Title is editable and becomes not editable
-        elif not state and self.textInteractionFlags() == QtCore.Qt.TextEditorInteraction:
-            self.setFlags(self.default_flags)
-            self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
-            cursor = self.textCursor()
-            cursor.clearSelection()
-            self.setTextCursor(cursor)
-            self.clearFocus()
+        line_edit.setMaximumSize(self.boundingRect().width(), self.boundingRect().height())
+        line_edit.setText(self.toPlainText())
+        line_edit.setFocus(QtCore.Qt.MouseFocusReason)
 
-    def apply_edit(self):
-        new_text = self.toPlainText().strip()
-        if new_text == self.previous_text:
+    def apply_edit(self, new_text):
+        new_text = new_text.strip()
+        if new_text == self.gr_node.title:
             return
         self.gr_node.node.signals.title_edited.emit(new_text)
-
-    def exit_editing(self):
-        self.set_text_interaction(False)
-        self.apply_edit()
-
-    def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Return:
-            self.exit_editing()
-            return
-
-        super(QLGraphicsTitle, self).keyPressEvent(event)
-
-    def focusOutEvent(self, event):
-        self.exit_editing()
-        super(QLGraphicsTitle, self).focusOutEvent(event)
 
 
 class QLGraphicsNode(QtWidgets.QGraphicsItem):
@@ -88,7 +54,6 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
 
         self.init_title()
-        self.title = self.node.title
         self.init_content()
 
     @property
@@ -109,7 +74,7 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
 
     @property
     def title_height(self):
-        return self.node.TITLE_HEIGHT
+        return self.title_item.height
 
     def init_sizes(self):
         self.edge_roundness = 10.0

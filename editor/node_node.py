@@ -37,7 +37,7 @@ class Node(node_serializable.Serializable):
         super(Node, self).__init__()
         self.scene = scene
         self.signals = NodeSignals()
-        self._title = title if title else self.__class__.DEFAULT_TITLE
+        self._title = None
         self.inputs = []
         self.outputs = []
 
@@ -48,6 +48,7 @@ class Node(node_serializable.Serializable):
         # Members init
         self.init_settings()
         self.init_inner_classes()
+        self.title = title if title else self.__class__.DEFAULT_TITLE
 
         # Add to the scene
         self.scene.add_node(self)
@@ -107,8 +108,13 @@ class Node(node_serializable.Serializable):
 
     @title.setter
     def title(self, value):
+        old_height = self.gr_node.title_height
         self._title = value
         self.gr_node.title = self._title
+        new_height = self.gr_node.title_height
+        if not old_height == new_height:
+            self.update_socket_positions()
+            self.update_connected_edges()
 
     # ======= Attrib widget ======= #
     def get_attrib_widget(self):
@@ -229,7 +235,7 @@ class Node(node_serializable.Serializable):
     # ========= Interaction methods ========== #
     def edit_title(self):
         if self.TITLE_EDITABLE:
-            self.gr_node.title_item.set_text_interaction(True, cursor_at_end=True)
+            self.gr_node.title_item.edit()
         else:
             Logger.warning('Title for node {0} is not editable'.format(self.title))
 
@@ -237,7 +243,7 @@ class Node(node_serializable.Serializable):
         if not new_title:
             new_title = self.DEFAULT_TITLE
         old_title = self.title
-        self._title = new_title
+        self.title = new_title
         self.scene.history.store_history('Renamed node {0}->{1}'.format(old_title, new_title))
 
     # ========= Serialization methods ========== #

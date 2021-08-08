@@ -32,7 +32,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
 
     # Constant settings
     EDGE_DRAG_START_THRESHOLD = 10
-    HIGH_QUALITY_ZOOM = 3
+    HIGH_QUALITY_ZOOM = 4
 
     class EdgeMode(enumFn.Enum):
         NOOP = 1
@@ -68,8 +68,6 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.update_edge_width()
 
     def init_ui(self):
-        self.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.HighQualityAntialiasing | QtGui.QPainter.TextAntialiasing | QtGui.QPainter.SmoothPixmapTransform)
-        # self.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.Notex | QtGui.QPainter.TextAntialiasing | QtGui.QPainter.SmoothPixmapTransform)
         self.setViewportUpdateMode(QtWidgets.QGraphicsView.FullViewportUpdate)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -87,7 +85,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         if self.zoom > self.HIGH_QUALITY_ZOOM:
             self.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.HighQualityAntialiasing | QtGui.QPainter.TextAntialiasing | QtGui.QPainter.SmoothPixmapTransform)
         else:
-            self.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.SmoothPixmapTransform)
+            self.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.TextAntialiasing | QtGui.QPainter.SmoothPixmapTransform)
 
     # =========== Qt Events overrides =========== #
 

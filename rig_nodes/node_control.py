@@ -7,6 +7,7 @@ import luna_builder.rig_nodes.luna_node as luna_node
 class ControlNode(luna_node.LunaNode):
     ID = 2
     IS_EXEC = True
+    TITLE_EDITABLE = True
     ICON = None
     DEFAULT_TITLE = 'Control'
     CATEGORY = 'Utils'

@@ -29,7 +29,7 @@ class QLGraphicsTitle(QtWidgets.QGraphicsTextItem):
         line_edit.editingFinished.connect(line_edit_proxy.deleteLater)
         line_edit.setFont(self.font())
 
-        line_edit.setMaximumSize(self.boundingRect().width(), self.boundingRect().height())
+        line_edit.setMaximumWidth(self.gr_node.width)
         line_edit.setText(self.toPlainText())
         line_edit.setFocus(QtCore.Qt.MouseFocusReason)
 

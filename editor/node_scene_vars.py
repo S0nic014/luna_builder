@@ -235,7 +235,6 @@ class QLVarsListWidget(QtWidgets.QListWidget):
     def populate(self):
         self.clear()
         if not self.scene_vars:
-            Logger.error('Failed to populate Vars list, scene_vars is {0}'.format(self.scene_vars))
             return
 
         for var_name, value_dt_pair in self.scene_vars._vars.items():

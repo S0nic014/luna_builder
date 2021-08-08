@@ -14,11 +14,13 @@ imp.reload(graphics_node)
 class NodeSignals(QtCore.QObject):
     compiled_changed = QtCore.Signal(bool)
     invalid_changed = QtCore.Signal(bool)
+    title_edited = QtCore.Signal(str)
 
 
 class Node(node_serializable.Serializable):
 
     TITLE_HEIGHT = 24
+    TITLE_EDITABLE = False
     DEFAULT_TITLE = 'Custom Node'
     IS_EXEC = True
     AUTO_INIT_EXECS = True
@@ -81,6 +83,7 @@ class Node(node_serializable.Serializable):
     def create_connections(self):
         self.signals.compiled_changed.connect(self.on_compiled_change)
         self.signals.invalid_changed.connect(self.on_invalid_change)
+        self.signals.title_edited.connect(self.on_title_edited)
 
     def remove_existing_sockets(self):
         if hasattr(self, 'inputs') and hasattr(self, 'outputs'):
@@ -222,6 +225,20 @@ class Node(node_serializable.Serializable):
         for child_node in self.list_children():
             child_node.set_compiled(state)
             child_node.mark_children_compiled(state)
+
+    # ========= Interaction methods ========== #
+    def edit_title(self):
+        if self.TITLE_EDITABLE:
+            self.gr_node.title_item.set_text_interaction(True, cursor_at_end=True)
+        else:
+            Logger.warning('Title for node {0} is not editable'.format(self.title))
+
+    def on_title_edited(self, new_title):
+        if not new_title:
+            new_title = self.DEFAULT_TITLE
+        old_title = self.title
+        self._title = new_title
+        self.scene.history.store_history('Renamed node {0}->{1}'.format(old_title, new_title))
 
     # ========= Serialization methods ========== #
 

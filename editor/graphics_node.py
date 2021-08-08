@@ -1,8 +1,70 @@
-import math
 from luna import Logger
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
+
+
+class QLGraphicsTitle(QtWidgets.QGraphicsTextItem):
+
+    EDIT_FLAGS = QtWidgets.QGraphicsItem.ItemIsFocusable
+
+    def __init__(self, gr_node, text='', is_editable=False):
+        super(QLGraphicsTitle, self).__init__(text, gr_node)
+        self.gr_node = gr_node
+        self.is_editable = is_editable
+        self.default_flags = self.flags()
+        self.previous_text = None
+        self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
+
+    def set_text_interaction(self, state, select_all=False, cursor_at_end=True):
+        # Save previous text to compare later
+        # Title is not in edit mode already and becomes editable
+        if state and self.textInteractionFlags() == QtCore.Qt.NoTextInteraction:
+            # Define starting text
+            self.previous_text = self.toPlainText()
+            if self.previous_text == self.gr_node.node.DEFAULT_TITLE:
+                self.setPlainText('')
+
+            # Set flags and focus
+            self.setFlags(self.EDIT_FLAGS)
+            self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+            # Set cursor
+            self.setFocus(QtCore.Qt.MouseFocusReason)
+            cursor = self.textCursor()  # type: QtGui.QTextCursor
+            if cursor_at_end:
+                cursor.movePosition(QtGui.QTextCursor.End)
+            elif select_all:
+                cursor.select(QtGui.QTextCursor.Document)
+            self.setTextCursor(cursor)
+        # Title is editable and becomes not editable
+        elif not state and self.textInteractionFlags() == QtCore.Qt.TextEditorInteraction:
+            self.setFlags(self.default_flags)
+            self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
+            cursor = self.textCursor()
+            cursor.clearSelection()
+            self.setTextCursor(cursor)
+            self.clearFocus()
+
+    def apply_edit(self):
+        new_text = self.toPlainText().strip()
+        if new_text == self.previous_text:
+            return
+        self.gr_node.node.signals.title_edited.emit(new_text)
+
+    def exit_editing(self):
+        self.set_text_interaction(False)
+        self.apply_edit()
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Return:
+            self.exit_editing()
+            return
+
+        super(QLGraphicsTitle, self).keyPressEvent(event)
+
+    def focusOutEvent(self, event):
+        self.exit_editing()
+        super(QLGraphicsTitle, self).focusOutEvent(event)
 
 
 class QLGraphicsNode(QtWidgets.QGraphicsItem):
@@ -31,12 +93,11 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
 
     @property
     def title(self):
-        return self._title
+        return self.title_item.toPlainText()
 
     @title.setter
     def title(self, value):
-        self._title = value
-        self.title_item.setPlainText(self._title)
+        self.title_item.setPlainText(value)
 
     @property
     def width(self):
@@ -69,7 +130,7 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         self._brush_background = QtGui.QBrush(QtGui.QColor("#E3212121"))
 
     def init_title(self):
-        self.title_item = QtWidgets.QGraphicsTextItem(self)
+        self.title_item = QLGraphicsTitle(self, is_editable=self.node.TITLE_EDITABLE)
         self.title_item.setDefaultTextColor(self._title_color)
         self.title_item.setFont(self._title_font)
         self.title_item.setPos(self.title_horizontal_padding, 0)

@@ -177,6 +177,14 @@ class Scene(node_serializable.Serializable):
         self._last_selected_items = current_selection
         self.signals.selection_changed.emit()
 
+    def rename_selected_node(self):
+        sel = self.selected_nodes
+        if not sel:
+            Logger.warning('Select a node to rename.')
+            return
+        sel = sel[-1]
+        sel.edit_title()
+
     # ====== Cut / Copy / Paste / Delete ====== #
     def copy_selected(self):
         if not self.selected_nodes:

@@ -28,6 +28,7 @@ class EditMenu(QtWidgets.QMenu):
         return editor.gr_view
 
     def create_actions(self):
+        self.rename_selected_node_action = QtWidgets.QAction('Rename selected node', self)
         self.undo_action = QtWidgets.QAction("&Undo", self)
         self.redo_action = QtWidgets.QAction("&Redo", self)
         self.copy_action = QtWidgets.QAction("&Copy", self)
@@ -35,6 +36,9 @@ class EditMenu(QtWidgets.QMenu):
         self.paste_action = QtWidgets.QAction("&Paste", self)
         self.delete_action = QtWidgets.QAction("&Delete", self)
 
+        self.addAction(self.rename_selected_node_action)
+
+        self.rename_selected_node_action.setShortcut('F2')
         self.undo_action.setShortcut('Ctrl+Z')
         self.redo_action.setShortcut('Ctrl+Y')
         self.copy_action.setShortcut('Ctrl+C')
@@ -46,6 +50,7 @@ class EditMenu(QtWidgets.QMenu):
         self.main_window.mdi_area.subWindowActivated.connect(self.update_actions_state)
         self.aboutToShow.connect(self.update_actions_state)
         # Actions
+        self.rename_selected_node_action.triggered.connect(self.on_rename_selected_node)
         self.undo_action.triggered.connect(self.on_undo)
         self.redo_action.triggered.connect(self.on_redo)
         self.copy_action.triggered.connect(self.on_copy)
@@ -54,6 +59,7 @@ class EditMenu(QtWidgets.QMenu):
         self.delete_action.triggered.connect(self.on_delete)
 
     def populate(self):
+        self.addAction(self.rename_selected_node_action)
         self.addAction(self.undo_action)
         self.addAction(self.redo_action)
         self.addSeparator()
@@ -65,12 +71,20 @@ class EditMenu(QtWidgets.QMenu):
 
     def update_actions_state(self):
         is_scene_set = self.node_scene is not None
+        self.rename_selected_node_action.setEnabled(is_scene_set)
         self.undo_action.setEnabled(is_scene_set)
         self.redo_action.setEnabled(is_scene_set)
         self.copy_action.setEnabled(is_scene_set)
         self.cut_action.setEnabled(is_scene_set)
         self.paste_action.setEnabled(is_scene_set)
         self.delete_action.setEnabled(is_scene_set)
+
+    def on_rename_selected_node(self):
+        if self.node_scene is not None:
+            try:
+                self.node_scene.rename_selected_node()
+            except Exception:
+                Logger.exception('Node rename exception')
 
     def on_undo(self):
         if self.node_scene is not None:

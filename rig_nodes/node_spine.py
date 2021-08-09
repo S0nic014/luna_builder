@@ -15,8 +15,8 @@ class SpineNode(base_component.AnimComponentNode):
     UNIQUE = False
     COMPONENT_CLASS = spine_component.SpineComponent
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(SpineNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(SpineNode, self).init_sockets(reset=reset)
         self.in_name.set_value('spine')
         self.in_tag.set_value('body')
         self.out_self.data_type = editor_conf.DataType.SPINE_COMPONENT
@@ -27,8 +27,8 @@ class FKIKSpineNode(SpineNode):
     DEFAULT_TITLE = 'FKIK Spine'
     COMPONENT_CLASS = luna_rig.components.FKIKSpineComponent
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(FKIKSpineNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(FKIKSpineNode, self).init_sockets(reset=reset)
         # Override types
         self.out_self.data_type = editor_conf.DataType.FKIK_SPINE_COMPONENT
 

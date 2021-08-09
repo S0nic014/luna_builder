@@ -12,8 +12,8 @@ class WireComponentNode(base_component.AnimComponentNode):
     CATEGORY = 'Components'
     COMPONENT_CLASS = luna_rig.components.WireComponent
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(WireComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(WireComponentNode, self).init_sockets(reset=reset)
         # Override inputs
         self.in_name.set_value('wire')
 

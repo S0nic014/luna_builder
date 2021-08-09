@@ -10,7 +10,7 @@ class BranchNode(luna_node.LunaNode):
     DEFAULT_TITLE = 'Branch'
     CATEGORY = 'Utils'
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
+    def init_sockets(self, reset=True):
         self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)
         self.in_condition = self.add_input(editor_conf.DataType.BOOLEAN)
 

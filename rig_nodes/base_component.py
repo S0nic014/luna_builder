@@ -10,12 +10,12 @@ class ComponentNode(luna_node.LunaNode):
     COMPONENT_CLASS = luna_rig.Component
     TITLE_EDITABLE = True
 
-    def __init__(self, scene, title=None, inputs=[], outputs=[]):
-        super(ComponentNode, self).__init__(scene, title=title, inputs=inputs, outputs=outputs)
+    def __init__(self, scene, title=None):
+        super(ComponentNode, self).__init__(scene, title=title)
         self.component_instance = None
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(ComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(ComponentNode, self).init_sockets(reset=reset)
         # Inputs
         self.in_meta_parent = self.add_input(editor_conf.DataType.COMPONENT, label='Parent', value=None)
         self.in_side = self.add_input(editor_conf.DataType.STRING, label='Side', value='c')
@@ -42,8 +42,8 @@ class AnimComponentNode(ComponentNode):
     DEFAULT_TITLE = 'Anim Component'
     COMPONENT_CLASS = luna_rig.AnimComponent
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(AnimComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(AnimComponentNode, self).init_sockets(reset=reset)
         # Override types
         self.out_self.data_type = editor_conf.DataType.ANIM_COMPONENT
         self.in_meta_parent.data_type = self.out_meta_parent.data_type = editor_conf.DataType.ANIM_COMPONENT

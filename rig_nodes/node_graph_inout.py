@@ -17,7 +17,7 @@ class GraphInputNode(luna_node.LunaNode):
     CATEGORY = 'Utils'
     UNIQUE = True
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
+    def init_sockets(self, reset=True):
         self.exec_in_socket = None
         self.exec_out_socket = self.add_output(editor_conf.DataType.EXEC)
         self.out_asset_name = self.add_output(editor_conf.DataType.STRING, label='Asset Name', value='')
@@ -42,7 +42,7 @@ class GraphOutputNode(luna_node.LunaNode):
     CATEGORY = 'Utils'
     UNIQUE = True
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
+    def init_sockets(self, reset=True):
         self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)
         self.in_character = self.add_input(editor_conf.DataType.CHARACTER, label='Character')
 

@@ -10,12 +10,12 @@ class ConstantNode(luna_node.LunaNode):
     MIN_WIDTH = 100
     CONSTANT_DATA_TYPE = None
 
-    def __init__(self, scene, title=None, inputs=[], outputs=[]):
+    def __init__(self, scene, title=None):
         self.data_type = getattr(editor_conf.DataType, self.CONSTANT_DATA_TYPE)
-        super(ConstantNode, self).__init__(scene, title=title, inputs=inputs, outputs=outputs)
+        super(ConstantNode, self).__init__(scene, title=title)
         self.update_title()
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
+    def init_sockets(self, reset=True):
         self.out_value = self.add_output(self.data_type, label='Value', value=None)
 
     def create_connections(self):

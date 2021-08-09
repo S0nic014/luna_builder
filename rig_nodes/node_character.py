@@ -14,8 +14,8 @@ class CharacterNode(base_component.ComponentNode):
     UNIQUE = True
     COMPONENT_CLASS = luna_rig.components.Character
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(CharacterNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(CharacterNode, self).init_sockets(reset=reset)
         self.out_self.data_type = editor_conf.DataType.CHARACTER
         self.in_name.set_value('character')
         self.in_tag.set_value('character')

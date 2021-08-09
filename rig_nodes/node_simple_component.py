@@ -13,8 +13,8 @@ class SimpleComponentNode(base_component.AnimComponentNode):
     UNIQUE = False
     COMPONENT_CLASS = luna_rig.components.SimpleComponent
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(SimpleComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(SimpleComponentNode, self).init_sockets(reset=reset)
         # Override inputs
         self.in_name.set_value('simple')
 

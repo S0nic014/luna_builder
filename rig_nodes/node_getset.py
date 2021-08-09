@@ -10,9 +10,9 @@ class VarNode(luna_node.LunaNode):
     DEFAULT_TITLE = ''
     CATEGORY = editor_conf.INTERNAL_CATEGORY
 
-    def __init__(self, scene, title=None, inputs=[], outputs=[]):
+    def __init__(self, scene, title=None):
         self._var_name = None
-        super(VarNode, self).__init__(scene, title=title, inputs=inputs, outputs=outputs)
+        super(VarNode, self).__init__(scene, title=title)
 
     @property
     def var_name(self):
@@ -68,8 +68,8 @@ class SetNode(VarNode):
     ICON = None
     DEFAULT_TITLE = 'Set'
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(SetNode, self).init_sockets(inputs, outputs, reset)
+    def init_sockets(self, reset=True):
+        super(SetNode, self).init_sockets(reset=reset)
         if not self.var_name:
             return
 
@@ -99,11 +99,11 @@ class GetNode(VarNode):
     ICON = None
     DEFAULT_TITLE = 'Get'
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
+    def init_sockets(self, reset=True):
         if not self.var_name:
             return
 
-        super(GetNode, self).init_sockets(inputs, outputs, reset)
+        super(GetNode, self).init_sockets(reset=reset)
         self.out_value = self.add_output(self.scene.vars.get_data_type(self.var_name, as_dict=True), value=self.scene.vars.get_value(self.var_name))
         self.out_value.value = self.get_var_value
 

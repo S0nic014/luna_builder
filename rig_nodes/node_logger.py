@@ -11,8 +11,8 @@ class LoggerNode(luna_node.LunaNode):
     DEFAULT_TITLE = 'Log'
     CATEGORY = 'Utils'
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(LoggerNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(LoggerNode, self).init_sockets(reset=reset)
         self.in_message = self.add_input(editor_conf.DataType.STRING, 'Message')
         self.in_info = self.add_input(editor_conf.DataType.BOOLEAN, 'As Info', value=True)
         self.in_warning = self.add_input(editor_conf.DataType.BOOLEAN, 'As Warning', value=False)

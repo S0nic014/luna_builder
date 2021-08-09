@@ -12,8 +12,8 @@ class IKComponentNode(base_component.AnimComponentNode):
     CATEGORY = 'Components'
     COMPONENT_CLASS = luna_rig.components.IKComponent
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(IKComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(IKComponentNode, self).init_sockets(reset=reset)
         # Override inputs
         self.in_name.set_value('ik_component')
 
@@ -46,8 +46,8 @@ class IKSplineComponentNode(base_component.AnimComponentNode):
     CATEGORY = 'Components'
     COMPONENT_CLASS = luna_rig.components.IKSplineComponent
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(IKSplineComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(IKSplineComponentNode, self).init_sockets(reset=reset)
         # Override inputs
         self.in_name.set_value('ik_spline')
 

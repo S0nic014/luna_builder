@@ -47,8 +47,8 @@ class LunaNode(node_node.Node):
     UNIQUE = False
     CATEGORY = 'Utils'
 
-    def __init__(self, scene, title=None, inputs=[], outputs=[]):
-        super(LunaNode, self).__init__(scene, title=title, inputs=inputs, outputs=outputs)
+    def __init__(self, scene, title=None):
+        super(LunaNode, self).__init__(scene, title=title)
 
     def init_inner_classes(self):
         self.gr_node = LunaGraphicsNode(self)

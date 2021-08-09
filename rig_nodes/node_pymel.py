@@ -12,8 +12,8 @@ class ConnectAttribNode(luna_node.LunaNode):
     DEFAULT_TITLE = 'Connect Attributes'
     CATEGORY = 'Functions/Pymel'
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(ConnectAttribNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(ConnectAttribNode, self).init_sockets(reset=reset)
         self.in_source_node_name = self.add_input(editor_conf.DataType.STRING, label='Source Node')
         self.in_source_attr_name = self.add_input(editor_conf.DataType.STRING, label='Source Attribute')
         self.in_dest_node_name = self.add_input(editor_conf.DataType.STRING, label='Destination Node')
@@ -32,8 +32,8 @@ class AddToggleAttribNode(luna_node.LunaNode):
     DEFAULT_TITLE = 'Add Toggle Attribute'
     CATEGORY = 'Functions/Pymel'
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(AddToggleAttribNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(AddToggleAttribNode, self).init_sockets(reset=reset)
         self.in_node_name = self.add_input(editor_conf.DataType.STRING, label='Node')
         self.in_attr_name = self.add_input(editor_conf.DataType.STRING, label='Name', value='newAttr')
         self.in_default_value = self.add_input(editor_conf.DataType.BOOLEAN, label='Value', value=False)

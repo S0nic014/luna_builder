@@ -11,13 +11,13 @@ class FunctionNode(luna_node.LunaNode):
     DEFAULT_TITLE = 'Function'
     CATEGORY = editor_conf.INTERNAL_CATEGORY
 
-    def __init__(self, scene, title=None, inputs=[], outputs=[]):
+    def __init__(self, scene, title=None):
         self._func_signature = ''
         self._func_desc = {}
-        super(FunctionNode, self).__init__(scene, title=title, inputs=inputs, outputs=outputs)
+        super(FunctionNode, self).__init__(scene, title=title)
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(FunctionNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(FunctionNode, self).init_sockets(reset=reset)
         if not self._func_desc:
             return
 

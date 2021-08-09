@@ -37,7 +37,7 @@ class Node(node_serializable.Serializable):
         nice_id = '{0}..{1}'.format(hex(id(self))[2:5], hex(id(self))[-3:])
         return "<{0} {1}>".format(cls_name, nice_id)
 
-    def __init__(self, scene, title=None, inputs=[], outputs=[]):
+    def __init__(self, scene, title=None):
         super(Node, self).__init__()
         self.scene = scene
         self.signals = NodeSignals()
@@ -59,7 +59,7 @@ class Node(node_serializable.Serializable):
         self.scene.gr_scene.addItem(self.gr_node)
         # Sockets
         self.signals.socket_number_changed.connect(self.on_socket_number_change)
-        self.init_sockets(inputs=inputs, outputs=outputs)
+        self.init_sockets()
         self.create_connections()
 
     def init_settings(self):
@@ -69,7 +69,8 @@ class Node(node_serializable.Serializable):
         # Setup graphics
         self.gr_node = graphics_node.QLGraphicsNode(self)
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
+    def init_sockets(self, reset=True):
+        self.exec_in_socket = self.exec_out_socket = None
         if reset:
             self.remove_existing_sockets()
 
@@ -77,14 +78,6 @@ class Node(node_serializable.Serializable):
         if self.__class__.IS_EXEC and self.__class__.AUTO_INIT_EXECS:
             self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)
             self.exec_out_socket = self.add_output(editor_conf.DataType.EXEC, max_connections=1)
-        else:
-            self.exec_in_socket = self.exec_out_socket = None
-
-        for datatype in inputs:
-            self.add_input(datatype, label=None, value=None)
-
-        for datatype in outputs:
-            self.add_output(datatype, label=None, value=None)
 
     def create_connections(self):
         self.signals.compiled_changed.connect(self.on_compiled_change)

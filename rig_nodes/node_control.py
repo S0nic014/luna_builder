@@ -13,8 +13,8 @@ class ControlNode(luna_node.LunaNode):
     CATEGORY = 'Utils'
     UNIQUE = False
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(ControlNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(ControlNode, self).init_sockets(reset=reset)
 
         self.in_name = self.add_input(editor_conf.DataType.STRING, label='Name', value='control')
         self.in_side = self.add_input(editor_conf.DataType.STRING, label='Side', value='c')

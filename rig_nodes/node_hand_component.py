@@ -13,8 +13,8 @@ class HandComponentNode(base_component.AnimComponentNode):
     UNIQUE = False
     COMPONENT_CLASS = luna_rig.components.HandComponent
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(HandComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(HandComponentNode, self).init_sockets(reset=reset)
         # Override inputs
         self.in_name.set_value('hand')
 

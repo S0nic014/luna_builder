@@ -83,6 +83,3 @@ def register_plugin():
                                   outputs_dict={'Curve': editor_conf.DataType.LIST},
                                   nice_name='Get Shape Controls',
                                   category='Wire Component')
-
-    # def get_shape_controls(self):
-    #     return self.shape_controls

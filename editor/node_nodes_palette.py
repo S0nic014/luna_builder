@@ -252,6 +252,8 @@ class PopupNodesPalette(QtWidgets.QDialog):
             item = self.nodes_palette.nodes_tree.currentItem()
             if item:
                 self.spawn_clicked_node(item)
+                return True
+        return False
 
     def is_dragging_from_output(self):
         return self.view.drag_edge and self.view.drag_edge.start_socket

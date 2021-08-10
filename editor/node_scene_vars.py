@@ -1,5 +1,4 @@
 import json
-import copy
 from collections import OrderedDict
 from PySide2 import QtCore
 from PySide2 import QtGui
@@ -98,16 +97,16 @@ class SceneVars(node_serializable.Serializable):
 
     def serialize(self):
         try:
-            result = copy.deepcopy(self._vars)
+            result = OrderedDict()
+            for var_name, value_type_pair in self._vars.items():
+                value, type_name = value_type_pair
+                if type_name in editor_conf.DataType.runtime_types(names=True):
+                    result[var_name] = [editor_conf.DATATYPE_REGISTER[type_name]['default'], type_name]
+                else:
+                    result[var_name] = [value, type_name]
         except Exception:
-            Logger.exception('ScenVars serializedeepcopy exception')
+            Logger.exception('ScenVars serialize exception')
             raise
-        for var_name, value_type_pair in result.items():
-            value, type_name = value_type_pair
-            if type_name in editor_conf.DataType.runtime_types(names=True):
-                result[var_name] = [editor_conf.DATATYPE_REGISTER[type_name]['default'], type_name]
-            else:
-                result[var_name] = [value, type_name]
         return result
 
     def deserialize(self, data, hashmap={}):

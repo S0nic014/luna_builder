@@ -16,7 +16,7 @@ class NodeSignals(QtCore.QObject):
     compiled_changed = QtCore.Signal(bool)
     invalid_changed = QtCore.Signal(bool)
     title_edited = QtCore.Signal(str)
-    socket_number_changed = QtCore.Signal()
+    num_sockets_changed = QtCore.Signal()
 
 
 class Node(node_serializable.Serializable):
@@ -59,7 +59,7 @@ class Node(node_serializable.Serializable):
         self.scene.add_node(self)
         self.scene.gr_scene.addItem(self.gr_node)
         # Sockets
-        self.signals.socket_number_changed.connect(self.on_socket_number_change)
+        self.signals.num_sockets_changed.connect(self.on_num_sockets_changed)
         self.init_sockets()
         self.create_connections()
 
@@ -199,7 +199,7 @@ class Node(node_serializable.Serializable):
         self.update_socket_positions()
         self.update_connected_edges()
 
-    def on_socket_number_change(self):
+    def on_num_sockets_changed(self):
         self.update_size()
 
     def remove(self):
@@ -324,7 +324,7 @@ class Node(node_serializable.Serializable):
                 value = socket_data.get('value', data_type['default'])
                 found = self.add_output(data_type, socket_data['label'], value=value)
             found.deserialize(socket_data, hashmap, restore_id)
-        self.signals.socket_number_changed.emit()
+        self.signals.num_sockets_changed.emit()
 
     # ========= Socket creation methods ========== #
     def add_input(self, data_type, label=None, value=None, *args, **kwargs):
@@ -339,7 +339,7 @@ class Node(node_serializable.Serializable):
                                          *args,
                                          **kwargs)
         self.inputs.append(socket)
-        self.signals.socket_number_changed.emit()
+        self.signals.num_sockets_changed.emit()
         return socket
 
     def add_output(self, data_type, label=None, max_connections=0, value=None, *args, **kwargs):
@@ -356,7 +356,7 @@ class Node(node_serializable.Serializable):
                                           *args,
                                           **kwargs)
         self.outputs.append(socket)
-        self.signals.socket_number_changed.emit()
+        self.signals.num_sockets_changed.emit()
         return socket
 
     def remove_socket(self, name, is_input=True):
@@ -372,7 +372,7 @@ class Node(node_serializable.Serializable):
                     self.outputs[socket_to_remove.index + 1].index -= 1
                 self.outputs.remove(socket_to_remove)
             socket_to_remove.remove()
-            self.signals.socket_number_changed.emit()
+            self.signals.num_sockets_changed.emit()
         except IndexError:
             Logger.error('Failed to delete input, socket with name {0} does not exist'.format(name))
 

@@ -75,7 +75,7 @@ class SceneHistory(object):
 
         # Increment step if possible
         self.stack.append(hs)
-        if self.current_step + 1 < self.stack.maxlen:
+        if not self.stack.maxlen or self.current_step + 1 < self.stack.maxlen:
             self.current_step += 1
 
         # Log change

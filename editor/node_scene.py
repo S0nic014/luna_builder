@@ -125,7 +125,7 @@ class Scene(node_serializable.Serializable):
         return self._last_selected_items
 
     def set_history_init_point(self):
-        Logger.debug('Store initial scene history')
+        Logger.debug('Store initial scene history (Size: {0})'.format(self.history.size))
         self.history.store_history(self.history.SCENE_INIT_DESC)
 
     def add_node(self, node):

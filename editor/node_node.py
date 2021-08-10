@@ -363,14 +363,14 @@ class Node(node_serializable.Serializable):
         try:
             if is_input:
                 socket_to_remove = [socket for socket in self.inputs if socket.label == name][0]  # type: node_socket.InputSocket
-                if socket_to_remove.index != len(self.inputs) - 1:
-                    self.inputs[socket_to_remove.index + 1].index -= 1
                 self.inputs.remove(socket_to_remove)
+                for index, socket in enumerate(self.inputs):
+                    socket.index = index
             else:
                 socket_to_remove = [socket for socket in self.outputs if socket.label == name][0]  # type: node_socket.OutputSocket
-                if socket_to_remove.index != len(self.outputs) - 1:
-                    self.outputs[socket_to_remove.index + 1].index -= 1
                 self.outputs.remove(socket_to_remove)
+                for index, socket in enumerate(self.outputs):
+                    socket.index = index
             socket_to_remove.remove()
             self.signals.num_sockets_changed.emit()
         except IndexError:

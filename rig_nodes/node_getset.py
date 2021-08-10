@@ -33,8 +33,7 @@ class VarNode(luna_node.LunaNode):
         try:
             return self.scene.vars.get_value(self.var_name)
         except KeyError:
-            Logger.error('Variable {0} does not exist!')
-            raise
+            return None
 
     def set_var_value(self, value):
         try:

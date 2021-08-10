@@ -20,7 +20,7 @@ class FootComponentNode(base_component.AnimComponentNode):
         self.in_name.set_value('foot')
         self.in_tag.set_value('body')
         # Override outputs
-        self.in_meta_parent.data_type = editor_conf.DataType.FKIK_COMPONENT
+        self.in_meta_parent.data_type = 'FKIK_COMPONENT'
         self.out_self.data_type = editor_conf.DataType.FOOT_COMPONENT
 
         # Create new inputs

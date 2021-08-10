@@ -1,3 +1,4 @@
+import sys
 from luna import Logger
 import luna_builder.editor.editor_conf as editor_conf
 import luna_builder.rig_nodes.luna_node as luna_node
@@ -68,7 +69,13 @@ class FunctionNode(luna_node.LunaNode):
         return res
 
     def pre_deserilization(self, data):
-        self.func_signature = data.get('func_signature')
+        func_sign = data.get('func_signature')  # type: str
+        if sys.version_info[0] >= 3 and '__builtin__' in func_sign:
+            self.func_signature = func_sign.replace('__builtin__', 'builtins')
+        elif sys.version_info[0] < 3 and 'builtins' in func_sign:
+            self.func_signature = func_sign.replace('builtins', '__builtin__')
+        else:
+            self.func_signature = func_sign
 
     def execute(self):
         attr_values = [socket.value() for socket in self.list_non_exec_inputs()]

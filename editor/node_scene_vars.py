@@ -219,8 +219,13 @@ class QLVarsListWidget(QtWidgets.QListWidget):
         if not json_data:
             return
 
-        # Compare item new and old var names
         old_var_name = json_data['var_name']
+
+        # Handle empty name
+        if not item.text().strip():
+            item.setText(old_var_name)
+
+        # Compare item new and old var names
         if item.text() == old_var_name:
             return
         # Do renaming if was changed

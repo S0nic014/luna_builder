@@ -9,6 +9,7 @@ class GraphExecutor(object):
     # TODO: Step by step execution
     def __init__(self, scene):
         self.scene = scene
+        self.step = 0
         self._exec_chain = deque()  # type: deque
         self._exec_set = set()  # type: set
 
@@ -38,22 +39,27 @@ class GraphExecutor(object):
             Logger.warning('More than 1 input node in the scene. Only the first one added will be executed!')
         return input_nodes[0]
 
-    def execute_graph(self):
+    def ready_to_execute(self):
         self.reset_nodes_compiled_state()
-
         input_node = self.find_input_node()
         if not input_node:
-            return
+            return False
+
         self.exec_chain = input_node.get_exec_queue()
         result = self.verify_graph()
         if not result:
             Logger.warning('Invalid graph, execution canceled')
+            return False
+        return True
+
+    def execute_graph(self):
+        if not self.ready_to_execute():
             return
 
         Logger.info('Initiating new build...')
         start_time = timeit.default_timer()
         self.scene.is_executing = True
-        for node in input_node.get_exec_queue():
+        for node in self.exec_chain:
             try:
                 node._exec()
             except Exception:
@@ -63,6 +69,28 @@ class GraphExecutor(object):
 
         Logger.info("Build finished in {0:.2f}s".format(timeit.default_timer() - start_time))
         self.scene.is_executing = False
+
+    def execute_step(self):
+        if not self.exec_chain and not self.ready_to_execute():
+            return
+
+        if self.step == len(self.exec_chain):
+            self.reset_stepped_execution()
+
+        try:
+            self.scene.is_executing = True
+            node = self.exec_chain[self.step]
+            node._exec()
+            self.step += 1
+        except Exception:
+            Logger.exception('Failed to execute {0}'.format(node.title))
+            self.scene.is_executing = False
+            return
+
+    def reset_stepped_execution(self):
+        Logger.info('Execution reset')
+        self.step = 0
+        self.exec_chain.clear()
 
     def verify_graph(self):
         Logger.info('Verifing graph...')

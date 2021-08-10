@@ -53,6 +53,7 @@ class GraphExecutor(object):
         return True
 
     def execute_graph(self):
+        self.reset_stepped_execution()
         if not self.ready_to_execute():
             return
 
@@ -88,7 +89,6 @@ class GraphExecutor(object):
             return
 
     def reset_stepped_execution(self):
-        Logger.info('Execution reset')
         self.step = 0
         self.exec_chain.clear()
 

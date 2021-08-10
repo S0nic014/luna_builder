@@ -1,5 +1,6 @@
 import imp
 from PySide2 import QtCore
+from collections import deque
 from collections import OrderedDict
 
 from luna import Logger
@@ -394,6 +395,16 @@ class Node(node_serializable.Serializable):
             exec_children += [socket.node for socket in exec_out.list_connections()]
         return exec_children
 
+    def get_exec_queue(self):
+        exec_queue = deque([self])
+
+        for exec_out in self.list_exec_outputs():
+            if not exec_out.list_connections():
+                continue
+            exec_queue.extend(exec_out.list_connections()[0].node.get_exec_queue())
+
+        return exec_queue
+
     def update_affected_outputs(self):
         for input in self.inputs:
             input.update_affected()
@@ -410,7 +421,6 @@ class Node(node_serializable.Serializable):
 
         self.set_compiled(True)
         self.set_invalid(False)
-        self.exec_children()
         return 0
 
     def execute(self):

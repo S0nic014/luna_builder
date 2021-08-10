@@ -1,4 +1,6 @@
 import timeit
+
+from collections import deque
 from luna import Logger
 import luna_builder.editor.editor_conf as editor_conf
 
@@ -7,6 +9,25 @@ class GraphExecutor(object):
     # TODO: Step by step execution
     def __init__(self, scene):
         self.scene = scene
+        self._exec_chain = deque()  # type: deque
+        self._exec_set = set()  # type: set
+
+    @property
+    def exec_chain(self):
+        return self._exec_chain
+
+    @exec_chain.setter
+    def exec_chain(self, queue):
+        self._exec_chain = queue
+        self._exec_set = set(queue)
+
+    @property
+    def exec_set(self):
+        return self._exec_set
+
+    def reset_nodes_compiled_state(self):
+        for node in self.scene.nodes:
+            node._is_compiled = False
 
     def find_input_node(self):
         input_nodes = [node for node in self.scene.nodes if node.ID == editor_conf.INPUT_NODE_ID]
@@ -19,6 +40,11 @@ class GraphExecutor(object):
 
     def execute_graph(self):
         self.reset_nodes_compiled_state()
+
+        input_node = self.find_input_node()
+        if not input_node:
+            return
+        self.exec_chain = input_node.get_exec_queue()
         result = self.verify_graph()
         if not result:
             Logger.warning('Invalid graph, execution canceled')
@@ -26,25 +52,22 @@ class GraphExecutor(object):
 
         Logger.info('Initiating new build...')
         start_time = timeit.default_timer()
-        input_node = self.find_input_node()
-        if not input_node:
-            return
-        # Execute
-        try:
-            self.scene.is_executing = True
-            input_node._exec()
-            Logger.info("Build finished in {0:.2f}s".format(timeit.default_timer() - start_time))
-        except Exception:
-            self.scene.is_executing = False
+        self.scene.is_executing = True
+        for node in input_node.get_exec_queue():
+            try:
+                node._exec()
+            except Exception:
+                Logger.exception('Failed to execute {0}'.format(node.title))
+                self.scene.is_executing = False
+                return
 
-    def reset_nodes_compiled_state(self):
-        for node in self.scene.nodes:
-            node._is_compiled = False
+        Logger.info("Build finished in {0:.2f}s".format(timeit.default_timer() - start_time))
+        self.scene.is_executing = False
 
     def verify_graph(self):
         Logger.info('Verifing graph...')
-        invalid_nodes = []
-        for node in self.scene.nodes:
+        invalid_nodes = deque()
+        for node in self.exec_chain:
             result = node.verify()
             if not result:
                 node.set_invalid(True)

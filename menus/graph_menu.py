@@ -18,7 +18,7 @@ class GraphMenu(QtWidgets.QMenu):
         editor = self.main_window.current_editor
         if not editor:
             return None
-        return editor.executor
+        return editor.scene.executor
 
     @property
     def node_scene(self):

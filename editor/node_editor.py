@@ -10,13 +10,11 @@ import luna_builder.editor.editor_conf as editor_conf
 import luna_builder.editor.node_scene as node_scene
 import luna_builder.editor.graphics_view as graphics_view
 import luna_builder.editor.node_context_menus as context_menus
-import luna_builder.editor.graph_executor as graph_executor
 import luna_builder.editor.node_nodes_palette as node_nodes_palette
 
 imp.reload(context_menus)
 imp.reload(node_scene)
 imp.reload(graphics_view)
-imp.reload(graph_executor)
 
 
 class EditorSignals(QtCore.QObject):
@@ -46,7 +44,6 @@ class NodeEditor(QtWidgets.QWidget):
     def create_widgets(self):
         # Graphics scene
         self.scene = node_scene.Scene()
-        self.executor = graph_executor.GraphExecutor(self.scene)
 
         # Graphics view
         self.gr_view = graphics_view.QLGraphicsView(self.scene.gr_scene, self)

@@ -16,6 +16,7 @@ import luna_builder.editor.node_serializable as node_serializable
 import luna_builder.editor.node_scene_history as scene_history
 import luna_builder.editor.node_scene_clipboard as scene_clipboard
 import luna_builder.editor.node_scene_vars as node_scene_vars
+import luna_builder.editor.graph_executor as graph_executor
 # imp.reload(node_scene_vars)
 imp.reload(scene_history)
 imp.reload(scene_clipboard)
@@ -46,6 +47,7 @@ class Scene(node_serializable.Serializable):
         self.nodes = []
         self.edges = []
         self.is_executing = False
+        self.executor = self.executor = graph_executor.GraphExecutor(self)
         self.vars = node_scene_vars.SceneVars(self)
         self.gr_scene = None  # type: graphics_scene.QLGraphicsScene
 

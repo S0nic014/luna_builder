@@ -3,6 +3,7 @@ from PySide2 import QtGui
 from PySide2 import QtWidgets
 
 import luna.utils.pysideFn as pysideFn
+import luna_builder.editor.node_edge as node_edge
 
 
 class GraphMenu(QtWidgets.QMenu):
@@ -12,6 +13,7 @@ class GraphMenu(QtWidgets.QMenu):
 
         self.setTearOffEnabled(True)
         self.create_actions()
+        self.create_sub_menus()
         self.populate()
         self.create_connections()
 
@@ -37,6 +39,16 @@ class GraphMenu(QtWidgets.QMenu):
         return editor.gr_view
 
     def create_actions(self):
+        # Edge type
+        self.edge_type_group = QtWidgets.QActionGroup(self)
+        self.edge_type_bezier_action = QtWidgets.QAction('Bezier', self)
+        self.edge_type_direct_action = QtWidgets.QAction('Direct', self)
+        self.edge_type_group.addAction(self.edge_type_bezier_action)
+        self.edge_type_group.addAction(self.edge_type_direct_action)
+
+        self.edge_type_bezier_action.setCheckable(True)
+        self.edge_type_direct_action.setCheckable(True)
+        # Execution
         self.reset_stepped_execution = QtWidgets.QAction("&Reset stepped execution", self)
         self.execute_step_action = QtWidgets.QAction("&Execute Step", self)
         self.execute_action = QtWidgets.QAction(pysideFn.get_QIcon('execute.png'), "&Execute", self)
@@ -47,12 +59,25 @@ class GraphMenu(QtWidgets.QMenu):
     def create_connections(self):
         self.main_window.mdi_area.subWindowActivated.connect(self.update_actions_state)
         self.aboutToShow.connect(self.update_actions_state)
+        # Edge type
+        self.scene_edge_type_menu.aboutToShow.connect(self.update_edge_type_menu)
+        self.edge_type_bezier_action.toggled.connect(self.on_bezier_edge_toggled)
+        self.edge_type_direct_action.toggled.connect(self.on_direct_edge_toggled)
+
         # Actions
         self.reset_stepped_execution.triggered.connect(self.on_reset_stepped_execution)
         self.execute_step_action.triggered.connect(self.on_execute_step)
         self.execute_action.triggered.connect(self.on_execute)
 
+    def create_sub_menus(self):
+        self.scene_edge_type_menu = QtWidgets.QMenu("Edge style")
+
     def populate(self):
+        self.addMenu(self.scene_edge_type_menu)
+        self.scene_edge_type_menu.addAction(self.edge_type_bezier_action)
+        self.scene_edge_type_menu.addAction(self.edge_type_direct_action)
+
+        self.addSection('Execution')
         self.addAction(self.reset_stepped_execution)
         self.addAction(self.execute_step_action)
         self.addSeparator()
@@ -60,9 +85,34 @@ class GraphMenu(QtWidgets.QMenu):
 
     def update_actions_state(self):
         is_scene_set = self.node_scene is not None
+        self.scene_edge_type_menu.setEnabled(is_scene_set)
         self.reset_stepped_execution.setEnabled(is_scene_set)
         self.execute_step_action.setEnabled(is_scene_set)
         self.execute_action.setEnabled(is_scene_set)
+
+    def update_edge_type_menu(self):
+        if not self.main_window.current_editor:
+            self.edge_type_bezier_action.setEnabled(False)
+            self.edge_type_direct_action.setEnabled(False)
+            return
+
+        self.edge_type_bezier_action.setEnabled(True)
+        self.edge_type_direct_action.setEnabled(True)
+        bezier_selected = self.main_window.current_editor.scene.edge_type == node_edge.Edge.Type.BEZIER
+        self.edge_type_bezier_action.setChecked(bezier_selected)
+        self.edge_type_direct_action.setChecked(not bezier_selected)
+
+    def on_bezier_edge_toggled(self, state):
+        if not self.main_window.current_editor or not state:
+            return
+
+        self.main_window.current_editor.scene.edge_type = node_edge.Edge.Type.BEZIER
+
+    def on_direct_edge_toggled(self, state):
+        if not self.main_window.current_editor or not state:
+            return
+
+        self.main_window.current_editor.scene.edge_type = node_edge.Edge.Type.DIRECT
 
     def on_execute(self):
         if self.executor is not None:

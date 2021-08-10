@@ -271,6 +271,7 @@ class AssetGroup(QtWidgets.QGroupBox):
             return
 
         completer = QtWidgets.QCompleter(asset_list)
+        completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.asset_name_lineedit.setCompleter(completer)
 
     @QtCore.Slot()

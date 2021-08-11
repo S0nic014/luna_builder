@@ -46,7 +46,11 @@ class VarNode(luna_node.LunaNode):
         raise NotImplementedError
 
     def verify(self):
-        return self.var_name in self.scene.vars._vars.keys()
+        result = super(VarNode, self).verify()
+        if self.var_name not in self.scene.vars._vars.keys():
+            self.append_tooltip('Variable {0} does not exist'.format(self.var_name))
+            result = False
+        return result
 
     def serialize(self):
         result = super(VarNode, self).serialize()
@@ -73,6 +77,7 @@ class SetNode(VarNode):
             return
 
         self.in_value = self.add_input(self.scene.vars.get_data_type(self.var_name, as_dict=True))
+        self.mark_input_as_required(self.in_value)
 
     def update(self):
         var_type = self.scene.vars.get_data_type(self.var_name, as_dict=True)

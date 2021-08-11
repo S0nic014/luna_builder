@@ -45,6 +45,7 @@ class Node(node_serializable.Serializable):
         self._title = None
         self.inputs = []
         self.outputs = []
+        self._required_inputs = deque()
 
         # Evaluation
         self._is_compiled = False
@@ -185,6 +186,9 @@ class Node(node_serializable.Serializable):
             self.gr_node.width = max(max_label_width + self.gr_node.one_side_horizontal_padding, self.MIN_WIDTH, title_with_padding)
 
     # ======== Update methods ========= #
+    def append_tooltip(self, text):
+        self.gr_node.setToolTip(self.gr_node.toolTip() + text)
+
     def update_connected_edges(self):
         for socket in self.inputs + self.outputs:
             socket.update_edges()
@@ -237,8 +241,24 @@ class Node(node_serializable.Serializable):
         self._is_invalid = value
         self.signals.invalid_changed.emit(self._is_invalid)
 
-    def verify(self):
+    def verify_inputs(self):
+        invalid_inputs = deque()
+        for socket in self._required_inputs:
+            if not socket.has_edge() and not socket.value():
+                invalid_inputs.append(socket)
+        if invalid_inputs:
+            tool_tip = ''
+            for socket in invalid_inputs:
+                tool_tip += 'Invalid input: {0}\n'.format(socket.label)
+            self.append_tooltip(tool_tip)
+            return False
         return True
+
+    def verify(self):
+        self.gr_node.setToolTip('')
+        result = self.verify_inputs()
+
+        return result
 
     def on_invalid_change(self, state):
         if state:
@@ -416,6 +436,7 @@ class Node(node_serializable.Serializable):
             self.update_affected_outputs()
         except Exception:
             Logger.exception('Failed to execute {0} {1}'.format(self.title, self))
+            self.append_tooltip('Execution error (Check script editor for details)\n')
             self.set_invalid(True)
             raise
 
@@ -431,6 +452,18 @@ class Node(node_serializable.Serializable):
             node._exec()
 
     # ========= Socket finding/data retriving ========= #
+
+    def mark_input_as_required(self, input_socket):
+        if isinstance(input_socket, node_socket.InputSocket):
+            self._required_inputs.append(input_socket)
+        elif isinstance(input_socket, str):
+            socket = self.find_first_input_with_label(input_socket)
+            if not input_socket:
+                Logger.error('Can not mark input {0} as required. Failed to find socket from label.'.format(input_socket))
+                return
+            self._required_inputs.append(socket)
+        else:
+            Logger.error('Invalid required "input socket" argument {0}'.format(input_socket))
 
     def find_first_input_with_label(self, text):
         result = None

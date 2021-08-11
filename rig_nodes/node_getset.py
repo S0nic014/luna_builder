@@ -20,9 +20,10 @@ class VarNode(luna_node.LunaNode):
 
     def set_var_name(self, name, init_sockets=False):
         self._var_name = name
-        if name not in self.scene.vars._vars.keys():
-            Logger.error('Variable "{0}" no longer exists'.format(name))
-            self.set_invalid(True)
+        var_exists = name in self.scene.vars._vars.keys()
+        self.set_invalid(not var_exists)
+        if not var_exists:
+            Logger.warning('Variable "{0}" no longer exists'.format(name))
             return
 
         self.title = '{0} {1}'.format(self.DEFAULT_TITLE, self._var_name)

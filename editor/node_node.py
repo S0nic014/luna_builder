@@ -75,6 +75,7 @@ class Node(node_serializable.Serializable):
         self.gr_node = self.__class__.GRAPHICS_CLASS(self)
 
     def init_sockets(self, reset=True):
+        self._required_inputs.clear()
         self.exec_in_socket = self.exec_out_socket = None
         if reset:
             self.remove_existing_sockets()

@@ -5,6 +5,7 @@ from PySide2 import QtWidgets
 
 from luna import Logger
 import luna.utils.enumFn as enumFn
+import luna_builder.editor.node_edge_dragging as node_edge_dragging
 import luna_builder.editor.node_edge as node_edge
 import luna_builder.editor.node_socket as node_socket
 import luna_builder.editor.graphics_socket as graphics_socket
@@ -29,7 +30,6 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         super(QLGraphicsView, self).__init__(parent)
 
         # Flags
-        self.drag_edge = None
         self.is_view_dragging = False
 
         self.gr_scene = gr_scene
@@ -39,10 +39,12 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.zoom_step = 1
         self.zoom_range = (-5.0, 10.0)
 
-        self.edge_mode = QLGraphicsView.EdgeMode.NOOP
         self.last_lmb_click_pos = QtCore.QPointF(0.0, 0.0)
         self.last_scene_mouse_pos = QtCore.QPointF(0.0, 0.0)
         self.rubberband_dragging_rect = False
+
+        self.edge_mode = QLGraphicsView.EdgeMode.NOOP
+        self.dragging = node_edge_dragging.EdgeDrag(self)
 
         # Cutline
         self.cutline = graphics_cutline.QLCutLine()
@@ -130,16 +132,8 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         try:
             if self.edge_mode == QLGraphicsView.EdgeMode.DRAG:
                 pos = scene_pos
-                # Offset X to avoid clicking on the edge
                 pos.setX(pos.x() - 1.0)
-                if self.drag_edge is not None and self.drag_edge.gr_edge is not None:
-                    if self.drag_edge.start_socket:
-                        self.drag_edge.gr_edge.set_destination(pos.x(), pos.y())
-                    else:
-                        self.drag_edge.gr_edge.set_source(pos.x(), pos.y())
-                    self.drag_edge.gr_edge.update()
-                else:
-                    Logger.error('Tried to update self.drag_edge.gr_edge, but it is None')
+                self.dragging.update_positions(pos.x(), pos.y())
 
             if self.edge_mode == QLGraphicsView.EdgeMode.CUT and self.cutline is not None:
                 self.cutline.line_points.append(scene_pos)
@@ -170,11 +164,12 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         # Handle socket click
         if isinstance(item, graphics_socket.QLGraphicsSocket):
             if self.edge_mode == QLGraphicsView.EdgeMode.NOOP:
-                self.start_edge_drag(item)
+                self.edge_mode = QLGraphicsView.EdgeMode.DRAG
+                self.dragging.start_edge_drag(item)
                 return
 
         if self.edge_mode == QLGraphicsView.EdgeMode.DRAG:
-            result = self.end_edge_drag(item)
+            result = self.dragging.end_edge_drag(item)
             if result:
                 return
 
@@ -196,7 +191,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         try:
             if self.edge_mode == QLGraphicsView.EdgeMode.DRAG:
                 if self.check_lmb_release_delta(event):
-                    result = self.end_edge_drag(item)
+                    result = self.dragging.end_edge_drag(item)(item)
                     if result:
                         return
 
@@ -235,6 +230,9 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.setInteractive(True)
 
     # =========== Supporting methods =========== #
+    def reset_edge_mode(self):
+        self.edge_mode = QLGraphicsView.EdgeMode.NOOP
+
     def update_edge_width(self):
         graphics_edge.QLGraphicsEdge.WIDTH = ((self.zoom - self.zoom_range[0]) / (self.zoom_range[1] - self.zoom_range[0])) * \
             (graphics_edge.QLGraphicsEdge.MIN_WIDTH - graphics_edge.QLGraphicsEdge.MAX_WIDTH) + graphics_edge.QLGraphicsEdge.MAX_WIDTH
@@ -262,46 +260,6 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         new_lmb_releas_scene_pos = self.mapToScene(event.pos())
         click_release_delta = new_lmb_releas_scene_pos - self.last_lmb_click_pos
         return (click_release_delta.x() ** 2 + click_release_delta.y() ** 2) > QLGraphicsView.EDGE_DRAG_START_THRESHOLD ** 2
-
-    def start_edge_drag(self, item):
-        self.edge_mode = QLGraphicsView.EdgeMode.DRAG
-        Logger.debug('Start dragging edge: {}'.format(self.edge_mode))
-        if isinstance(item.socket, node_socket.OutputSocket):
-            Logger.debug('Assign start socket to: {0}'.format(item.socket))
-            self.drag_edge = node_edge.Edge(self.scene, item.socket, None)
-        else:
-            Logger.debug('Assign end socket to: {0}'.format(item.socket))
-            self.drag_edge = node_edge.Edge(self.scene, None, item.socket)
-
-    def end_edge_drag(self, item):
-        self.edge_mode = QLGraphicsView.EdgeMode.NOOP
-        Logger.debug('End dragging edge')
-        if isinstance(item, node_socket.Socket):
-            item = item.gr_socket
-
-        if not isinstance(item, graphics_socket.QLGraphicsSocket) or not item.socket.can_be_connected(self.drag_edge.get_assigned_socket()):
-            Logger.debug("Canceling edge dragging")
-            self.drag_edge.remove()
-            self.drag_edge = None
-            return False
-
-        # Another socket clicked while dragging edge
-        if isinstance(item.socket, node_socket.OutputSocket):
-            Logger.debug('Assign start socket: {0}'.format(item.socket))
-            self.drag_edge.start_socket = item.socket
-        elif isinstance(item.socket, node_socket.InputSocket):
-            Logger.debug('Assign end socket: {0}'.format(item.socket))
-            self.drag_edge.end_socket = item.socket
-
-        # Set connections, update positions
-        self.drag_edge.start_socket.set_connected_edge(self.drag_edge)
-        self.drag_edge.end_socket.set_connected_edge(self.drag_edge)
-        self.drag_edge.update_positions()
-
-        # Set input value
-        self.drag_edge = None
-        self.scene.history.store_history('Edge created by dragging', set_modified=True)
-        return True
 
     def log_scene_objects(self, item):
         if isinstance(item, graphics_socket.QLGraphicsSocket):

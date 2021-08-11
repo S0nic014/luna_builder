@@ -232,7 +232,7 @@ class PopupNodesPalette(QtWidgets.QDialog):
         self.create_connections()
 
     def create_widgets(self):
-        data_type_filter = self.view.drag_edge.start_socket.data_type if self.is_dragging_from_output() else None
+        data_type_filter = self.view.dragging.get_source_socket_datatype()
         self.nodes_palette = NodesPalette(icon_size=16, data_type_filter=data_type_filter, functions_first=True)
         self.nodes_palette.nodes_tree.setDragEnabled(False)
         self.nodes_palette.nodes_tree.installEventFilter(self)
@@ -256,7 +256,10 @@ class PopupNodesPalette(QtWidgets.QDialog):
         return False
 
     def is_dragging_from_output(self):
-        return self.view.drag_edge and self.view.drag_edge.start_socket
+        return self.view.dragging.drag_edge and self.view.dragging.drag_edge.start_socket
+
+    def is_dragging_from_input(self):
+        return self.view.dragging.drag_edge and self.view.dragging.drag_edge.end_socket
 
     def spawn_clicked_node(self, item):
         if not item.flags() & QtCore.Qt.ItemIsSelectable:
@@ -267,9 +270,10 @@ class PopupNodesPalette(QtWidgets.QDialog):
         new_node = self.scene.spawn_node_from_data(node_id, json_data, self.view.last_scene_mouse_pos)
 
         # Connect dragging edge
+        # Output -> Input
         if self.is_dragging_from_output():
-            start_socket = self.view.drag_edge.start_socket
-            start_node = self.view.drag_edge.start_socket.node
+            start_socket = self.view.dragging.drag_edge.start_socket
+            start_node = self.view.dragging.drag_edge.start_socket.node
             socket_to_connect = new_node.find_first_input_with_label(start_socket.label)
             if not socket_to_connect:
                 socket_to_connect = new_node.find_first_input_of_datatype(start_socket.data_type)
@@ -277,5 +281,17 @@ class PopupNodesPalette(QtWidgets.QDialog):
             if start_node.exec_out_socket and not start_node.exec_out_socket.has_edge() and new_node.exec_in_socket:
                 node_edge.Edge(self.scene, start_socket=start_node.exec_out_socket, end_socket=new_node.exec_in_socket)
             # Finish dragging
-            self.view.end_edge_drag(socket_to_connect)
+            self.view.dragging.end_edge_drag(socket_to_connect)
+        # Input -> Output
+        elif self.is_dragging_from_input():
+            end_socket = self.view.dragging.drag_edge.end_socket
+            end_node = self.view.dragging.drag_edge.end_socket.node
+            socket_to_connect = new_node.find_first_output_with_label(end_socket.label)
+            if not socket_to_connect:
+                socket_to_connect = new_node.find_first_output_of_datatype(end_socket.data_type)
+            # Find exec sockets to connect
+            if end_node.exec_in_socket and not end_node.exec_in_socket.has_edge() and new_node.exec_out_socket:
+                node_edge.Edge(self.scene, start_socket=new_node.exec_out_socket, end_socket=end_node.exec_in_socket)
+            self.view.dragging.end_edge_drag(socket_to_connect)
+
         self.close()

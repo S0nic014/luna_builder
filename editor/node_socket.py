@@ -277,7 +277,9 @@ class InputSocket(Socket):
 
     def value(self):
         if self.has_edge():
-            return self.edges[0].get_other_socket(self).value()
+            output_socket = self.edges[0].get_other_socket(self)
+            if output_socket:
+                return output_socket.value()
         return self._value
 
     def on_connection_changed(self):

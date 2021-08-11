@@ -73,6 +73,8 @@ class Scene(node_serializable.Serializable):
 
     @ edge_type.setter
     def edge_type(self, value):
+        if self._edge_type == value:
+            return
         self._edge_type = value
         self.update_edge_types()
 
@@ -322,19 +324,52 @@ class Scene(node_serializable.Serializable):
         ])
 
     def deserialize(self, data, hashmap={}, restore_id=True):
-        self.clear()
-
+        hashmap = {}
         if restore_id:
-            self.id = data.get('id')
-
+            self.id = data['id']
         self.vars.deserialize(data.get('vars', OrderedDict()))
 
-        # create nodes
-        for node_data in data.get('nodes'):
-            self.get_class_from_node_data(node_data)(self).deserialize(node_data, hashmap, restore_id=restore_id)
+        # Deserialize nodes
+        all_nodes = self.nodes[:]
+        for node_data in data['nodes']:
+            found = False
+            for node in all_nodes:
+                if node.id == node_data['id']:
+                    found = node
+                    break
 
-        # create edges
-        for edge_data in data.get('edges'):
-            node_edge.Edge(self, start_socket=None, end_socket=None).deserialize(edge_data, hashmap, restore_id=restore_id)
+            if not found:
+                new_node = self.get_class_from_node_data(node_data)(self)
+                new_node.deserialize(node_data, hashmap, restore_id=restore_id)
+            else:
+                found.deserialize(node_data, hashmap, restore_id=restore_id)
+                all_nodes.remove(found)
 
+        while all_nodes:
+            node = all_nodes.pop()
+            node.remove()
+
+        # Deserialize edges
+        all_edges = self.edges[:]
+
+        for edge_data in data['edges']:
+            found = False
+            for edge in all_edges:
+                if edge.id == edge_data['id']:
+                    found = edge
+                    break
+            if not found:
+                new_edge = node_edge.Edge(self)
+                new_edge.deserialize(edge_data, hashmap, restore_id)
+            else:
+                found.deserialize(edge_data, hashmap, restore_id)
+                all_edges.remove(found)
+
+        while all_edges:
+            edge = all_edges.pop()
+            edge.remove()
+
+        # Set edge type
         self.edge_type = node_edge.Edge.Type(data.get('edge_type', 2))
+
+        return True

@@ -43,7 +43,7 @@ class EdgeDrag(object):
             item = item.gr_socket
 
         # Non socket click
-        if not isinstance(item, graphics_socket.QLGraphicsSocket):
+        if not isinstance(item, graphics_socket.QLGraphicsSocket) or not item.socket.can_be_connected(self.drag_start_socket):
             Logger.debug("Canceling edge dragging")
             self.gr_view.reset_edge_mode()
             self.drag_edge.remove()
@@ -57,10 +57,6 @@ class EdgeDrag(object):
             self.gr_view.reset_edge_mode()
             self.drag_edge.remove()
             self.drag_edge = None
-            # Same socket clicked
-            if item.socket == self.drag_start_socket:
-                self.drag_start_socket = None
-                return False
 
             try:
                 start_socket = None

@@ -191,7 +191,7 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         try:
             if self.edge_mode == QLGraphicsView.EdgeMode.DRAG:
                 if self.check_lmb_release_delta(event):
-                    result = self.dragging.end_edge_drag(item)(item)
+                    result = self.dragging.end_edge_drag(item)
                     if result:
                         return
 

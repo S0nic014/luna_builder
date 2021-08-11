@@ -1,7 +1,6 @@
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
-import math
 
 from luna import Logger
 
@@ -83,10 +82,6 @@ class QLGraphicsEdge(QtWidgets.QGraphicsPathItem):
         path = self.calc_path()
         return cutpath.intersects(path)
 
-        return False
-
-    # ======== Slots ======= #
-
 
 class QLGraphicsEdgeDirect(QLGraphicsEdge):
     def calc_path(self):
@@ -95,7 +90,7 @@ class QLGraphicsEdgeDirect(QLGraphicsEdge):
         return path
 
 
-class QDGraphicsEdgeBezier(QLGraphicsEdge):
+class QLGraphicsEdgeBezier(QLGraphicsEdge):
     def calc_path(self):
         distance = (self.destination_position[0] - self.source_position[0]) * 0.5
         if self.source_position[0] > self.destination_position[0]:
@@ -105,4 +100,18 @@ class QDGraphicsEdgeBezier(QLGraphicsEdge):
 
         path = QtGui.QPainterPath(QtCore.QPointF(*self.source_position))
         path.cubicTo(QtCore.QPointF(*ctl_point1), QtCore.QPointF(*ctl_point2), QtCore.QPointF(*self.destination_position))
+        return path
+
+
+class QLGraphicsEdgeSquare(QLGraphicsEdge):
+
+    HANDLE_WEIGHT = 0.5
+
+    def calc_path(self):
+        mid_x = self.source_position[0] + ((self.destination_position[0] - self.source_position[0]) * self.HANDLE_WEIGHT)
+
+        path = QtGui.QPainterPath(QtCore.QPointF(*self.source_position))
+        path.lineTo(mid_x, self.source_position[1])
+        path.lineTo(mid_x, self.destination_position[1])
+        path.lineTo(*self.destination_position)
         return path

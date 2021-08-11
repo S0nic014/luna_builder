@@ -40,14 +40,19 @@ class GraphMenu(QtWidgets.QMenu):
 
     def create_actions(self):
         # Edge type
+        # TODO: Possibly automate?
         self.edge_type_group = QtWidgets.QActionGroup(self)
         self.edge_type_bezier_action = QtWidgets.QAction('Bezier', self)
         self.edge_type_direct_action = QtWidgets.QAction('Direct', self)
-        self.edge_type_group.addAction(self.edge_type_bezier_action)
+        self.edge_type_square_action = QtWidgets.QAction('Square', self)
+
         self.edge_type_group.addAction(self.edge_type_direct_action)
+        self.edge_type_group.addAction(self.edge_type_bezier_action)
+        self.edge_type_group.addAction(self.edge_type_square_action)
 
         self.edge_type_bezier_action.setCheckable(True)
         self.edge_type_direct_action.setCheckable(True)
+        self.edge_type_square_action.setCheckable(True)
         # Execution
         self.reset_stepped_execution = QtWidgets.QAction("&Reset stepped execution", self)
         self.execute_step_action = QtWidgets.QAction("&Execute Step", self)
@@ -61,8 +66,9 @@ class GraphMenu(QtWidgets.QMenu):
         self.aboutToShow.connect(self.update_actions_state)
         # Edge type
         self.scene_edge_type_menu.aboutToShow.connect(self.update_edge_type_menu)
-        self.edge_type_bezier_action.toggled.connect(self.on_bezier_edge_toggled)
         self.edge_type_direct_action.toggled.connect(self.on_direct_edge_toggled)
+        self.edge_type_bezier_action.toggled.connect(self.on_bezier_edge_toggled)
+        self.edge_type_square_action.toggled.connect(self.on_square_edge_toggled)
 
         # Actions
         self.reset_stepped_execution.triggered.connect(self.on_reset_stepped_execution)
@@ -74,8 +80,9 @@ class GraphMenu(QtWidgets.QMenu):
 
     def populate(self):
         self.addMenu(self.scene_edge_type_menu)
-        self.scene_edge_type_menu.addAction(self.edge_type_bezier_action)
         self.scene_edge_type_menu.addAction(self.edge_type_direct_action)
+        self.scene_edge_type_menu.addAction(self.edge_type_bezier_action)
+        self.scene_edge_type_menu.addAction(self.edge_type_square_action)
 
         self.addSection('Execution')
         self.addAction(self.reset_stepped_execution)
@@ -94,25 +101,33 @@ class GraphMenu(QtWidgets.QMenu):
         if not self.main_window.current_editor:
             self.edge_type_bezier_action.setEnabled(False)
             self.edge_type_direct_action.setEnabled(False)
+            self.edge_type_square_action.setEnabled(False)
             return
 
         self.edge_type_bezier_action.setEnabled(True)
         self.edge_type_direct_action.setEnabled(True)
-        bezier_selected = self.main_window.current_editor.scene.edge_type == node_edge.Edge.Type.BEZIER
-        self.edge_type_bezier_action.setChecked(bezier_selected)
-        self.edge_type_direct_action.setChecked(not bezier_selected)
+        self.edge_type_square_action.setEnabled(True)
+        if self.node_scene.edge_type == node_edge.Edge.Type.BEZIER:
+            self.edge_type_bezier_action.setChecked(True)
+        elif self.node_scene.edge_type == node_edge.Edge.Type.DIRECT:
+            self.edge_type_direct_action.setChecked(True)
+        if self.node_scene.edge_type == node_edge.Edge.Type.SQUARE:
+            self.edge_type_square_action.setChecked(True)
 
     def on_bezier_edge_toggled(self, state):
         if not self.main_window.current_editor or not state:
             return
-
-        self.main_window.current_editor.scene.edge_type = node_edge.Edge.Type.BEZIER
+        self.node_scene.edge_type = node_edge.Edge.Type.BEZIER
 
     def on_direct_edge_toggled(self, state):
         if not self.main_window.current_editor or not state:
             return
+        self.node_scene.edge_type = node_edge.Edge.Type.DIRECT
 
-        self.main_window.current_editor.scene.edge_type = node_edge.Edge.Type.DIRECT
+    def on_square_edge_toggled(self, state):
+        if not self.main_window.current_editor or not state:
+            return
+        self.node_scene.edge_type = node_edge.Edge.Type.SQUARE
 
     def on_execute(self):
         if self.executor is not None:

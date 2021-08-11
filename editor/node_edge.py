@@ -11,8 +11,9 @@ imp.reload(graphics_edge)
 class Edge(node_serializable.Serializable):
 
     class Type(enumFn.Enum):
-        DIRECT = 1
-        BEZIER = 2
+        DIRECT = graphics_edge.QLGraphicsEdgeDirect
+        BEZIER = graphics_edge.QLGraphicsEdgeBezier
+        SQUARE = graphics_edge.QLGraphicsEdgeSquare
 
     def __str__(self):
         cls_name = self.__class__.__name__
@@ -62,15 +63,20 @@ class Edge(node_serializable.Serializable):
 
     @edge_type.setter
     def edge_type(self, value):
+        if isinstance(value, int):
+            self._edge_type = list(Edge.Type)[value]
+        elif isinstance(value, str):
+            self._edge_type = Edge.Type[value]
+        elif isinstance(value, Edge.Type):
+            self._edge_type = value
+        else:
+            Logger.error('Invalid edge type value: {0}'.format(value))
+            self._edge_type = Edge.Type.BEZIER
+
         if hasattr(self, 'gr_edge') and self.gr_edge is not None:
             self.scene.gr_scene.removeItem(self.gr_edge)
-        self._edge_type = value if isinstance(value, Edge.Type) else Edge.Type(value)
-        if self._edge_type == Edge.Type.DIRECT:
-            self.gr_edge = graphics_edge.QLGraphicsEdgeDirect(self)
-        elif self._edge_type == Edge.Type.BEZIER:
-            self.gr_edge = graphics_edge.QDGraphicsEdgeBezier(self)
-        else:
-            self.gr_edge = graphics_edge.QDGraphicsEdgeBezier(self)
+
+        self.gr_edge = self._edge_type.value(self)
         self.scene.gr_scene.addItem(self.gr_edge)
         if self.start_socket or self.end_socket:
             self.update_positions()
@@ -136,3 +142,7 @@ class Edge(node_serializable.Serializable):
         self.start_socket = hashmap[data['start']]
         self.end_socket = hashmap[data['end']]
         self.update_edge_graphics_type()
+
+
+if __name__ == '__main__':
+    print list(Edge.Type)[1].value

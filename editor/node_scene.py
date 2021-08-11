@@ -73,14 +73,27 @@ class Scene(node_serializable.Serializable):
 
     @ edge_type.setter
     def edge_type(self, value):
+        # Get edge type
+        fallback_type = node_edge.Edge.Type.BEZIER
+        if isinstance(value, int):
+            try:
+                value = list(node_edge.Edge.Type)[value]
+            except IndexError:
+                value = fallback_type
+        elif isinstance(value, node_edge.Edge.Type):
+            pass
+        else:
+            try:
+                value = node_edge.Edge.Type[str(value)]
+            except Exception:
+                Logger.error('Scene: Invalid edge type value: {0}'.format(value))
+                value = fallback_type
+
         if self._edge_type == value:
             return
+        # Do updates
         self._edge_type = value
         self.update_edge_types()
-
-    @property
-    def edge_type_index(self):
-        return list(node_edge.Edge.Type).index(self.edge_type) + 1
 
     @ property
     def view(self):
@@ -320,7 +333,7 @@ class Scene(node_serializable.Serializable):
             ('scene_height', self.scene_height),
             ('nodes', nodes),
             ('edges', edges),
-            ('edge_type', self.edge_type_index)
+            ('edge_type', self.edge_type.name)
         ])
 
     def deserialize(self, data, hashmap={}, restore_id=True):
@@ -370,6 +383,6 @@ class Scene(node_serializable.Serializable):
             edge.remove()
 
         # Set edge type
-        self.edge_type = node_edge.Edge.Type(data.get('edge_type', 2))
+        self.edge_type = data.get('edge_type', node_edge.Edge.Type.BEZIER)
 
         return True

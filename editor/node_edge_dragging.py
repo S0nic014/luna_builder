@@ -42,40 +42,35 @@ class EdgeDrag(object):
         if isinstance(item, node_socket.Socket):
             item = item.gr_socket
 
-        # Non socket click
+        self.gr_view.reset_edge_mode()
+        self.drag_edge.remove()
+        self.drag_edge = None
+
+        # Non socket click or can't be connected
         if not isinstance(item, graphics_socket.QLGraphicsSocket) or not item.socket.can_be_connected(self.drag_start_socket):
             Logger.debug("Canceling edge dragging")
-            self.gr_view.reset_edge_mode()
-            self.drag_edge.remove()
-            self.drag_edge = None
             self.drag_start_socket = None
             return False
 
-        # # Another socket clicked while dragging edge
-        if isinstance(item, graphics_socket.QLGraphicsSocket):
-            # regular processing of drag edge
-            self.gr_view.reset_edge_mode()
-            self.drag_edge.remove()
-            self.drag_edge = None
+        # Another connectable socket clicked
+        try:
+            start_socket = None
+            end_socket = None
+            if isinstance(item.socket, node_socket.OutputSocket):
+                Logger.debug('Assign start socket: {0}'.format(item.socket))
+                start_socket = item.socket
+                end_socket = self.drag_start_socket
+            elif isinstance(item.socket, node_socket.InputSocket):
+                Logger.debug('Assign end socket: {0}'.format(item.socket))
+                start_socket = self.drag_start_socket
+                end_socket = item.socket
 
-            try:
-                start_socket = None
-                end_socket = None
-                if isinstance(item.socket, node_socket.OutputSocket):
-                    Logger.debug('Assign start socket: {0}'.format(item.socket))
-                    start_socket = item.socket
-                    end_socket = self.drag_start_socket
-                elif isinstance(item.socket, node_socket.InputSocket):
-                    Logger.debug('Assign end socket: {0}'.format(item.socket))
-                    start_socket = self.drag_start_socket
-                    end_socket = item.socket
+            new_edge = node_edge.Edge(self.gr_view.scene, start_socket=start_socket, end_socket=end_socket)
+            self.drag_start_socket = None
+            Logger.debug('EdgeDrag: created new edge {0} -> {1}'.format(new_edge.start_socket, new_edge.end_socket))
+            self.gr_view.scene.history.store_history('Edge created by dragging', set_modified=True)
+            return True
 
-                new_edge = node_edge.Edge(self.gr_view.scene, start_socket=start_socket, end_socket=end_socket)
-                self.drag_start_socket = None
-                Logger.debug('EdgeDrag: created new edge {0} -> {1}'.format(new_edge.start_socket, new_edge.end_socket))
-                self.gr_view.scene.history.store_history('Edge created by dragging', set_modified=True)
-                return True
-            except Exception:
-                Logger.exception('End edge drag exception')
-
-        return False
+        except Exception:
+            Logger.exception('End edge drag exception')
+            return False

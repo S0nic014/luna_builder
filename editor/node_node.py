@@ -384,6 +384,8 @@ class Node(node_serializable.Serializable):
             if is_input:
                 socket_to_remove = [socket for socket in self.inputs if socket.label == name][0]  # type: node_socket.InputSocket
                 self.inputs.remove(socket_to_remove)
+                if socket_to_remove in self._required_inputs:
+                    self._required_inputs.remove(socket_to_remove)
                 for index, socket in enumerate(self.inputs):
                     socket.index = index
             else:
@@ -393,8 +395,8 @@ class Node(node_serializable.Serializable):
                     socket.index = index
             socket_to_remove.remove()
             self.signals.num_sockets_changed.emit()
-        except IndexError:
-            Logger.error('Failed to delete input, socket with name {0} does not exist'.format(name))
+        except Exception:
+            Logger.error('Failed to delete socket {0}'.format(name))
 
     # ========= Graph Traversal ================ #
 

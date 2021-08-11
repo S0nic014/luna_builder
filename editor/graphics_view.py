@@ -14,24 +14,10 @@ import luna_builder.editor.graphics_cutline as graphics_cutline
 imp.reload(node_socket)
 
 
-def history(description, set_modified=True):
-    def inner(func):
-        def wrapper(*args, **kwargs):
-            try:
-                view = [a for a in args if isinstance(a, QLGraphicsView)][0]
-            except IndexError:
-                Logger.exception('Decorator failed to find QLGraphicsView in args')
-                raise
-            func(*args, **kwargs)
-            view.scene.history.store_history(description, set_modified=set_modified)
-        return wrapper
-    return inner
-
-
 class QLGraphicsView(QtWidgets.QGraphicsView):
 
     # Constant settings
-    EDGE_DRAG_START_THRESHOLD = 10
+    EDGE_DRAG_START_THRESHOLD = 50
     HIGH_QUALITY_ZOOM = 4
 
     class EdgeMode(enumFn.Enum):
@@ -146,15 +132,19 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
                 pos = scene_pos
                 # Offset X to avoid clicking on the edge
                 pos.setX(pos.x() - 1.0)
-                if self.drag_edge.start_socket:
-                    self.drag_edge.gr_edge.set_destination(pos.x(), pos.y())
+                if self.drag_edge is not None and self.drag_edge.gr_edge is not None:
+                    if self.drag_edge.start_socket:
+                        self.drag_edge.gr_edge.set_destination(pos.x(), pos.y())
+                    else:
+                        self.drag_edge.gr_edge.set_source(pos.x(), pos.y())
+                    self.drag_edge.gr_edge.update()
                 else:
-                    self.drag_edge.gr_edge.set_source(pos.x(), pos.y())
-                self.drag_edge.gr_edge.update()
+                    Logger.error('Tried to update self.drag_edge.gr_edge, but it is None')
 
-            if self.edge_mode == QLGraphicsView.EdgeMode.CUT:
+            if self.edge_mode == QLGraphicsView.EdgeMode.CUT and self.cutline is not None:
                 self.cutline.line_points.append(scene_pos)
                 self.cutline.update()
+
         except Exception:
             Logger.exception('mouseMoveEvent exception')
 
@@ -203,23 +193,27 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
     def left_mouse_release(self, event):
         item = self.get_item_at_click(event)
 
-        if self.edge_mode == QLGraphicsView.EdgeMode.DRAG:
-            if self.check_lmb_release_delta(event):
-                result = self.end_edge_drag(item)
-                if result:
-                    return
+        try:
+            if self.edge_mode == QLGraphicsView.EdgeMode.DRAG:
+                if self.check_lmb_release_delta(event):
+                    result = self.end_edge_drag(item)
+                    if result:
+                        return
 
-        if self.edge_mode == QLGraphicsView.EdgeMode.CUT:
-            self.cut_intersecting_edges()
-            self.cutline.line_points = []
-            self.cutline.update()
-            self.edge_mode = QLGraphicsView.EdgeMode.NOOP
-            return
+            if self.edge_mode == QLGraphicsView.EdgeMode.CUT:
+                self.cut_intersecting_edges()
+                self.cutline.line_points = []
+                self.cutline.update()
+                self.edge_mode = QLGraphicsView.EdgeMode.NOOP
+                return
 
-        if self.rubberband_dragging_rect:
-            self.rubberband_dragging_rect = False
-            self.scene.on_selection_change()
-            return
+            if self.rubberband_dragging_rect:
+                self.rubberband_dragging_rect = False
+                self.scene.on_selection_change()
+                return
+
+        except Exception:
+            Logger.exception('Left mouse release exception')
 
         super(QLGraphicsView, self).mouseReleaseEvent(event)
 
@@ -320,6 +314,9 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             Logger.debug('-- Inputs')
             for insocket in item.node.inputs:
                 Logger.debug(insocket)
+            Logger.debug('-- Required Inputs')
+            for insocket in item.node._required_inputs:
+                Logger.debug(insocket)
             Logger.debug('-- Outputs')
             for outsocket in item.node.outputs:
                 Logger.debug(outsocket)
@@ -348,12 +345,16 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
             out += "ALT "
         Logger.debug(out)
 
-    @ history('Edges cut', set_modified=True)
     def cut_intersecting_edges(self):
+        cut_result = False
         for ix in range(len(self.cutline.line_points) - 1):
             pt1 = self.cutline.line_points[ix]
             pt2 = self.cutline.line_points[ix + 1]
 
-            for edge in self.gr_scene.scene.edges:
+            # TODO: Should be optimized as gets slow with large scenes
+            for edge in self.scene.edges[:]:
                 if edge.gr_edge.intersects_with(pt1, pt2):
                     edge.remove()
+                    cut_result = True
+        if cut_result:
+            self.scene.history.store_history('Edges cut', set_modified=True)

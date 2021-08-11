@@ -180,9 +180,10 @@ class Socket(node_serializable.Serializable):
             self.edges[0].remove()
         self.edges = []
 
-    def remove_edge(self, edge):
+    def remove_edge(self, edge, silent=False):
         self.edges.remove(edge)
-        self.signals.connection_changed.emit()
+        if not silent:
+            self.signals.connection_changed.emit()
 
     def update_edges(self):
         for edge in self.edges:
@@ -264,14 +265,15 @@ class InputSocket(Socket):
             return False
         return True
 
-    def set_connected_edge(self, edge):
+    def set_connected_edge(self, edge, silent=False):
         super(InputSocket, self).set_connected_edge(edge)
         if not edge:
             return
         if self.edges and edge not in self.edges:
-            self.edges[0].remove()
+            self.remove_all_edges()
         self.edges = [edge]
-        self.signals.connection_changed.emit()
+        if not silent:
+            self.signals.connection_changed.emit()
 
     def value(self):
         if self.has_edge():

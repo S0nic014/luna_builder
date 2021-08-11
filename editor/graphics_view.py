@@ -274,10 +274,10 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         Logger.debug('Start dragging edge: {}'.format(self.edge_mode))
         if isinstance(item.socket, node_socket.OutputSocket):
             Logger.debug('Assign start socket to: {0}'.format(item.socket))
-            self.drag_edge = node_edge.Edge(self.gr_scene.scene, item.socket, None)
+            self.drag_edge = node_edge.Edge(self.scene, item.socket, None)
         else:
             Logger.debug('Assign end socket to: {0}'.format(item.socket))
-            self.drag_edge = node_edge.Edge(self.gr_scene.scene, None, item.socket)
+            self.drag_edge = node_edge.Edge(self.scene, None, item.socket)
 
     def end_edge_drag(self, item):
         self.edge_mode = QLGraphicsView.EdgeMode.NOOP
@@ -305,7 +305,6 @@ class QLGraphicsView(QtWidgets.QGraphicsView):
         self.drag_edge.update_positions()
 
         # Set input value
-        self.drag_edge.end_socket.set_value(self.drag_edge.start_socket.value())
         self.drag_edge = None
         self.scene.history.store_history('Edge created by dragging', set_modified=True)
         return True

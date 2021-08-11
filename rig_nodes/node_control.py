@@ -37,6 +37,11 @@ class ControlNode(luna_node.LunaNode):
         self.out_control = self.add_output(editor_conf.DataType.CONTROL, label='Control')
         self.out_transform = self.add_output(editor_conf.DataType.STRING, label='Transform', value='')
 
+        # Mark required
+        self.mark_inputs_required([self.in_name,
+                                   self.in_side,
+                                   self.in_orient_axis])
+
     def execute(self):
         attribs = self.in_attribs.value()
         attribs = attribs.split(',') if 'x' in attribs or 'y' in attribs or 'z' in attribs else attribs

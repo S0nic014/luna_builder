@@ -19,6 +19,11 @@ class ConnectAttribNode(luna_node.LunaNode):
         self.in_dest_node_name = self.add_input(editor_conf.DataType.STRING, label='Destination Node')
         self.in_dest_attr_name = self.add_input(editor_conf.DataType.STRING, label='Destination Attribute')
 
+        self.mark_inputs_required((self.in_source_node_name,
+                                   self.in_source_attr_name,
+                                   self.in_dest_node_name,
+                                   self.in_dest_attr_name))
+
     def execute(self):
         pm.connectAttr('{0}.{1}'.format(self.in_source_node_name.value(), self.in_source_attr_name.value()),
                        '{0}.{1}'.format(self.in_dest_node_name.value(), self.in_dest_attr_name.value()))

@@ -22,6 +22,9 @@ class ComponentNode(luna_node.LunaNode):
         self.in_name = self.add_input(editor_conf.DataType.STRING, label='Name', value='component')
         self.in_tag = self.add_input(editor_conf.DataType.STRING, label='Tag', value='')
 
+        self.mark_input_as_required(self.in_name)
+        self.mark_input_as_required(self.in_side)
+
         # Outputs
         # Inputs
         self.out_self = self.add_output(editor_conf.DataType.COMPONENT, label='Self', value=None)
@@ -52,6 +55,7 @@ class AnimComponentNode(ComponentNode):
         # Inputs
         self.in_character = self.add_input(editor_conf.DataType.CHARACTER, label='Character')
         self.in_hook = self.add_input(editor_conf.DataType.NUMERIC, label='In Hook')
+        self.mark_input_as_required(self.in_character)
 
         # Outputs
         self.out_character = self.add_output(editor_conf.DataType.CHARACTER, label='Character')

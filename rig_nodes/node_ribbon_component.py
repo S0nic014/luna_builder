@@ -29,6 +29,10 @@ class RibbonComponentNode(base_component.AnimComponentNode):
         self.in_fk_hierachy = self.add_input(editor_conf.DataType.BOOLEAN, label='FK Hierachy', value=False)
         self.in_flip_rivets_normal = self.add_input(editor_conf.DataType.BOOLEAN, label='Flip Rivets Normal', value=False)
 
+        # Mark required
+        self.mark_inputs_required((self.in_surface,
+                                   self.in_span))
+
     def execute(self):
         self.component_instance = self.COMPONENT_CLASS.create(character=self.in_character.value(),
                                                               meta_parent=self.in_meta_parent.value(),

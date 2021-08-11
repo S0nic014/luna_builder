@@ -25,6 +25,11 @@ class IKSplineStretchComponentNode(base_component.ComponentNode):
         self.in_switch_attr_name = self.add_input(editor_conf.DataType.STRING, label='Stretch Attribute', value='stretch')
         self.in_stretch_axis = self.add_input(editor_conf.DataType.STRING, label='Stretch Axis', value='x')
 
+        # Mark required
+        self.mark_inputs_required((self.in_meta_parent,
+                                   self.in_switch_attr_name,
+                                   self.in_stretch_axis))
+
     def execute(self):
         self.component_instance = self.COMPONENT_CLASS.create(self.in_meta_parent.value(),
                                                               side=self.in_side.value(),

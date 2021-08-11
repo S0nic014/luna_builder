@@ -32,6 +32,9 @@ class FKDynamicsComponentNode(base_component.AnimComponentNode):
         # Create new inputs
         self.in_unique_solver = self.add_input(editor_conf.DataType.BOOLEAN, label='Unique Nucleus', value=False)
 
+        # Mark required
+        self.mark_input_as_required(self.in_meta_parent)
+
     def execute(self):
         self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value(),
                                                               character=self.in_character.value(),

@@ -27,6 +27,9 @@ class WireComponentNode(base_component.AnimComponentNode):
         self.in_num_controls = self.add_input(editor_conf.DataType.NUMERIC, label='Number Controls', value=4)
         self.in_control_lines = self.add_input(editor_conf.DataType.BOOLEAN, label='Control Lines', value=True)
 
+        # Mark required
+        self.mark_inputs_required((self.in_curve, self.in_geometry))
+
     def execute(self):
         self.component_instance = self.COMPONENT_CLASS.create(character=self.in_character.value(),
                                                               meta_parent=self.in_meta_parent.value(),

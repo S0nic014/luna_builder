@@ -45,6 +45,7 @@ class GraphOutputNode(luna_node.LunaNode):
     def init_sockets(self, reset=True):
         self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)
         self.in_character = self.add_input(editor_conf.DataType.CHARACTER, label='Character')
+        self.mark_input_as_required(self.in_character)
 
         self.exec_out_socket = None
 

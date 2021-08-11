@@ -33,6 +33,9 @@ class TwistComponentNode(base_component.AnimComponentNode):
         self.in_num_joints = self.add_input(editor_conf.DataType.NUMERIC, label='Num Joints', value=2)
         self.in_is_mirrored = self.add_input(editor_conf.DataType.BOOLEAN, label='Is Mirrored', value=False)
 
+        # Mark required
+        self.mark_input_as_required(self.in_start_joint)
+
     def execute(self):
         self.component_instance = self.COMPONENT_CLASS.create(self.in_meta_parent.value(),
                                                               character=self.in_character.value(),

@@ -454,6 +454,9 @@ class Node(node_serializable.Serializable):
             node._exec()
 
     # ========= Socket finding/data retriving ========= #
+    def mark_inputs_required(self, inputs):
+        for socket in inputs:
+            self.mark_input_as_required(socket)
 
     def mark_input_as_required(self, input_socket):
         if isinstance(input_socket, node_socket.InputSocket):

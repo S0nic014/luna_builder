@@ -35,6 +35,7 @@ class FKIKSpineNode(SpineNode):
         # Add inputs
         self.in_start_joint = self.add_input(editor_conf.DataType.STRING, label='Start Joint', value=None)
         self.in_end_joint = self.add_input(editor_conf.DataType.STRING, label='End Joint', value=None)
+        self.mark_input_as_required(self.in_start_joint)
 
         self.out_hook_root = self.add_output(editor_conf.DataType.NUMERIC, label='Hook Root', value=self.COMPONENT_CLASS.Hooks.ROOT.value)
         self.out_hook_hips = self.add_output(editor_conf.DataType.NUMERIC, label='Hook Hips', value=self.COMPONENT_CLASS.Hooks.HIPS.value)

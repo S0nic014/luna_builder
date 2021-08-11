@@ -498,7 +498,7 @@ class Node(node_serializable.Serializable):
     def find_first_input_of_datatype(self, datatype):
         result = None
         for socket in self.inputs:
-            if issubclass(socket.data_class, datatype.get('class', type(None))):
+            if issubclass(datatype.get('class', type(None)), socket.data_class):
                 result = socket
                 break
         return result

@@ -75,9 +75,11 @@ class EdgeDrag(object):
                     end_socket = item.socket
 
                 new_edge = node_edge.Edge(self.gr_view.scene, start_socket=start_socket, end_socket=end_socket)
+                self.drag_start_socket = None
                 Logger.debug('EdgeDrag: created new edge {0} -> {1}'.format(new_edge.start_socket, new_edge.end_socket))
                 self.gr_view.scene.history.store_history('Edge created by dragging', set_modified=True)
                 return True
             except Exception:
                 Logger.exception('End edge drag exception')
+
         return False

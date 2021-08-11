@@ -21,22 +21,25 @@ class NodeSignals(QtCore.QObject):
 
 class Node(node_serializable.Serializable):
 
-    TITLE_EDITABLE = False
-    TITLE_COLOR = '#FF313131'
-    DEFAULT_TITLE = 'Custom Node'
+    GRAPHICS_CLASS = graphics_node.QLGraphicsNode
+    ATTRIB_WIDGET = node_attrib_widget.AttribWidget
+
+    ID = None
     IS_EXEC = True
     AUTO_INIT_EXECS = True
+    DEFAULT_TITLE = 'Custom Node'
+    TITLE_EDITABLE = False
+    TITLE_COLOR = '#FF313131'
     MIN_WIDTH = 180
     MIN_HEIGHT = 30
     MAX_TEXT_WIDTH = 200
-    ATTRIB_WIDGET = node_attrib_widget.AttribWidget
     INPUT_POSITION = node_socket.Socket.Position.LEFT_TOP.value
     OUTPUT_POSITION = node_socket.Socket.Position.RIGHT_TOP.value
 
     def __str__(self):
         cls_name = self.__class__.__name__
         nice_id = '{0}..{1}'.format(hex(id(self))[2:5], hex(id(self))[-3:])
-        return "<{0} {1}>".format(cls_name, nice_id)
+        return "<{0} {1}> {2}".format(cls_name, nice_id, self.title)
 
     def __init__(self, scene, title=None):
         super(Node, self).__init__()
@@ -69,7 +72,7 @@ class Node(node_serializable.Serializable):
 
     def init_inner_classes(self):
         # Setup graphics
-        self.gr_node = graphics_node.QLGraphicsNode(self)
+        self.gr_node = self.__class__.GRAPHICS_CLASS(self)
 
     def init_sockets(self, reset=True):
         self.exec_in_socket = self.exec_out_socket = None
@@ -287,6 +290,12 @@ class Node(node_serializable.Serializable):
 
     # ========= Serialization methods ========== #
 
+    def pre_deserilization(self, data):
+        pass
+
+    def post_deserilization(self, data):
+        pass
+
     def serialize(self):
         inputs, outputs = [], []
         for socket in self.inputs:
@@ -296,6 +305,7 @@ class Node(node_serializable.Serializable):
 
         return OrderedDict([
             ('id', self.id),
+            ('node_id', self.__class__.ID),
             ('title', self.title),
             ('pos_x', self.gr_node.scenePos().x()),
             ('pos_y', self.gr_node.scenePos().y()),
@@ -304,6 +314,10 @@ class Node(node_serializable.Serializable):
         ])
 
     def deserialize(self, data, hashmap={}, restore_id=True):
+        # Pre
+        self.pre_deserilization(data)
+
+        # Desereialization
         if restore_id:
             self.id = data.get('id')
         hashmap[data['id']] = self
@@ -345,6 +359,8 @@ class Node(node_serializable.Serializable):
                 found = self.add_output(data_type, socket_data['label'], value=value)
             found.deserialize(socket_data, hashmap, restore_id)
         self.signals.num_sockets_changed.emit()
+        # Post
+        self.post_deserilization(data)
 
     # ========= Socket creation methods ========== #
     def add_input(self, data_type, label=None, value=None, *args, **kwargs):

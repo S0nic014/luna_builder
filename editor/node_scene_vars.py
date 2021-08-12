@@ -320,6 +320,7 @@ class VarAttribWidget(QtWidgets.QGroupBox):
             self.value_widget.setEnabled(False)
         elif var_data_type == editor_conf.DataType.NUMERIC:
             self.value_widget = QtWidgets.QDoubleSpinBox()
+            self.value_widget.setRange(-9999, 9999)
             self.value_widget.setValue(var_value)
         elif var_data_type == editor_conf.DataType.STRING:
             self.value_widget = QtWidgets.QLineEdit()

@@ -78,6 +78,8 @@ class SetNode(VarNode):
             return
 
         self.in_value = self.add_input(self.scene.vars.get_data_type(self.var_name, as_dict=True))
+        self.out_value = self.add_output(self.scene.vars.get_data_type(self.var_name, as_dict=True), label='')
+        self.out_value.value = self.get_var_value
         self.mark_input_as_required(self.in_value)
 
     def update(self):
@@ -85,6 +87,7 @@ class SetNode(VarNode):
         if not self.in_value.data_type == var_type:
             self.in_value.label = var_type['label']
             self.in_value.data_type = var_type
+            self.out_value.data_type = var_type
             self.in_value.update_positions()
 
     def execute(self):

@@ -7,8 +7,8 @@ from luna import Logger
 from luna import __version__
 from luna.utils import pysideFn
 
-import luna_builder.tabs.tab_workspace as tab_workspace
-import luna_builder.tabs.tab_attributes as tab_attributes
+import luna_builder.editor.workspace_widget as workspace_widget
+import luna_builder.editor.attributes_editor as attributes_editor
 
 import luna_builder.menus as menus
 import luna_builder.editor.node_editor as node_editor
@@ -17,8 +17,8 @@ import luna_builder.editor.node_scene_vars as node_scene_vars
 
 imp.reload(node_scene_vars)
 imp.reload(node_editor)
-imp.reload(tab_attributes)
-imp.reload(tab_workspace)
+imp.reload(attributes_editor)
+imp.reload(workspace_widget)
 imp.reload(node_nodes_palette)
 
 
@@ -106,8 +106,8 @@ class BuilderMainWindow(QtWidgets.QMainWindow):
 
     def create_widgets(self):
         # Right tabs
-        self.workspace_wgt = tab_workspace.WorkspaceWidget()
-        self.attrib_editor = tab_attributes.AttributesEditor(self)
+        self.workspace_wgt = workspace_widget.WorkspaceWidget()
+        self.attrib_editor = attributes_editor.AttributesEditor(self)
 
         # Nodes palette, vars widget
         self.nodes_palette = node_nodes_palette.NodesPalette()

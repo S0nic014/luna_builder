@@ -52,7 +52,7 @@ class Socket(node_serializable.Serializable):
         self.node_position = position if isinstance(position, Socket.Position) else Socket.Position(position)
         # self.data_type = editor_conf.DataType.get_type(data_type) if isinstance(data_type, int) else data_type
         self.data_type = data_type
-        self._label = label if label else self.data_type.get('label')
+        self._label = label if label is not None else self.data_type.get('label')
         self.max_connections = max_connections
         self.count_on_this_side = count_on_this_side
         self._value = self.data_type.get('default') if value is None else value

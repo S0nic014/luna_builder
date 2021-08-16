@@ -278,6 +278,7 @@ class Scene(node_serializable.Serializable):
             self.deserialize(data)
             Logger.info("Rig build loaded in {0:.2f}s".format(timeit.default_timer() - start_time))
             self.history.clear()
+            self.executor.reset_stepped_execution()
             self.file_name = file_path
             self.has_been_modified = False
             self.set_history_init_point()

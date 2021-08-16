@@ -91,6 +91,7 @@ class GraphExecutor(object):
     def reset_stepped_execution(self):
         self.step = 0
         self.exec_chain.clear()
+        self.exec_set.clear()
 
     def verify_graph(self):
         Logger.info('Verifing graph...')

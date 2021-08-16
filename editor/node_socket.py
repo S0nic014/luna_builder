@@ -168,12 +168,17 @@ class Socket(node_serializable.Serializable):
     def has_edge(self):
         return bool(self.edges)
 
-    def set_connected_edge(self, edge):
+    def set_connected_edge(self, edge, silent=False):
         if not edge:
             Logger.warning('{0}: Recieved edge {1}'.format(self, edge))
             return
-        if self.edges and self.max_connections and len(self.edges) > self.max_connections:
-            self.edges[0].remove()
+
+        if self.edges and self.max_connections and len(self.edges) >= self.max_connections:
+            self.edges[-1].remove()
+        self.edges.append(edge)
+
+        if not silent:
+            self.signals.connection_changed.emit()
 
     def remove_all_edges(self):
         while self.edges:
@@ -204,7 +209,7 @@ class Socket(node_serializable.Serializable):
             Logger.warning('Can\'t connect sockets on the same node')
             return False
 
-        #!FIX: Find a way to check for cycles
+        #!TODO: Find a way to check for cycles
         # if assigned_socket.node in item.socket.node.list_children(recursive=True) or item.socket.node in assigned_socket.node.list_children():
         #     Logger.warning('Can\'t create connection due to cycle')
         #     return False
@@ -265,16 +270,6 @@ class InputSocket(Socket):
             return False
         return True
 
-    def set_connected_edge(self, edge, silent=False):
-        super(InputSocket, self).set_connected_edge(edge)
-        if not edge:
-            return
-        if self.edges and edge not in self.edges:
-            self.remove_all_edges()
-        self.edges = [edge]
-        if not silent:
-            self.signals.connection_changed.emit()
-
     def value(self):
         if self.has_edge():
             output_socket = self.edges[0].get_other_socket(self)
@@ -298,14 +293,6 @@ class OutputSocket(Socket):
             Logger.warning('Can\'t connect data types {0} and {1}'.format(other_socket.data_class, self.data_class))
             return False
         return True
-
-    def set_connected_edge(self, edge):
-        super(OutputSocket, self).set_connected_edge(edge=edge)
-        if not edge:
-            return
-        if edge not in self.edges:
-            self.edges.append(edge)
-        self.signals.connection_changed.emit()
 
     def notify_connected_inputs_value(self):
         for socket in self.list_connections():

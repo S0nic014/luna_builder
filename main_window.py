@@ -88,7 +88,7 @@ class BuilderMainWindow(QtWidgets.QMainWindow):
         self.controls_menu = menus.ControlsMenu()
         self.joints_menu = menus.JointsMenu()
         self.skin_menu = menus.SkinMenu()
-        self.blendshapes_menu = menus.BlendshapesMenu()
+        self.deformers_menu = menus.DeformersMenu()
         self.rig_menu = menus.RigMenu()
         self.help_menu = menus.HelpMenu(self)
 
@@ -100,7 +100,7 @@ class BuilderMainWindow(QtWidgets.QMainWindow):
         self.menu_bar.addMenu(self.controls_menu)
         self.menu_bar.addMenu(self.joints_menu)
         self.menu_bar.addMenu(self.skin_menu)
-        self.menu_bar.addMenu(self.blendshapes_menu)
+        self.menu_bar.addMenu(self.deformers_menu)
         self.menu_bar.addMenu(self.rig_menu)
         self.menu_bar.addMenu(self.help_menu)
 

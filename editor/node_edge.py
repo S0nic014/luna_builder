@@ -85,6 +85,9 @@ class Edge(node_serializable.Serializable):
         self.edge_type = self.scene.edge_type
 
     def update_positions(self):
+        if not hasattr(self, 'gr_edge'):
+            return
+
         if self.start_socket is not None:
             source_pos = self.start_socket.get_position()
             source_pos[0] += self.start_socket.node.gr_node.pos().x()

@@ -75,10 +75,10 @@ class BuilderMainWindow(QtWidgets.QMainWindow):
         self.menu_bar = QtWidgets.QMenuBar()
         self.setMenuBar(self.menu_bar)
         # Corner button
-        self.update_tab_btn = QtWidgets.QPushButton()
-        self.update_tab_btn.setFlat(True)
-        self.update_tab_btn.setIcon(pysideFn.get_QIcon("refresh.png"))
-        self.menu_bar.setCornerWidget(self.update_tab_btn, QtCore.Qt.TopRightCorner)
+        self.update_button = QtWidgets.QPushButton()
+        self.update_button.setFlat(True)
+        self.update_button.setIcon(pysideFn.get_QIcon("refresh.png"))
+        self.menu_bar.setCornerWidget(self.update_button, QtCore.Qt.TopRightCorner)
 
         # Menus
         self.file_menu = menus.FileMenu(self)
@@ -161,8 +161,8 @@ class BuilderMainWindow(QtWidgets.QMainWindow):
 
     def create_connections(self):
         # Other
-        self.update_tab_btn.clicked.connect(lambda: self.tab_widget.currentWidget().update_data())
-        self.update_tab_btn.clicked.connect(self.nodes_palette.update_node_tree)
+        self.update_button.clicked.connect(self.workspace_wgt.update_data)
+        self.update_button.clicked.connect(self.nodes_palette.update_node_tree)
         self.mdi_area.subWindowActivated.connect(self.update_title)
         self.mdi_area.subWindowActivated.connect(self.vars_widget.update_var_list)
         self.vars_widget.var_list.itemClicked.connect(self.attrib_editor.update_current_var_widget)

@@ -1,5 +1,6 @@
 import imp
 from PySide2 import QtCore
+from collections import deque
 from collections import OrderedDict
 
 from luna import Logger
@@ -14,30 +15,40 @@ imp.reload(graphics_node)
 class NodeSignals(QtCore.QObject):
     compiled_changed = QtCore.Signal(bool)
     invalid_changed = QtCore.Signal(bool)
+    title_edited = QtCore.Signal(str)
+    num_sockets_changed = QtCore.Signal()
 
 
 class Node(node_serializable.Serializable):
 
-    TITLE_HEIGHT = 24
-    DEFAULT_TITLE = 'Custom Node'
+    GRAPHICS_CLASS = graphics_node.QLGraphicsNode
+    ATTRIB_WIDGET = node_attrib_widget.AttribWidget
+
+    ID = None
     IS_EXEC = True
     AUTO_INIT_EXECS = True
-    ATTRIB_WIDGET = node_attrib_widget.AttribWidget
+    DEFAULT_TITLE = 'Custom Node'
+    TITLE_EDITABLE = False
+    TITLE_COLOR = '#FF313131'
+    MIN_WIDTH = 180
+    MIN_HEIGHT = 30
+    MAX_TEXT_WIDTH = 200
     INPUT_POSITION = node_socket.Socket.Position.LEFT_TOP.value
     OUTPUT_POSITION = node_socket.Socket.Position.RIGHT_TOP.value
 
     def __str__(self):
         cls_name = self.__class__.__name__
         nice_id = '{0}..{1}'.format(hex(id(self))[2:5], hex(id(self))[-3:])
-        return "<{0} {1}>".format(cls_name, nice_id)
+        return "<{0} {1}> {2}".format(cls_name, nice_id, self.title)
 
-    def __init__(self, scene, title=None, inputs=[], outputs=[]):
+    def __init__(self, scene, title=None):
         super(Node, self).__init__()
         self.scene = scene
         self.signals = NodeSignals()
-        self._title = title if title else self.__class__.DEFAULT_TITLE
+        self._title = None
         self.inputs = []
         self.outputs = []
+        self._required_inputs = deque()
 
         # Evaluation
         self._is_compiled = False
@@ -46,12 +57,14 @@ class Node(node_serializable.Serializable):
         # Members init
         self.init_settings()
         self.init_inner_classes()
+        self.title = title if title else self.__class__.DEFAULT_TITLE
 
         # Add to the scene
         self.scene.add_node(self)
         self.scene.gr_scene.addItem(self.gr_node)
         # Sockets
-        self.init_sockets(inputs=inputs, outputs=outputs)
+        self.signals.num_sockets_changed.connect(self.on_num_sockets_changed)
+        self.init_sockets()
         self.create_connections()
 
     def init_settings(self):
@@ -59,9 +72,11 @@ class Node(node_serializable.Serializable):
 
     def init_inner_classes(self):
         # Setup graphics
-        self.gr_node = graphics_node.QLGraphicsNode(self)
+        self.gr_node = self.__class__.GRAPHICS_CLASS(self)
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
+    def init_sockets(self, reset=True):
+        self._required_inputs.clear()
+        self.exec_in_socket = self.exec_out_socket = None
         if reset:
             self.remove_existing_sockets()
 
@@ -69,18 +84,11 @@ class Node(node_serializable.Serializable):
         if self.__class__.IS_EXEC and self.__class__.AUTO_INIT_EXECS:
             self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)
             self.exec_out_socket = self.add_output(editor_conf.DataType.EXEC, max_connections=1)
-        else:
-            self.exec_in_socket = self.exec_out_socket = None
-
-        for datatype in inputs:
-            self.add_input(datatype, label=None, value=None)
-
-        for datatype in outputs:
-            self.add_output(datatype, label=None, value=None)
 
     def create_connections(self):
         self.signals.compiled_changed.connect(self.on_compiled_change)
         self.signals.invalid_changed.connect(self.on_invalid_change)
+        self.signals.title_edited.connect(self.on_title_edited)
 
     def remove_existing_sockets(self):
         if hasattr(self, 'inputs') and hasattr(self, 'outputs'):
@@ -104,8 +112,14 @@ class Node(node_serializable.Serializable):
 
     @title.setter
     def title(self, value):
+        old_height = self.gr_node.title_height
+        old_width = self.gr_node.title_width
         self._title = value
         self.gr_node.title = self._title
+        new_width = self.gr_node.title_width
+        new_height = self.gr_node.title_height
+        if old_height != new_height or old_width != new_width:
+            self.update_size()
 
     # ======= Attrib widget ======= #
     def get_attrib_widget(self):
@@ -146,26 +160,39 @@ class Node(node_serializable.Serializable):
 
         return [x, y]
 
-    def max_height_of_sockets(self):
-        min_size = 30
+    def recalculate_height(self):
+
         max_inputs = len(self.inputs) * self.socket_spacing
         max_outputs = len(self.outputs) * self.socket_spacing
-        return max(max_inputs, max_outputs, min_size)
+        total_socket_height = max(max_inputs, max_outputs, self.MIN_HEIGHT)
+        self.gr_node.height = total_socket_height + self.gr_node.title_height + self.gr_node.lower_padding
 
-    def max_width_of_socket_labels(self):
-        min_width = 180
-        max_outputs = 0
-        max_inputs = 0
-
+    def recalculate_width(self):
+        # Labels max width
         input_widths = [socket.get_label_width() for socket in self.inputs] or [0, 0]
         output_widths = [socket.get_label_width() for socket in self.outputs] or [0, 0]
 
-        max_inputs = max(input_widths)
-        max_outputs = max(output_widths)
+        max_label_width = max(input_widths + output_widths)
 
-        return max(max_inputs + max_outputs, min_width)
+        # Calculate clamped title text width
+        self.gr_node.title_item.setTextWidth(-1)
+        if self.gr_node.title_width > self.MAX_TEXT_WIDTH:
+            self.gr_node.title_item.setTextWidth(self.MAX_TEXT_WIDTH)
+            title_with_padding = self.MAX_TEXT_WIDTH + self.gr_node.title_horizontal_padding * 2
+        else:
+            title_with_padding = self.gr_node.title_width + self.gr_node.title_horizontal_padding * 2
+
+        # Use the max value between widths of label, allowed min width, clamped text width
+        # Sockets on both sides or only one side
+        if self.inputs and self.outputs:
+            self.gr_node.width = max(max_label_width * 2, self.MIN_WIDTH, title_with_padding)
+        else:
+            self.gr_node.width = max(max_label_width + self.gr_node.one_side_horizontal_padding, self.MIN_WIDTH, title_with_padding)
 
     # ======== Update methods ========= #
+    def append_tooltip(self, text):
+        self.gr_node.setToolTip(self.gr_node.toolTip() + text)
+
     def update_connected_edges(self):
         for socket in self.inputs + self.outputs:
             socket.update_edges()
@@ -173,6 +200,15 @@ class Node(node_serializable.Serializable):
     def update_socket_positions(self):
         for socket in self.outputs + self.inputs:
             socket.update_positions()
+
+    def update_size(self):
+        self.recalculate_width()
+        self.recalculate_height()
+        self.update_socket_positions()
+        self.update_connected_edges()
+
+    def on_num_sockets_changed(self):
+        self.update_size()
 
     def remove(self):
         try:
@@ -209,8 +245,24 @@ class Node(node_serializable.Serializable):
         self._is_invalid = value
         self.signals.invalid_changed.emit(self._is_invalid)
 
-    def verify(self):
+    def verify_inputs(self):
+        invalid_inputs = deque()
+        for socket in self._required_inputs:
+            if not socket.has_edge() and not socket.value():
+                invalid_inputs.append(socket)
+        if invalid_inputs:
+            tool_tip = ''
+            for socket in invalid_inputs:
+                tool_tip += 'Invalid input: {0}\n'.format(socket.label)
+            self.append_tooltip(tool_tip)
+            return False
         return True
+
+    def verify(self):
+        self.gr_node.setToolTip('')
+        result = self.verify_inputs()
+
+        return result
 
     def on_invalid_change(self, state):
         if state:
@@ -223,7 +275,27 @@ class Node(node_serializable.Serializable):
             child_node.set_compiled(state)
             child_node.mark_children_compiled(state)
 
+    # ========= Interaction methods ========== #
+    def edit_title(self):
+        if self.TITLE_EDITABLE:
+            self.gr_node.title_item.edit()
+        else:
+            Logger.warning('Title for node {0} is not editable'.format(self.title))
+
+    def on_title_edited(self, new_title):
+        if not new_title:
+            new_title = self.DEFAULT_TITLE
+        old_title = self.title
+        self.title = new_title
+        self.scene.history.store_history('Renamed node {0}->{1}'.format(old_title, new_title))
+
     # ========= Serialization methods ========== #
+
+    def pre_deserilization(self, data):
+        pass
+
+    def post_deserilization(self, data):
+        pass
 
     def serialize(self):
         inputs, outputs = [], []
@@ -234,6 +306,7 @@ class Node(node_serializable.Serializable):
 
         return OrderedDict([
             ('id', self.id),
+            ('node_id', self.__class__.ID),
             ('title', self.title),
             ('pos_x', self.gr_node.scenePos().x()),
             ('pos_y', self.gr_node.scenePos().y()),
@@ -242,6 +315,10 @@ class Node(node_serializable.Serializable):
         ])
 
     def deserialize(self, data, hashmap={}, restore_id=True):
+        # Pre
+        self.pre_deserilization(data)
+
+        # Desereialization
         if restore_id:
             self.id = data.get('id')
         hashmap[data['id']] = self
@@ -282,7 +359,9 @@ class Node(node_serializable.Serializable):
                 value = socket_data.get('value', data_type['default'])
                 found = self.add_output(data_type, socket_data['label'], value=value)
             found.deserialize(socket_data, hashmap, restore_id)
-        self.update_socket_positions()
+        self.signals.num_sockets_changed.emit()
+        # Post
+        self.post_deserilization(data)
 
     # ========= Socket creation methods ========== #
     def add_input(self, data_type, label=None, value=None, *args, **kwargs):
@@ -297,7 +376,7 @@ class Node(node_serializable.Serializable):
                                          *args,
                                          **kwargs)
         self.inputs.append(socket)
-        self.update_socket_positions()
+        self.signals.num_sockets_changed.emit()
         return socket
 
     def add_output(self, data_type, label=None, max_connections=0, value=None, *args, **kwargs):
@@ -314,25 +393,27 @@ class Node(node_serializable.Serializable):
                                           *args,
                                           **kwargs)
         self.outputs.append(socket)
-        self.update_socket_positions()
+        self.signals.num_sockets_changed.emit()
         return socket
 
     def remove_socket(self, name, is_input=True):
         try:
             if is_input:
                 socket_to_remove = [socket for socket in self.inputs if socket.label == name][0]  # type: node_socket.InputSocket
-                if socket_to_remove.index != len(self.inputs) - 1:
-                    self.inputs[socket_to_remove.index + 1].index -= 1
                 self.inputs.remove(socket_to_remove)
+                if socket_to_remove in self._required_inputs:
+                    self._required_inputs.remove(socket_to_remove)
+                for index, socket in enumerate(self.inputs):
+                    socket.index = index
             else:
                 socket_to_remove = [socket for socket in self.outputs if socket.label == name][0]  # type: node_socket.OutputSocket
-                if socket_to_remove.index != len(self.outputs) - 1:
-                    self.outputs[socket_to_remove.index + 1].index -= 1
                 self.outputs.remove(socket_to_remove)
+                for index, socket in enumerate(self.outputs):
+                    socket.index = index
             socket_to_remove.remove()
-            self.update_socket_positions()
-        except IndexError:
-            Logger.error('Failed to delete input, socket with name {0} does not exist'.format(name))
+            self.signals.num_sockets_changed.emit()
+        except Exception:
+            Logger.error('Failed to delete socket {0}'.format(name))
 
     # ========= Graph Traversal ================ #
 
@@ -353,6 +434,16 @@ class Node(node_serializable.Serializable):
             exec_children += [socket.node for socket in exec_out.list_connections()]
         return exec_children
 
+    def get_exec_queue(self):
+        exec_queue = deque([self])
+
+        for exec_out in self.list_exec_outputs():
+            if not exec_out.list_connections():
+                continue
+            exec_queue.extend(exec_out.list_connections()[0].node.get_exec_queue())
+
+        return exec_queue
+
     def update_affected_outputs(self):
         for input in self.inputs:
             input.update_affected()
@@ -364,12 +455,12 @@ class Node(node_serializable.Serializable):
             self.update_affected_outputs()
         except Exception:
             Logger.exception('Failed to execute {0} {1}'.format(self.title, self))
+            self.append_tooltip('Execution error (Check script editor for details)\n')
             self.set_invalid(True)
             raise
 
         self.set_compiled(True)
         self.set_invalid(False)
-        self.exec_children()
         return 0
 
     def execute(self):
@@ -380,6 +471,21 @@ class Node(node_serializable.Serializable):
             node._exec()
 
     # ========= Socket finding/data retriving ========= #
+    def mark_inputs_required(self, inputs):
+        for socket in inputs:
+            self.mark_input_as_required(socket)
+
+    def mark_input_as_required(self, input_socket):
+        if isinstance(input_socket, node_socket.InputSocket):
+            self._required_inputs.append(input_socket)
+        elif isinstance(input_socket, str):
+            socket = self.find_first_input_with_label(input_socket)
+            if not input_socket:
+                Logger.error('Can not mark input {0} as required. Failed to find socket from label.'.format(input_socket))
+                return
+            self._required_inputs.append(socket)
+        else:
+            Logger.error('Invalid required "input socket" argument {0}'.format(input_socket))
 
     def find_first_input_with_label(self, text):
         result = None
@@ -392,7 +498,7 @@ class Node(node_serializable.Serializable):
     def find_first_input_of_datatype(self, datatype):
         result = None
         for socket in self.inputs:
-            if issubclass(socket.data_class, datatype.get('class', type(None))):
+            if issubclass(datatype.get('class', type(None)), socket.data_class):
                 result = socket
                 break
         return result
@@ -418,7 +524,7 @@ class Node(node_serializable.Serializable):
         if not isinstance(socket, node_socket.Socket):
             Logger.error('Socket {0} does not exist.'.format(socket_name))
             raise AttributeError
-        return socket.value
+        return socket.value()
 
     def list_exec_outputs(self):
         return [socket for socket in self.outputs if socket.data_type == editor_conf.DataType.EXEC]

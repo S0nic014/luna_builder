@@ -50,30 +50,29 @@ class SceneClipboard(object):
         # Calculate mouse pointer - paste position
         view = self.scene.view
         mouse_scene_pos = view.last_scene_mouse_pos
+        mouse_x, mouse_y = mouse_scene_pos.x(), mouse_scene_pos.y()
 
         # Calculate selected objects bbox and center
-        minx = maxx = miny = maxy = 0
+        minx = maxx = miny = maxy = 10000000, -10000000, 10000000, -10000000
         for node_data in data['nodes']:
             x, y = node_data['pos_x'], node_data['pos_y']
             minx = min(x, minx)
             maxx = max(x, maxx)
             miny = min(y, miny)
             maxy = max(y, maxy)
-        bbox_center_x = (minx + maxx) / 2
-        bbox_center_y = (miny + maxy) / 2
-        # center = view.mapToScene(view.rect().center())
 
-        # Calculate offset for new nodes
-        offset_x = mouse_scene_pos.x() - bbox_center_x
-        offset_y = mouse_scene_pos.y() - bbox_center_y
-
+        created_nodes = []
         # Create each node
         for node_data in data['nodes']:
             node_class = self.scene.get_class_from_node_data(node_data)
             new_node = node_class(self.scene)
             new_node.deserialize(node_data, hashmap, restore_id=False)
-            pos = new_node.position
-            new_node.set_position(pos.x() + offset_x, pos.y() + offset_y)
+            created_nodes.append(new_node)
+
+            # Adjust node position
+            pos_x, pos_y = new_node.position.x(), new_node.position.y()
+            new_x, new_y = mouse_x + pos_x - minx, mouse_y + pos_y - miny
+            new_node.set_position(new_x, new_y)
 
         # Create each edge
         for edge_data in data['edges']:
@@ -81,3 +80,4 @@ class SceneClipboard(object):
             new_edge.deserialize(edge_data, hashmap, restore_id=False)
 
         self.scene.history.store_history('Paste items', set_modified=True)
+        return created_nodes

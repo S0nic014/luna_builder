@@ -16,6 +16,7 @@ import luna_builder.editor.node_serializable as node_serializable
 import luna_builder.editor.node_scene_history as scene_history
 import luna_builder.editor.node_scene_clipboard as scene_clipboard
 import luna_builder.editor.node_scene_vars as node_scene_vars
+import luna_builder.editor.graph_executor as graph_executor
 # imp.reload(node_scene_vars)
 imp.reload(scene_history)
 imp.reload(scene_clipboard)
@@ -46,6 +47,7 @@ class Scene(node_serializable.Serializable):
         self.nodes = []
         self.edges = []
         self.is_executing = False
+        self.executor = self.executor = graph_executor.GraphExecutor(self)
         self.vars = node_scene_vars.SceneVars(self)
         self.gr_scene = None  # type: graphics_scene.QLGraphicsScene
 
@@ -71,12 +73,27 @@ class Scene(node_serializable.Serializable):
 
     @ edge_type.setter
     def edge_type(self, value):
+        # Get edge type
+        fallback_type = node_edge.Edge.Type.BEZIER
+        if isinstance(value, int):
+            try:
+                value = list(node_edge.Edge.Type)[value]
+            except IndexError:
+                value = fallback_type
+        elif isinstance(value, node_edge.Edge.Type):
+            pass
+        else:
+            try:
+                value = node_edge.Edge.Type[str(value)]
+            except Exception:
+                Logger.error('Scene: Invalid edge type value: {0}'.format(value))
+                value = fallback_type
+
+        if self._edge_type == value:
+            return
+        # Do updates
         self._edge_type = value
         self.update_edge_types()
-
-    @property
-    def edge_type_index(self):
-        return list(node_edge.Edge.Type).index(self.edge_type) + 1
 
     @ property
     def view(self):
@@ -123,7 +140,7 @@ class Scene(node_serializable.Serializable):
         return self._last_selected_items
 
     def set_history_init_point(self):
-        Logger.debug('Store initial scene history')
+        Logger.debug('Store initial scene history (Size: {0})'.format(self.history.size))
         self.history.store_history(self.history.SCENE_INIT_DESC)
 
     def add_node(self, node):
@@ -136,7 +153,10 @@ class Scene(node_serializable.Serializable):
         self.nodes.remove(node)
 
     def remove_edge(self, edge):
-        self.edges.remove(edge)
+        try:
+            self.edges.remove(edge)
+        except ValueError:
+            Logger.warning('Tried to remove Edge {0} that is not registered with the scene!'.format(edge))
 
     def list_node_ids(self):
         return [node.id for node in self.nodes]
@@ -176,6 +196,14 @@ class Scene(node_serializable.Serializable):
             self.signals.item_selected.emit()
         self._last_selected_items = current_selection
         self.signals.selection_changed.emit()
+
+    def rename_selected_node(self):
+        sel = self.selected_nodes
+        if not sel:
+            Logger.warning('Select a node to rename.')
+            return
+        sel = sel[-1]
+        sel.edit_title()
 
     # ====== Cut / Copy / Paste / Delete ====== #
     def copy_selected(self):
@@ -250,6 +278,7 @@ class Scene(node_serializable.Serializable):
             self.deserialize(data)
             Logger.info("Rig build loaded in {0:.2f}s".format(timeit.default_timer() - start_time))
             self.history.clear()
+            self.executor.reset_stepped_execution()
             self.file_name = file_path
             self.has_been_modified = False
             self.set_history_init_point()
@@ -308,23 +337,56 @@ class Scene(node_serializable.Serializable):
             ('scene_height', self.scene_height),
             ('nodes', nodes),
             ('edges', edges),
-            ('edge_type', self.edge_type_index)
+            ('edge_type', self.edge_type.name)
         ])
 
     def deserialize(self, data, hashmap={}, restore_id=True):
-        self.clear()
-
+        hashmap = {}
         if restore_id:
-            self.id = data.get('id')
-
+            self.id = data['id']
         self.vars.deserialize(data.get('vars', OrderedDict()))
 
-        # create nodes
-        for node_data in data.get('nodes'):
-            self.get_class_from_node_data(node_data)(self).deserialize(node_data, hashmap, restore_id=restore_id)
+        # Deserialize nodes
+        all_nodes = self.nodes[:]
+        for node_data in data['nodes']:
+            found = False
+            for node in all_nodes:
+                if node.id == node_data['id']:
+                    found = node
+                    break
 
-        # create edges
-        for edge_data in data.get('edges'):
-            node_edge.Edge(self, start_socket=None, end_socket=None).deserialize(edge_data, hashmap, restore_id=restore_id)
+            if not found:
+                new_node = self.get_class_from_node_data(node_data)(self)
+                new_node.deserialize(node_data, hashmap, restore_id=restore_id)
+            else:
+                found.deserialize(node_data, hashmap, restore_id=restore_id)
+                all_nodes.remove(found)
 
-        self.edge_type = node_edge.Edge.Type(data.get('edge_type', 2))
+        while all_nodes:
+            node = all_nodes.pop()
+            node.remove()
+
+        # Deserialize edges
+        all_edges = self.edges[:]
+
+        for edge_data in data['edges']:
+            found = False
+            for edge in all_edges:
+                if edge.id == edge_data['id']:
+                    found = edge
+                    break
+            if not found:
+                new_edge = node_edge.Edge(self)
+                new_edge.deserialize(edge_data, hashmap, restore_id)
+            else:
+                found.deserialize(edge_data, hashmap, restore_id)
+                all_edges.remove(found)
+
+        while all_edges:
+            edge = all_edges.pop()
+            edge.remove()
+
+        # Set edge type
+        self.edge_type = data.get('edge_type', node_edge.Edge.Type.BEZIER)
+
+        return True

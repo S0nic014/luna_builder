@@ -52,11 +52,11 @@ class Socket(node_serializable.Serializable):
         self.node_position = position if isinstance(position, Socket.Position) else Socket.Position(position)
         # self.data_type = editor_conf.DataType.get_type(data_type) if isinstance(data_type, int) else data_type
         self.data_type = data_type
-        self._label = label if label else self.data_type.get('label')
+        self._label = label if label is not None else self.data_type.get('label')
         self.max_connections = max_connections
         self.count_on_this_side = count_on_this_side
         self._value = self.data_type.get('default') if value is None else value
-        self._default_value = self.value
+        self._default_value = self.value()
 
         # Graphics
         self.gr_socket = graphics_socket.QLGraphicsSocket(self)
@@ -78,22 +78,6 @@ class Socket(node_serializable.Serializable):
     def label(self, text):
         self._label = text
         self.gr_socket.text_item.setPlainText(self._label)
-
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, value):
-        if self.data_type == editor_conf.DataType.EXEC:
-            return
-        if self._value == value:
-            return
-        if isinstance(value, pm.PyNode):
-            value = str(value)
-
-        self._value = value
-        self.signals.value_changed.emit()
 
     @property
     def default_value(self):
@@ -123,6 +107,7 @@ class Socket(node_serializable.Serializable):
         for edge in self.edges:
             if not self.can_be_connected(edge.get_other_socket(self)):
                 edge.remove()
+        self.node.update_size()
 
     @ property
     def data_class(self):
@@ -136,15 +121,25 @@ class Socket(node_serializable.Serializable):
     # ============ Datatype methods ============= #
 
     def is_runtime_data(self):
-        # return any([issubclass(self.data_class, dt['class']) for dt in editor_conf.DataType.runtime_types()])
         return self.data_class in editor_conf.DataType.runtime_types(classes=True)
     # ============ Value methods ============= #
 
+    def value(self):
+        return self._value
+
     def set_value(self, value):
-        self.value = value
+        if self.data_type == editor_conf.DataType.EXEC:
+            return
+        if self._value == value:
+            return
+        if isinstance(value, pm.PyNode):
+            value = str(value)
+
+        self._value = value
+        self.signals.value_changed.emit()
 
     def reset_value_to_default(self):
-        self.value = self.default_value
+        self.set_value(self.default_value)
 
     def affects(self, other_socket):
         self._affected_sockets.append(other_socket)
@@ -173,20 +168,27 @@ class Socket(node_serializable.Serializable):
     def has_edge(self):
         return bool(self.edges)
 
-    def set_connected_edge(self, edge=None):
+    def set_connected_edge(self, edge, silent=False):
         if not edge:
-            self.edges.clear()
+            Logger.warning('{0}: Recieved edge {1}'.format(self, edge))
             return
-        if self.edges and self.max_connections and len(self.edges) > self.max_connections:
-            self.edges[0].remove()
+
+        if self.edges and self.max_connections and len(self.edges) >= self.max_connections:
+            self.edges[-1].remove()
+        self.edges.append(edge)
+
+        if not silent:
+            self.signals.connection_changed.emit()
 
     def remove_all_edges(self):
         while self.edges:
             self.edges[0].remove()
         self.edges = []
 
-    def remove_edge(self, edge):
+    def remove_edge(self, edge, silent=False):
         self.edges.remove(edge)
+        if not silent:
+            self.signals.connection_changed.emit()
 
     def update_edges(self):
         for edge in self.edges:
@@ -207,7 +209,7 @@ class Socket(node_serializable.Serializable):
             Logger.warning('Can\'t connect sockets on the same node')
             return False
 
-        #!FIX: Find a way to check for cycles
+        #!TODO: Find a way to check for cycles
         # if assigned_socket.node in item.socket.node.list_children(recursive=True) or item.socket.node in assigned_socket.node.list_children():
         #     Logger.warning('Can\'t create connection due to cycle')
         #     return False
@@ -227,7 +229,7 @@ class Socket(node_serializable.Serializable):
         if self.is_runtime_data():
             value = None
         else:
-            value = self.value
+            value = self.value()
 
         return OrderedDict([
             ('id', self.id),
@@ -245,25 +247,21 @@ class Socket(node_serializable.Serializable):
         data_type = editor_conf.DataType.get_type(data['data_type'])
         value = data.get('value', data_type['default'])
         self.data_type = data_type
-        self.value = value
+        self.set_value(value)
         hashmap[data['id']] = self
         return True
 
     def update_affected(self):
         for socket in self._affected_sockets:
-            socket.value = self.value
+            socket.set_value(self.value())
 
 
 class InputSocket(Socket):
 
     def create_connections(self):
-        self.signals.connection_changed.connect(self.on_connection_changed)
+        super(InputSocket, self).create_connections()
         self.signals.value_changed.connect(self.node.set_compiled)
-
-    def on_connection_changed(self):
-        if not self.has_edge() and self.is_runtime_data():
-            self.value = self.data_type['default']
-        self.update_affected()
+        self.signals.connection_changed.connect(self.on_connection_changed)
 
     def can_be_connected(self, other_socket):
         super(InputSocket, self).can_be_connected(other_socket)
@@ -272,17 +270,22 @@ class InputSocket(Socket):
             return False
         return True
 
-    def set_connected_edge(self, edge=None):
-        super(InputSocket, self).set_connected_edge(edge=edge)
-        if self.edges and edge not in self.edges:
-            self.edges[0].remove()
-        self.edges = [edge]
-        self.signals.connection_changed.emit()
+    def value(self):
+        if self.has_edge():
+            output_socket = self.edges[0].get_other_socket(self)
+            if output_socket:
+                return output_socket.value()
+        return self._value
+
+    def on_connection_changed(self):
+        if not self.has_edge() and self.is_runtime_data():
+            self.set_value(self.data_type['default'])
 
 
 class OutputSocket(Socket):
     def create_connections(self):
-        self.signals.value_changed.connect(self.update_connected_inputs)
+        super(OutputSocket, self).create_connections()
+        self.signals.value_changed.connect(self.notify_connected_inputs_value)
 
     def can_be_connected(self, other_socket):
         super(OutputSocket, self).can_be_connected(other_socket)
@@ -291,11 +294,6 @@ class OutputSocket(Socket):
             return False
         return True
 
-    def set_connected_edge(self, edge=None):
-        super(OutputSocket, self).set_connected_edge(edge=edge)
-        if edge not in self.edges:
-            self.edges.append(edge)
-
-    def update_connected_inputs(self):
+    def notify_connected_inputs_value(self):
         for socket in self.list_connections():
-            socket.value = self.value
+            socket.signals.value_changed.emit()

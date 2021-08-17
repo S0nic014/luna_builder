@@ -1,12 +1,13 @@
 import os
 import json
-import pymel.core as pm
+import re
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
 
 from luna import Logger
 import luna.static.directories as directories
+import luna_builder.editor.node_edge as node_edge
 import luna_builder.editor.editor_conf as editor_conf
 
 
@@ -36,25 +37,9 @@ class NodesPalette(QtWidgets.QWidget):
         self.update_node_tree()
 
     def create_widgets(self):
-        self.completer = QtWidgets.QCompleter()
-        self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        self.completer.setModelSorting(QtWidgets.QCompleter.CaseInsensitivelySortedModel)
-
         self.search_line = QtWidgets.QLineEdit()
         self.search_line.setPlaceholderText('Search')
-        self.search_line.setCompleter(self.completer)
         self.nodes_tree = QLDragTreeWidget(self)
-        # self.nodes_tree.setModel(self.completer.completionModel())
-
-    def create_model(self):
-
-        all_items = self.nodes_tree.findItems("*", QtCore.Qt.MatchWrap | QtCore.Qt.MatchWildcard | QtCore.Qt.MatchRecursive)
-        item_labels = [item.text(0) for item in all_items]
-        # item_labels.sort(key=str.lower)
-        if int(pm.about(v=1)) < 2020:
-            self.completer.setModel(QtGui.QStringListModel(item_labels))
-        else:
-            self.completer.setModel(QtCore.QStringListModel(item_labels))
 
     def create_layouts(self):
         self.main_layout = QtWidgets.QVBoxLayout()
@@ -65,11 +50,10 @@ class NodesPalette(QtWidgets.QWidget):
         self.main_layout.addWidget(self.nodes_tree)
 
     def create_connections(self):
-        self.search_line.textChanged.connect(self.completer.setCompletionPrefix)
+        self.search_line.textChanged.connect(lambda text: self.nodes_tree.populate(search_filter=text))
 
     def update_node_tree(self):
         self.nodes_tree.populate()
-        self.create_model()
 
 
 class QLDragTreeWidget(QtWidgets.QTreeWidget):
@@ -121,10 +105,11 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
     def add_category(self, name, expanded=True, parent=None):
         if not parent:
             parent = self
-        tree_item = QtWidgets.QTreeWidgetItem(parent)
-        tree_item.setText(0, name)
-        tree_item.setExpanded(expanded)
-        return tree_item
+        category_item = QtWidgets.QTreeWidgetItem(parent)
+        category_item.setFlags(QtCore.Qt.ItemIsEnabled)
+        category_item.setText(0, name)
+        category_item.setExpanded(expanded)
+        return category_item
 
     def get_category(self, name, expanded=True, parent=None):
         found_items = self.findItems(name, QtCore.Qt.MatchExactly | QtCore.Qt.MatchRecursive, 0)
@@ -166,16 +151,16 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
         except Exception:
             Logger.exception('Palette drag exception')
 
-    def populate(self):
+    def populate(self, search_filter=''):
         self.clear()
         if self.nodes_palette.functions_first:
-            self.add_registered_functions()
-            self.add_registered_nodes()
+            self.add_registered_functions(search_filter=search_filter)
+            self.add_registered_nodes(search_filter=search_filter)
         else:
-            self.add_registered_nodes()
-            self.add_registered_functions()
+            self.add_registered_nodes(search_filter=search_filter)
+            self.add_registered_functions(search_filter=search_filter)
 
-    def add_registered_nodes(self):
+    def add_registered_nodes(self, search_filter=''):
         keys = list(editor_conf.NODE_REGISTER.keys())
         keys.sort()
         for node_id in keys:
@@ -183,9 +168,14 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
             if node_class.CATEGORY == editor_conf.INTERNAL_CATEGORY:
                 continue
             palette_label = node_class.PALETTE_LABEL if hasattr(node_class, 'PALETTE_LABEL') else node_class.DEFAULT_TITLE
+            filter_matched = bool(search_filter) and (re.search(search_filter, palette_label, re.IGNORECASE)
+                                                      is not None or re.search(search_filter, node_class.CATEGORY, re.IGNORECASE) is not None)
+            # Filter
+            if search_filter and not filter_matched:
+                continue
             self.add_node_item(node_id, palette_label, category=node_class.CATEGORY, icon_name=node_class.ICON)
 
-    def add_registered_functions(self):
+    def add_registered_functions(self, search_filter=''):
         keys = list(editor_conf.FUNCTION_REGISTER.keys())
         keys.sort()
         for datatype_name in keys:
@@ -196,15 +186,17 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
             func_signatures_list = func_map.keys()
             func_signatures_list = list(func_signatures_list) if not isinstance(func_signatures_list, list) else func_signatures_list
             for func_sign in func_signatures_list:
-                if datatype_name != editor_conf.UNBOUND_FUNCTION_DATATYPE:
-                    expanded = self.nodes_palette.functions_first
-                else:
-                    expanded = True
+                expanded = self.nodes_palette.functions_first or bool(search_filter)
                 func_dict = func_map[func_sign]
                 icon_name = func_dict['icon']
                 nice_name = func_dict.get('nice_name')
                 sub_category_name = func_dict.get('category', 'General')
                 palette_name = nice_name if nice_name else func_sign
+                # Filter
+                filter_matched = bool(search_filter) and (re.search(search_filter, palette_name, re.IGNORECASE)
+                                                          is not None or re.search(search_filter, sub_category_name, re.IGNORECASE is not None))
+                if search_filter and not filter_matched:
+                    continue
 
                 self.add_node_item(editor_conf.FUNC_NODE_ID,
                                    palette_name,
@@ -212,3 +204,94 @@ class QLDragTreeWidget(QtWidgets.QTreeWidget):
                                    category='Functions/{0}'.format(sub_category_name),
                                    icon_name=icon_name,
                                    expanded=expanded)
+
+
+class PopupNodesPalette(QtWidgets.QDialog):
+
+    @ classmethod
+    def show_action(cls, owner, gr_view, shortcut=QtGui.QKeySequence(QtCore.Qt.Key_Tab)):
+        action = QtWidgets.QAction(owner)
+        action.setShortcut(shortcut)
+        action.triggered.connect(lambda: cls.create(gr_view))
+        return action
+
+    @ classmethod
+    def create(cls, gr_view):
+        creator_dialog = cls(gr_view, parent=gr_view)
+        creator_dialog.move(QtGui.QCursor.pos())
+        creator_dialog.exec_()
+
+    def __init__(self, view, parent=None, edge=None):
+        super(PopupNodesPalette, self).__init__(parent)
+        self.view = view
+        self.scene = view.scene
+
+        self.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.Dialog)
+        self.create_widgets()
+        self.create_layouts()
+        self.create_connections()
+
+    def create_widgets(self):
+        data_type_filter = self.view.dragging.get_source_socket_datatype()
+        self.nodes_palette = NodesPalette(icon_size=16, data_type_filter=data_type_filter, functions_first=True)
+        self.nodes_palette.nodes_tree.setDragEnabled(False)
+        self.nodes_palette.nodes_tree.installEventFilter(self)
+
+    def create_layouts(self):
+        self.main_layout = QtWidgets.QVBoxLayout()
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.addWidget(self.nodes_palette)
+        self.setLayout(self.main_layout)
+
+    def create_connections(self):
+        self.nodes_palette.nodes_tree.itemClicked.connect(self.spawn_clicked_node)
+
+    def eventFilter(self, watched, event):
+        if event.type() == QtCore.QEvent.KeyPress and \
+                event.matches(QtGui.QKeySequence.InsertParagraphSeparator):
+            item = self.nodes_palette.nodes_tree.currentItem()
+            if item:
+                self.spawn_clicked_node(item)
+                return True
+        return False
+
+    def is_dragging_from_output(self):
+        return self.view.dragging.drag_edge and self.view.dragging.drag_edge.start_socket
+
+    def is_dragging_from_input(self):
+        return self.view.dragging.drag_edge and self.view.dragging.drag_edge.end_socket
+
+    def spawn_clicked_node(self, item):
+        if not item.flags() & QtCore.Qt.ItemIsSelectable:
+            return
+
+        node_id = item.data(0, QLDragTreeWidget.NODE_ID_ROLE)
+        json_data = item.data(0, QLDragTreeWidget.JSON_DATA_ROLE)
+        new_node = self.scene.spawn_node_from_data(node_id, json_data, self.view.last_scene_mouse_pos)
+
+        # Connect dragging edge
+        # Output -> Input
+        if self.is_dragging_from_output():
+            start_socket = self.view.dragging.drag_edge.start_socket
+            start_node = self.view.dragging.drag_edge.start_socket.node
+            socket_to_connect = new_node.find_first_input_with_label(start_socket.label)
+            if not socket_to_connect:
+                socket_to_connect = new_node.find_first_input_of_datatype(start_socket.data_type)
+            # Find exec sockets to connect
+            if start_node.exec_out_socket and not start_node.exec_out_socket.has_edge() and new_node.exec_in_socket:
+                node_edge.Edge(self.scene, start_socket=start_node.exec_out_socket, end_socket=new_node.exec_in_socket)
+            # Finish dragging
+            self.view.dragging.end_edge_drag(socket_to_connect)
+        # Input -> Output
+        elif self.is_dragging_from_input():
+            end_socket = self.view.dragging.drag_edge.end_socket
+            end_node = self.view.dragging.drag_edge.end_socket.node
+            socket_to_connect = new_node.find_first_output_with_label(end_socket.label)
+            if not socket_to_connect:
+                socket_to_connect = new_node.find_first_output_of_datatype(end_socket.data_type)
+            # Find exec sockets to connect
+            if end_node.exec_in_socket and not end_node.exec_in_socket.has_edge() and new_node.exec_out_socket:
+                node_edge.Edge(self.scene, start_socket=new_node.exec_out_socket, end_socket=end_node.exec_in_socket)
+            self.view.dragging.end_edge_drag(socket_to_connect)
+
+        self.close()

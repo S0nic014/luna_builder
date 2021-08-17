@@ -14,11 +14,11 @@ class CharacterNode(base_component.ComponentNode):
     UNIQUE = True
     COMPONENT_CLASS = luna_rig.components.Character
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(CharacterNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(CharacterNode, self).init_sockets(reset=reset)
         self.out_self.data_type = editor_conf.DataType.CHARACTER
-        self.in_name.value = 'character'
-        self.in_tag.value = self.out_tag.value = 'character'
+        self.in_name.set_value('character')
+        self.in_tag.set_value('character')
 
         self.out_root_control = self.add_output(editor_conf.DataType.CONTROL, label='Root Control')
         self.out_deform_rig = self.add_output(editor_conf.DataType.STRING, label='Deformation Rig')
@@ -26,14 +26,14 @@ class CharacterNode(base_component.ComponentNode):
         self.out_geometry_grp = self.add_output(editor_conf.DataType.STRING, label='Geometry Group')
 
     def execute(self):
-        self.component_instance = self.COMPONENT_CLASS.create(self.in_meta_parent.value, name=self.in_name.value, tag=self.in_tag.value)
+        self.component_instance = self.COMPONENT_CLASS.create(self.in_meta_parent.value(), name=self.in_name.value(), tag=self.in_tag.value())
         # Set outputs
-        self.out_self.value = self.component_instance
-        self.out_meta_parent.value = self.component_instance.meta_parent
-        self.out_root_control.value = self.component_instance.root_control.transform
-        self.out_deform_rig.value = self.component_instance.deformation_rig
-        self.out_control_rig.value = self.component_instance.control_rig
-        self.out_geometry_grp.value = self.component_instance.geometry_grp
+        self.out_self.set_value(self.component_instance)
+        self.out_meta_parent.set_value(self.component_instance.meta_parent)
+        self.out_root_control.set_value(self.component_instance.root_control.transform)
+        self.out_deform_rig.set_value(self.component_instance.deformation_rig)
+        self.out_control_rig.set_value(self.component_instance.control_rig)
+        self.out_geometry_grp.set_value(self.component_instance.geometry_grp)
 
 
 def register_plugin():

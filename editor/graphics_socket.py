@@ -3,6 +3,8 @@ from PySide2 import QtWidgets
 from PySide2 import QtCore
 
 from luna import Logger
+from luna import Config
+from luna import BuilderVars
 
 
 class QLGraphicsSocket(QtWidgets.QGraphicsItem):
@@ -14,21 +16,32 @@ class QLGraphicsSocket(QtWidgets.QGraphicsItem):
         self.socket = socket
         super(QLGraphicsSocket, self).__init__(socket.node.gr_node)
 
+        self.init_sizes()
+        self.init_assets()
+        self.init_inner_classes()
+
+    def init_sizes(self):
         self.radius = 6.0
         self.empty_radius = 3.0
         self.outline_width = 1.0
+
+    def init_assets(self):
         self._color_empty = QtGui.QColor('#141413')
         self._color_background = self.socket.data_type.get('color')
         self._color_outline = QtGui.QColor("#FF000000")
-
-        # Pen, brush
         self._pen = QtGui.QPen(self._color_outline)
         self._pen.setWidthF(self.outline_width)
         self._brush = QtGui.QBrush(self._color_background)
         self._brush_empty = QtGui.QBrush(self._color_empty)
+        self._label_font = QtGui.QFont(*Config.get(BuilderVars.socket_font, default=['Roboto', 10], cached=True))
 
+    def init_inner_classes(self):
+        self.init_label()
+
+    def init_label(self):
         # Add text label
         self.text_item = QtWidgets.QGraphicsTextItem(self.socket.label, parent=self)
+        self.text_item.setFont(self._label_font)
         if self.socket.node_position in [self.socket.Position.RIGHT_TOP, self.socket.Position.RIGHT_BOTTOM]:
             self.align_text_right()
 

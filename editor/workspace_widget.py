@@ -19,7 +19,7 @@ class WorkspaceWidget(QtWidgets.QWidget):
         super(WorkspaceWidget, self).__init__(parent)
 
         self.label = "Workspace"
-        self.setMinimumWidth(300)
+        self.setMinimumWidth(315)
         # self.icon = pysideFn.get_QIcon("workspace.png")
 
         self.create_widgets()
@@ -271,6 +271,7 @@ class AssetGroup(QtWidgets.QGroupBox):
             return
 
         completer = QtWidgets.QCompleter(asset_list)
+        completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.asset_name_lineedit.setCompleter(completer)
 
     @QtCore.Slot()

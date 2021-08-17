@@ -7,8 +7,8 @@ from luna import Logger
 from luna import __version__
 from luna.utils import pysideFn
 
-import luna_builder.tabs.tab_workspace as tab_workspace
-import luna_builder.tabs.tab_attributes as tab_attributes
+import luna_builder.editor.workspace_widget as workspace_widget
+import luna_builder.editor.attributes_editor as attributes_editor
 
 import luna_builder.menus as menus
 import luna_builder.editor.node_editor as node_editor
@@ -17,8 +17,8 @@ import luna_builder.editor.node_scene_vars as node_scene_vars
 
 imp.reload(node_scene_vars)
 imp.reload(node_editor)
-imp.reload(tab_attributes)
-imp.reload(tab_workspace)
+imp.reload(attributes_editor)
+imp.reload(workspace_widget)
 imp.reload(node_nodes_palette)
 
 
@@ -75,37 +75,39 @@ class BuilderMainWindow(QtWidgets.QMainWindow):
         self.menu_bar = QtWidgets.QMenuBar()
         self.setMenuBar(self.menu_bar)
         # Corner button
-        self.update_tab_btn = QtWidgets.QPushButton()
-        self.update_tab_btn.setFlat(True)
-        self.update_tab_btn.setIcon(pysideFn.get_QIcon("refresh.png"))
-        self.menu_bar.setCornerWidget(self.update_tab_btn, QtCore.Qt.TopRightCorner)
+        self.update_button = QtWidgets.QPushButton()
+        self.update_button.setFlat(True)
+        self.update_button.setIcon(pysideFn.get_QIcon("refresh.png"))
+        self.menu_bar.setCornerWidget(self.update_button, QtCore.Qt.TopRightCorner)
 
         # Menus
         self.file_menu = menus.FileMenu(self)
         self.edit_menu = menus.EditMenu(self)
+        self.graph_menu = menus.GraphMenu(self)
         self.window_menu = menus.WindowMenu(self)
         self.controls_menu = menus.ControlsMenu()
         self.joints_menu = menus.JointsMenu()
         self.skin_menu = menus.SkinMenu()
-        self.blendshapes_menu = menus.BlendshapesMenu()
+        self.deformers_menu = menus.DeformersMenu()
         self.rig_menu = menus.RigMenu()
         self.help_menu = menus.HelpMenu(self)
 
         # Populate menu bar
         self.menu_bar.addMenu(self.file_menu)
         self.menu_bar.addMenu(self.edit_menu)
+        self.menu_bar.addMenu(self.graph_menu)
         self.menu_bar.addMenu(self.window_menu)
         self.menu_bar.addMenu(self.controls_menu)
         self.menu_bar.addMenu(self.joints_menu)
         self.menu_bar.addMenu(self.skin_menu)
-        self.menu_bar.addMenu(self.blendshapes_menu)
+        self.menu_bar.addMenu(self.deformers_menu)
         self.menu_bar.addMenu(self.rig_menu)
         self.menu_bar.addMenu(self.help_menu)
 
     def create_widgets(self):
         # Right tabs
-        self.workspace_wgt = tab_workspace.WorkspaceWidget()
-        self.attrib_editor = tab_attributes.AttributesEditor(self)
+        self.workspace_wgt = workspace_widget.WorkspaceWidget()
+        self.attrib_editor = attributes_editor.AttributesEditor(self)
 
         # Nodes palette, vars widget
         self.nodes_palette = node_nodes_palette.NodesPalette()
@@ -145,6 +147,7 @@ class BuilderMainWindow(QtWidgets.QMainWindow):
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.workspace_dock)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.attrib_editor_dock)
         self.tabifyDockWidget(self.workspace_dock, self.attrib_editor_dock)
+        self.workspace_dock.raise_()
         # Add docks left
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.nodes_palette_dock)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.vars_dock)
@@ -158,8 +161,8 @@ class BuilderMainWindow(QtWidgets.QMainWindow):
 
     def create_connections(self):
         # Other
-        self.update_tab_btn.clicked.connect(lambda: self.tab_widget.currentWidget().update_data())
-        self.update_tab_btn.clicked.connect(self.nodes_palette.update_node_tree)
+        self.update_button.clicked.connect(self.workspace_wgt.update_data)
+        self.update_button.clicked.connect(self.nodes_palette.update_node_tree)
         self.mdi_area.subWindowActivated.connect(self.update_title)
         self.mdi_area.subWindowActivated.connect(self.vars_widget.update_var_list)
         self.vars_widget.var_list.itemClicked.connect(self.attrib_editor.update_current_var_widget)

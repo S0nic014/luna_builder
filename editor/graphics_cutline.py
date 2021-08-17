@@ -18,13 +18,14 @@ class QLCutLine(QtWidgets.QGraphicsItem):
         return self.shape().boundingRect()
 
     def shape(self):
-        if len(self.line_points) > 0:
+
+        if len(self.line_points) > 1:
             path = QtGui.QPainterPath(self.line_points[0])
             for pt in self.line_points[1:]:
                 path.lineTo(pt)
         else:
             path = QtGui.QPainterPath(QtCore.QPointF(0.0, 0.0))
-            path.lineTo(QtCore.QPointF())
+            path.lineTo(QtCore.QPointF(1.0, 1.0))
         return path
 
     def paint(self, painter, option, widget=None):

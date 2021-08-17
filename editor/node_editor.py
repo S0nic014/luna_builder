@@ -10,12 +10,11 @@ import luna_builder.editor.editor_conf as editor_conf
 import luna_builder.editor.node_scene as node_scene
 import luna_builder.editor.graphics_view as graphics_view
 import luna_builder.editor.node_context_menus as context_menus
-import luna_builder.editor.graph_executor as graph_executor
+import luna_builder.editor.node_nodes_palette as node_nodes_palette
 
 imp.reload(context_menus)
 imp.reload(node_scene)
 imp.reload(graphics_view)
-imp.reload(graph_executor)
 
 
 class EditorSignals(QtCore.QObject):
@@ -28,20 +27,23 @@ class NodeEditor(QtWidgets.QWidget):
         super(NodeEditor, self).__init__(parent)
         self.signals = EditorSignals()
         self.init_ui()
-        self.add_debug_nodes()
+        self.scene.set_history_init_point()
 
     def init_ui(self):
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.setMinimumSize(200, 500)
         self.create_widgets()
+        self.create_actions()
         self.create_layouts()
         self.create_conections()
         self.update_title()
 
+    def create_actions(self):
+        self.addAction(node_nodes_palette.PopupNodesPalette.show_action(self, self.gr_view))
+
     def create_widgets(self):
         # Graphics scene
         self.scene = node_scene.Scene()
-        self.executor = graph_executor.GraphExecutor(self.scene)
 
         # Graphics view
         self.gr_view = graphics_view.QLGraphicsView(self.scene.gr_scene, self)
@@ -77,13 +79,6 @@ class NodeEditor(QtWidgets.QWidget):
         return filename
 
     # ======== Events ======== #
-
-    def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_B and event.modifiers() & QtCore.Qt.ControlModifier:
-            self.executor.execute_graph()
-        else:
-            super(NodeEditor, self).keyPressEvent(event)
-
     def closeEvent(self, event):
         self.signals.about_to_close.emit(self, event)
 
@@ -114,9 +109,6 @@ class NodeEditor(QtWidgets.QWidget):
     def handle_edge_context_menu(self, event):
         pass
 
-    def handle_new_node_context_menu(self, event):
-        pass
-
     # ======== Drag & Drop ======== #
 
     def on_item_drag_enter(self, event):
@@ -130,58 +122,64 @@ class NodeEditor(QtWidgets.QWidget):
     def on_item_drop(self, event):
         Logger.debug('On item drop')
         if event.mimeData().hasFormat(editor_conf.PALETTE_MIMETYPE):
-            # Retrive data from droped item
-            event_data = event.mimeData().data(editor_conf.PALETTE_MIMETYPE)
-            data_stream = QtCore.QDataStream(event_data, QtCore.QIODevice.ReadOnly)
-            pixmap = QtGui.QPixmap()
-            data_stream >> pixmap
-            node_id = data_stream.readInt32()
-            json_data = json.loads(data_stream.readQString())  # type: dict
-            # Position
-            mouse_pos = event.pos()
-            scene_pos = self.scene.view.mapToScene(mouse_pos)
-
-            Logger.debug('''Dropped Item:
-                        > NODE_ID: {node_id}
-                        > DATA: {data}
-                        > MOUSE POS: {mouse_pos}
-                        > SCENE POS {scene_pos}'''.format(node_id=node_id, data=json_data, mouse_pos=mouse_pos, scene_pos=scene_pos))
-
-            self.scene.spawn_node_from_data(node_id, json_data, scene_pos)
-
-            event.setDropAction(QtCore.Qt.MoveAction)
-            event.accept()
+            self.handle_nodes_palette_drop(event)
         elif event.mimeData().hasFormat(editor_conf.VARS_MIMETYPE):
-            event_data = event.mimeData().data(editor_conf.VARS_MIMETYPE)
-            data_stream = QtCore.QDataStream(event_data, QtCore.QIODevice.ReadOnly)
-            json_data = json.loads(data_stream.readQString())  # type: dict
-            # Position
-            mouse_pos = event.pos()
-            scene_pos = self.scene.view.mapToScene(mouse_pos)
-            Logger.debug('''Dropped Varible:
-                        > DATA: {data}
-                        > SCENE POS {scene_pos}'''.format(data=json_data, scene_pos=scene_pos))
-
-            # Choose getter/setter
-            var_name = json_data['var_name']
-            get_set_menu = QtWidgets.QMenu(self)
-            getter_action = QtWidgets.QAction('Get', get_set_menu)
-            setter_action = QtWidgets.QAction('Set', get_set_menu)
-            get_set_menu.addAction(getter_action)
-            get_set_menu.addAction(setter_action)
-            result_action = get_set_menu.exec_(self.mapToGlobal(event.pos()))
-            # Spawn node
-            self.scene.spawn_getset(var_name, scene_pos, setter=result_action == setter_action)
-
-            # self.scene.spawn_getter_setter(json_data, scene_pos)
-            event.setDropAction(QtCore.Qt.MoveAction)
-            event.accept()
+            self.handle_variable_drop(event)
         else:
             Logger.warning('Unsupported item format: {0}'.format(event.mimeData()))
             event.ignore()
             return
 
     # ======== Methods ======== #
+
+    def handle_nodes_palette_drop(self, event):
+        # Retrive data from droped item
+        event_data = event.mimeData().data(editor_conf.PALETTE_MIMETYPE)
+        data_stream = QtCore.QDataStream(event_data, QtCore.QIODevice.ReadOnly)
+        pixmap = QtGui.QPixmap()
+        data_stream >> pixmap
+        node_id = data_stream.readInt32()
+        json_data = json.loads(data_stream.readQString())  # type: dict
+        # Position
+        mouse_pos = event.pos()
+        scene_pos = self.scene.view.mapToScene(mouse_pos)
+
+        Logger.debug('''Dropped Item:
+                        > NODE_ID: {node_id}
+                        > DATA: {data}
+                        > MOUSE POS: {mouse_pos}
+                        > SCENE POS {scene_pos}'''.format(node_id=node_id, data=json_data, mouse_pos=mouse_pos, scene_pos=scene_pos))
+
+        self.scene.spawn_node_from_data(node_id, json_data, scene_pos)
+
+        event.setDropAction(QtCore.Qt.MoveAction)
+        event.accept()
+
+    def handle_variable_drop(self, event):
+        event_data = event.mimeData().data(editor_conf.VARS_MIMETYPE)
+        data_stream = QtCore.QDataStream(event_data, QtCore.QIODevice.ReadOnly)
+        json_data = json.loads(data_stream.readQString())  # type: dict
+        # Position
+        mouse_pos = event.pos()
+        scene_pos = self.scene.view.mapToScene(mouse_pos)
+        Logger.debug('''Dropped Varible:
+                        > DATA: {data}
+                        > SCENE POS {scene_pos}'''.format(data=json_data, scene_pos=scene_pos))
+
+        # Choose getter/setter
+        var_name = json_data['var_name']
+        get_set_menu = QtWidgets.QMenu(self)
+        getter_action = QtWidgets.QAction('Get', get_set_menu)
+        setter_action = QtWidgets.QAction('Set', get_set_menu)
+        get_set_menu.addAction(getter_action)
+        get_set_menu.addAction(setter_action)
+        result_action = get_set_menu.exec_(self.mapToGlobal(event.pos()))
+        if result_action is None:
+            return
+        # Spawn node
+        self.scene.spawn_getset(var_name, scene_pos, setter=result_action == setter_action)
+        event.setDropAction(QtCore.Qt.MoveAction)
+        event.accept()
 
     def update_title(self):
         self.setWindowTitle(self.user_friendly_title)
@@ -244,8 +242,3 @@ class NodeEditor(QtWidgets.QWidget):
             return False
         self.scene.save_to_file(file_path)
         return True
-
-    def add_debug_nodes(self):
-        # Test nodes
-
-        self.scene.set_history_init_point()

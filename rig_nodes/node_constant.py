@@ -7,14 +7,15 @@ class ConstantNode(luna_node.LunaNode):
     DEFAULT_TITLE = 'Constant'
     STATUS_ICON = False
     CATEGORY = 'Constants'
+    MIN_WIDTH = 100
     CONSTANT_DATA_TYPE = None
 
-    def __init__(self, scene, title=None, inputs=[], outputs=[]):
+    def __init__(self, scene, title=None):
         self.data_type = getattr(editor_conf.DataType, self.CONSTANT_DATA_TYPE)
-        super(ConstantNode, self).__init__(scene, title=title, inputs=inputs, outputs=outputs)
+        super(ConstantNode, self).__init__(scene, title=title)
         self.update_title()
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
+    def init_sockets(self, reset=True):
         self.out_value = self.add_output(self.data_type, label='Value', value=None)
 
     def create_connections(self):
@@ -22,7 +23,7 @@ class ConstantNode(luna_node.LunaNode):
         self.out_value.signals.value_changed.connect(self.update_title)
 
     def update_title(self):
-        self.title = '{0}: {1}'.format(self.DEFAULT_TITLE, self.out_value.value)
+        self.title = '{0}: {1}'.format(self.DEFAULT_TITLE, self.out_value.value())
 
 
 class ConstantFloatNode(ConstantNode):

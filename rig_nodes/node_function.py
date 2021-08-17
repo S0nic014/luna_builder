@@ -1,3 +1,4 @@
+import sys
 from luna import Logger
 import luna_builder.editor.editor_conf as editor_conf
 import luna_builder.rig_nodes.luna_node as luna_node
@@ -11,13 +12,13 @@ class FunctionNode(luna_node.LunaNode):
     DEFAULT_TITLE = 'Function'
     CATEGORY = editor_conf.INTERNAL_CATEGORY
 
-    def __init__(self, scene, title=None, inputs=[], outputs=[]):
+    def __init__(self, scene, title=None):
         self._func_signature = ''
         self._func_desc = {}
-        super(FunctionNode, self).__init__(scene, title=title, inputs=inputs, outputs=outputs)
+        super(FunctionNode, self).__init__(scene, title=title)
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(FunctionNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(FunctionNode, self).init_sockets(reset=reset)
         if not self._func_desc:
             return
 
@@ -33,7 +34,7 @@ class FunctionNode(luna_node.LunaNode):
 
         # Set default input values
         for socket, input_value in zip(self.list_non_exec_inputs(), self.func_desc.get('default_values')):
-            socket.value = input_value
+            socket.set_value(input_value)
 
     @property
     def func_signature(self):
@@ -68,10 +69,16 @@ class FunctionNode(luna_node.LunaNode):
         return res
 
     def pre_deserilization(self, data):
-        self.func_signature = data.get('func_signature')
+        func_sign = data.get('func_signature')  # type: str
+        if sys.version_info[0] >= 3 and '__builtin__' in func_sign:
+            self.func_signature = func_sign.replace('__builtin__', 'builtins')
+        elif sys.version_info[0] < 3 and 'builtins' in func_sign:
+            self.func_signature = func_sign.replace('builtins', '__builtin__')
+        else:
+            self.func_signature = func_sign
 
     def execute(self):
-        attr_values = [socket.value for socket in self.list_non_exec_inputs()]
+        attr_values = [socket.value() for socket in self.list_non_exec_inputs()]
         func_result = self.func_ref(*attr_values)
         Logger.debug('Function result: {0}'.format(func_result))
 
@@ -81,11 +88,11 @@ class FunctionNode(luna_node.LunaNode):
 
         non_exec_outs = self.list_non_exec_outputs()
         if non_exec_outs and non_exec_outs[0].data_type == editor_conf.DataType.LIST:
-            non_exec_outs[0].value = func_result
+            non_exec_outs[0].set_value(func_result)
         else:
             for index, out_socket in enumerate(self.list_non_exec_outputs()):
                 try:
-                    out_socket.value = func_result[index]
+                    out_socket.set_value(func_result[index])
                 except IndexError:
                     Logger.error('Missing return result for function {0}, at index {1}'.format(self.func_ref, index))
                     raise

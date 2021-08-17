@@ -1,5 +1,4 @@
 import json
-import copy
 from collections import OrderedDict
 from PySide2 import QtCore
 from PySide2 import QtGui
@@ -24,7 +23,6 @@ class SceneVars(node_serializable.Serializable):
         self.create_connections()
 
     def create_connections(self):
-        self.signals.value_changed.connect(self.update_getters)
         self.signals.data_type_changed.connect(self.update_setters)
         self.signals.data_type_changed.connect(self.update_getters)
 
@@ -99,15 +97,16 @@ class SceneVars(node_serializable.Serializable):
 
     def serialize(self):
         try:
-            result = copy.deepcopy(self._vars)
+            result = OrderedDict()
+            for var_name, value_type_pair in self._vars.items():
+                value, type_name = value_type_pair
+                if type_name in editor_conf.DataType.runtime_types(names=True):
+                    result[var_name] = [editor_conf.DATATYPE_REGISTER[type_name]['default'], type_name]
+                else:
+                    result[var_name] = [value, type_name]
         except Exception:
-            Logger.exception('ScenVars serializedeepcopy exception')
+            Logger.exception('ScenVars serialize exception')
             raise
-        for var_name, var_type in result.items():
-            if var_type in editor_conf.DataType.runtime_types(names=True):
-                result[var_name] = editor_conf.DATATYPE_REGISTER[var_type]['default']
-            else:
-                result[var_name] = var_type
         return result
 
     def deserialize(self, data, hashmap={}):
@@ -181,6 +180,7 @@ class SceneVarsWidget(QtWidgets.QWidget):
                 return
             self.scene_vars.delete_var(var_name)
             self.update_var_list()
+            self.attrib_editor.update_current_var_widget(None)
         except Exception:
             Logger.exception('Delete selected var exception')
 
@@ -219,8 +219,13 @@ class QLVarsListWidget(QtWidgets.QListWidget):
         if not json_data:
             return
 
-        # Compare item new and old var names
         old_var_name = json_data['var_name']
+
+        # Handle empty name
+        if not item.text().strip():
+            item.setText(old_var_name)
+
+        # Compare item new and old var names
         if item.text() == old_var_name:
             return
         # Do renaming if was changed
@@ -234,7 +239,6 @@ class QLVarsListWidget(QtWidgets.QListWidget):
     def populate(self):
         self.clear()
         if not self.scene_vars:
-            Logger.error('Failed to populate Vars list, scene_vars is {0}'.format(self.scene_vars))
             return
 
         for var_name, value_dt_pair in self.scene_vars._vars.items():
@@ -316,6 +320,7 @@ class VarAttribWidget(QtWidgets.QGroupBox):
             self.value_widget.setEnabled(False)
         elif var_data_type == editor_conf.DataType.NUMERIC:
             self.value_widget = QtWidgets.QDoubleSpinBox()
+            self.value_widget.setRange(-9999, 9999)
             self.value_widget.setValue(var_value)
         elif var_data_type == editor_conf.DataType.STRING:
             self.value_widget = QtWidgets.QLineEdit()

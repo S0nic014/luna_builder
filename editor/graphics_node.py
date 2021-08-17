@@ -1,8 +1,43 @@
-import math
 from luna import Logger
+from luna import Config
+from luna import BuilderVars
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
+
+
+class QLGraphicsTitle(QtWidgets.QGraphicsTextItem):
+
+    @property
+    def height(self):
+        return self.boundingRect().height()
+
+    @property
+    def width(self):
+        return self.boundingRect().width()
+
+    def __init__(self, gr_node, text='', is_editable=False):
+        super(QLGraphicsTitle, self).__init__(text, gr_node)
+        self.gr_node = gr_node
+        self.is_editable = is_editable
+
+    def edit(self):
+        line_edit = QtWidgets.QLineEdit()
+        line_edit_proxy = QtWidgets.QGraphicsProxyWidget(self)
+        line_edit_proxy.setWidget(line_edit)
+        line_edit.editingFinished.connect(lambda: self.apply_edit(line_edit.text()))
+        line_edit.editingFinished.connect(line_edit_proxy.deleteLater)
+        line_edit.setFont(self.font())
+
+        line_edit.setMaximumWidth(self.gr_node.width)
+        line_edit.setText(self.toPlainText())
+        line_edit.setFocus(QtCore.Qt.MouseFocusReason)
+
+    def apply_edit(self, new_text):
+        new_text = new_text.strip()
+        if new_text == self.gr_node.title:
+            return
+        self.gr_node.node.signals.title_edited.emit(new_text)
 
 
 class QLGraphicsNode(QtWidgets.QGraphicsItem):
@@ -26,31 +61,32 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
 
         self.init_title()
-        self.title = self.node.title
         self.init_content()
 
     @property
     def title(self):
-        return self._title
+        return self.title_item.toPlainText()
 
     @title.setter
     def title(self, value):
-        self._title = value
-        self.title_item.setPlainText(self._title)
-
-    @property
-    def width(self):
-        return self.node.max_width_of_socket_labels()
-
-    @property
-    def height(self):
-        return self.node.max_height_of_sockets() + self.title_height + self.lower_padding
+        self.title_item.setPlainText(value)
 
     @property
     def title_height(self):
-        return self.node.TITLE_HEIGHT
+        return self.title_item.height
+
+    @property
+    def title_width(self):
+        return self.title_item.width
+
+    @property
+    def title_color(self):
+        return QtGui.QColor(self.node.TITLE_COLOR) if not isinstance(self.node.TITLE_COLOR, QtGui.QColor) else self.node.TITLE_COLOR
 
     def init_sizes(self):
+        self.width = self.node.MIN_WIDTH
+        self.height = self.node.MIN_HEIGHT
+        self.one_side_horizontal_padding = 20.0
         self.edge_roundness = 10.0
         self.edge_padding = 10.0
         self.title_horizontal_padding = 4.0
@@ -60,20 +96,20 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
     def init_assets(self):
         # Fonts colors
         self._title_color = QtCore.Qt.white
-        self._title_font = QtGui.QFont("Arial", 10)
+        self._title_font = QtGui.QFont(*Config.get(BuilderVars.title_font, default=['Roboto', 10], cached=True))
+        self._title_font.setBold(True)
 
         # Pens, Brushes
         self._pen_default = QtGui.QPen(QtGui.QColor("#7F000000"))
         self._pen_selected = QtGui.QPen(QtGui.QColor("#FFA637"))
-        self._brush_title = QtGui.QBrush(QtGui.QColor("#FF313131"))
         self._brush_background = QtGui.QBrush(QtGui.QColor("#E3212121"))
+        self._brush_title = QtGui.QBrush(self.title_color)
 
     def init_title(self):
-        self.title_item = QtWidgets.QGraphicsTextItem(self)
+        self.title_item = QLGraphicsTitle(self, is_editable=self.node.TITLE_EDITABLE)
         self.title_item.setDefaultTextColor(self._title_color)
         self.title_item.setFont(self._title_font)
         self.title_item.setPos(self.title_horizontal_padding, 0)
-        self.title_item.setTextWidth(self.width - 2 * self.title_horizontal_padding)
 
     def init_content(self):
         pass
@@ -104,7 +140,7 @@ class QLGraphicsNode(QtWidgets.QGraphicsItem):
         # outline
         # TODO: Paint prominent outline if exec input is connected
         path_outline = QtGui.QPainterPath()
-        path_outline.addRoundedRect(0, 0, self.width, self.height, self.edge_roundness, self.edge_roundness)
+        path_outline.addRoundedRect(-1, -1, self.width + 2, self.height + 2, self.edge_roundness, self.edge_roundness)
         painter.setPen(self._pen_default if not self.isSelected() else self._pen_selected)
         painter.setBrush(QtCore.Qt.NoBrush)
         painter.drawPath(path_outline.simplified())

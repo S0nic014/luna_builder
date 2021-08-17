@@ -10,7 +10,8 @@ class BranchNode(luna_node.LunaNode):
     DEFAULT_TITLE = 'Branch'
     CATEGORY = 'Utils'
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
+    def init_sockets(self, reset=True):
+        super(BranchNode, self).init_sockets(reset=reset)
         self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)
         self.in_condition = self.add_input(editor_conf.DataType.BOOLEAN)
 
@@ -24,10 +25,10 @@ class BranchNode(luna_node.LunaNode):
         self.in_condition.signals.value_changed.connect(self.update_title)
 
     def update_title(self):
-        self.title = '{0}: {1}'.format(self.DEFAULT_TITLE, self.in_condition.value)
+        self.title = '{0}: {1}'.format(self.DEFAULT_TITLE, self.in_condition.value())
 
     def list_exec_outputs(self):
-        if self.in_condition.value:
+        if self.in_condition.value():
             return [self.out_true]
         else:
             return [self.out_false]

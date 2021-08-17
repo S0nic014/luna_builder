@@ -10,30 +10,48 @@ class VarNode(luna_node.LunaNode):
     DEFAULT_TITLE = ''
     CATEGORY = editor_conf.INTERNAL_CATEGORY
 
-    def __init__(self, scene, title=None, inputs=[], outputs=[]):
+    def __init__(self, scene, title=None):
         self._var_name = None
-        super(VarNode, self).__init__(scene, title=title, inputs=inputs, outputs=outputs)
+        super(VarNode, self).__init__(scene, title=title)
 
     @property
     def var_name(self):
         return self._var_name
 
     def set_var_name(self, name, init_sockets=False):
-        if name not in self.scene.vars._vars.keys():
-            Logger.error('Variable "{0}" no longer exists'.format(name))
-            self.set_invalid(True)
+        self._var_name = name
+        var_exists = name in self.scene.vars._vars.keys()
+        self.set_invalid(not var_exists)
+        if not var_exists:
+            Logger.warning('Variable "{0}" no longer exists'.format(name))
             return
 
-        self._var_name = name
         self.title = '{0} {1}'.format(self.DEFAULT_TITLE, self._var_name)
         if init_sockets:
             self.init_sockets()
+
+    def get_var_value(self):
+        try:
+            return self.scene.vars.get_value(self.var_name)
+        except KeyError:
+            return None
+
+    def set_var_value(self, value):
+        try:
+            self.scene.vars.set_value(self.var_name, value)
+        except KeyError:
+            Logger.error('Variable {0} does not exist!')
+            raise
 
     def update(self):
         raise NotImplementedError
 
     def verify(self):
-        return self.var_name in self.scene.vars._vars.keys()
+        result = super(VarNode, self).verify()
+        if self.var_name not in self.scene.vars._vars.keys():
+            self.append_tooltip('Variable {0} does not exist'.format(self.var_name))
+            result = False
+        return result
 
     def serialize(self):
         result = super(VarNode, self).serialize()
@@ -54,25 +72,29 @@ class SetNode(VarNode):
     ICON = None
     DEFAULT_TITLE = 'Set'
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(SetNode, self).init_sockets(inputs, outputs, reset)
+    def init_sockets(self, reset=True):
+        super(SetNode, self).init_sockets(reset=reset)
         if not self.var_name:
             return
 
         self.in_value = self.add_input(self.scene.vars.get_data_type(self.var_name, as_dict=True))
+        self.out_value = self.add_output(self.scene.vars.get_data_type(self.var_name, as_dict=True), label='')
+        self.out_value.value = self.get_var_value
+        self.mark_input_as_required(self.in_value)
 
     def update(self):
         var_type = self.scene.vars.get_data_type(self.var_name, as_dict=True)
         if not self.in_value.data_type == var_type:
             self.in_value.label = var_type['label']
             self.in_value.data_type = var_type
+            self.out_value.data_type = var_type
             self.in_value.update_positions()
 
     def execute(self):
         if not self.var_name:
             Logger.error('{0}: var_name is not set'.format(self))
             raise ValueError
-        self.scene.vars.set_value(self.var_name, self.in_value.value)
+        self.set_var_value(self.in_value.value())
 
 
 class GetNode(VarNode):
@@ -80,20 +102,21 @@ class GetNode(VarNode):
     IS_EXEC = False
     STATUS_ICON = False
     AUTO_INIT_EXECS = False
+    MIN_WIDTH = 110
+    OUTPUT_POSITION = 5
     ICON = None
     DEFAULT_TITLE = 'Get'
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
+    def init_sockets(self, reset=True):
         if not self.var_name:
             return
 
-        super(GetNode, self).init_sockets(inputs, outputs, reset)
+        super(GetNode, self).init_sockets(reset=reset)
         self.out_value = self.add_output(self.scene.vars.get_data_type(self.var_name, as_dict=True), value=self.scene.vars.get_value(self.var_name))
+        self.out_value.value = self.get_var_value
 
     def update(self):
-        var_value = self.scene.vars.get_value(self.var_name)
         var_type = self.scene.vars.get_data_type(self.var_name, as_dict=True)
-        self.out_value.value = var_value
         if not self.out_value.data_type == var_type:
             self.out_value.label = var_type['label']
             self.out_value.data_type = var_type

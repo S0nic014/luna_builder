@@ -1,4 +1,8 @@
+import itertools
+from collections import deque
 from luna import Logger
+from luna import Config
+from luna import BuilderVars
 
 
 class SceneHistory(object):
@@ -11,16 +15,29 @@ class SceneHistory(object):
     def __init__(self, scene):
         self.scene = scene
 
-        self.enabled = True
-        self.stack = []
-        self.limit = 32
+        self.enabled = Config.get(BuilderVars.history_enabled, default=True, cached=True)
+        self._size = Config.get(BuilderVars.history_size, default=32, cached=True)
+        self.stack = deque(maxlen=self._size)
         self.current_step = -1
 
+    @property
+    def size(self):
+        return self._size
+
+    @size.setter
+    def size(self, new_size):
+        self._size = new_size
+        self.stack = deque(self.stack, maxlen=new_size)
+
     def clear(self):
-        self.stack = []
+        self.stack.clear()
         self.current_step = -1
 
     def undo(self):
+        if not self.enabled:
+            Logger.warning('History is disabled')
+            return
+
         if self.current_step > 0:
             Logger.info('> Undo {0}'.format(self.stack[self.current_step]['desc']))
             self.current_step -= 1
@@ -29,6 +46,10 @@ class SceneHistory(object):
             Logger.warning('No more steps to undo')
 
     def redo(self):
+        if not self.enabled:
+            Logger.warning('History is disabled')
+            return
+
         if self.current_step + 1 < len(self.stack):
             self.current_step += 1
             self.restore_history()
@@ -46,21 +67,18 @@ class SceneHistory(object):
         if not self.enabled:
             return
 
-        # Logger.debug('Storing history {0}| \nStep: @{1} | Max: {2}'.format(description, self.current_step, len(self)))
         # if the pointer (current_step) is not at the end of stack
         if self.current_step + 1 < len(self.stack):
-            self.stack = self.stack[0:self.current_step + 1]
-
-        # history is outside of the limits
-        if self.current_step + 1 >= self.limit:
-            self.stack = self.stack[1:]
-            self.current_step -= 1
+            self.stack = deque(itertools.islice(self.stack, self.current_step + 1))
 
         hs = self.create_stamp(description)
 
+        # Increment step if possible
         self.stack.append(hs)
-        self.current_step += 1
+        if not self.stack.maxlen or self.current_step + 1 < self.stack.maxlen:
+            self.current_step += 1
 
+        # Log change
         if description != SceneHistory.SCENE_INIT_DESC:
             Logger.info('> {0}'.format(description))
         else:

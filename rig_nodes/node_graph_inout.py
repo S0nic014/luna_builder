@@ -17,7 +17,7 @@ class GraphInputNode(luna_node.LunaNode):
     CATEGORY = 'Utils'
     UNIQUE = True
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
+    def init_sockets(self, reset=True):
         self.exec_in_socket = None
         self.exec_out_socket = self.add_output(editor_conf.DataType.EXEC)
         self.out_asset_name = self.add_output(editor_conf.DataType.STRING, label='Asset Name', value='')
@@ -27,7 +27,7 @@ class GraphInputNode(luna_node.LunaNode):
             Logger.error('Asset is not set!')
             raise ValueError
 
-        self.out_asset_name.value = luna.workspace.Asset.get().name
+        self.out_asset_name.set_value(luna.workspace.Asset.get().name)
         pm.newFile(f=1)
         asset_files.import_model()
         asset_files.import_skeleton()
@@ -42,22 +42,23 @@ class GraphOutputNode(luna_node.LunaNode):
     CATEGORY = 'Utils'
     UNIQUE = True
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
+    def init_sockets(self, reset=True):
         self.exec_in_socket = self.add_input(editor_conf.DataType.EXEC)
         self.in_character = self.add_input(editor_conf.DataType.CHARACTER, label='Character')
+        self.mark_input_as_required(self.in_character)
 
         self.exec_out_socket = None
 
     def execute(self):
         try:
-            self.in_character.value.save_bind_pose()
+            self.in_character.value().save_bind_pose()
 
             # Adjust viewport
             pm.select(cl=1)
             maya_utils.switch_xray_joints()
-            pm.viewFit(self.in_character.value.root_control.group)
-            self.in_character.value.geometry_grp.overrideEnabled.set(1)
-            self.in_character.value.geometry_grp.overrideColor.set(1)
+            pm.viewFit(self.in_character.value().root_control.group)
+            self.in_character.value().geometry_grp.overrideEnabled.set(1)
+            self.in_character.value().geometry_grp.overrideColor.set(1)
             return 0
         except Exception:
             Logger.exception('Failed to exec {} node'.format(self.title))

@@ -33,6 +33,12 @@ def register_plugin():
                                   None,
                                   nice_name='Import SDK Correctives',
                                   category='Data')
+    editor_conf.register_function(import_export.DeltaMushManager.import_all,
+                                  None,
+                                  inputs_dict={'Character': editor_conf.DataType.CHARACTER},
+                                  nice_name='Import DeltaMush',
+                                  category='Data')
+
     if sys.version_info[0] < 3:
         editor_conf.register_function(import_export.NgLayersManager.import_all,
                                       None,

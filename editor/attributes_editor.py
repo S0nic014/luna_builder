@@ -8,7 +8,7 @@ class AttributesEditor(QtWidgets.QWidget):
         super(AttributesEditor, self).__init__(parent)
         self.main_window = main_window
         self._current_widget = None  # type: QtWidgets.QWidget
-        self.setMinimumWidth(200)
+        self.setMinimumWidth(250)
 
         self.main_layout = QtWidgets.QVBoxLayout()
         self.main_layout.setContentsMargins(0, 0, 0, 0)
@@ -45,7 +45,7 @@ class AttributesEditor(QtWidgets.QWidget):
 
     def update_current_var_widget(self, list_item):
         self.clear_layout()
-        if not self.current_editor:
+        if not list_item or not self.current_editor:
             return
         var_widget = node_scene_vars.VarAttribWidget(list_item, self.current_editor.scene)
         self.current_widget = var_widget

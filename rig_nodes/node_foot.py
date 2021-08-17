@@ -13,38 +13,44 @@ class FootComponentNode(base_component.AnimComponentNode):
     UNIQUE = False
     COMPONENT_CLASS = luna_rig.components.FootComponent
 
-    def init_sockets(self, inputs=[], outputs=[], reset=True):
-        super(FootComponentNode, self).init_sockets(inputs=inputs, outputs=outputs, reset=reset)
+    def init_sockets(self, reset=True):
+        super(FootComponentNode, self).init_sockets(reset=reset)
 
         # Override inputs
-        self.in_name.value = self.out_name.value = 'foot'
-        self.in_tag.value = self.out_tag.value = 'body'
+        self.in_name.set_value('foot')
+        self.in_tag.set_value('body')
         # Override outputs
-        self.in_meta_parent.data_type = editor_conf.DataType.FKIK_COMPONENT
+        self.in_meta_parent.data_type = 'FKIK_COMPONENT'
         self.out_self.data_type = editor_conf.DataType.FOOT_COMPONENT
 
         # Create new inputs
         self.in_start_joint = self.add_input(editor_conf.DataType.STRING, label='Start Joint', value=None)
         self.in_end_joint = self.add_input(editor_conf.DataType.STRING, label='End Joint', value=None)
         self.in_rv_chain = self.add_input(editor_conf.DataType.STRING, label='Reverse Chain', value=None)
-        self.in_foot_loc_grp = self.add_input(editor_conf.DataType.STRING, label='Foot Locators Group', value=None)
+        self.in_foot_loc_grp = self.add_input(editor_conf.DataType.STRING, label='Foot Locators', value=None)
         self.in_roll_axis = self.add_input(editor_conf.DataType.STRING, label='Rotate Axis', value='ry')
 
-        self.update_node_title()
+        # Mark required
+        self.mark_inputs_required((self.in_meta_parent,
+                                   self.in_start_joint,
+                                   self.in_end_joint,
+                                   self.in_rv_chain,
+                                   self.in_foot_loc_grp,
+                                   self.in_roll_axis))
 
     def execute(self):
         super(FootComponentNode, self).execute()
-        self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value,
-                                                              character=self.in_character.value,
-                                                              side=self.in_side.value,
-                                                              name=self.in_name.value,
-                                                              start_joint=self.in_start_joint.value,
-                                                              end_joint=self.in_end_joint.value,
-                                                              rv_chain=self.in_rv_chain.value,
-                                                              foot_locators_grp=self.in_foot_loc_grp.value,
-                                                              roll_axis=self.in_roll_axis.value,
-                                                              tag=self.in_tag.value)
-        self.out_self.value = self.component_instance
+        self.component_instance = self.COMPONENT_CLASS.create(meta_parent=self.in_meta_parent.value(),
+                                                              character=self.in_character.value(),
+                                                              side=self.in_side.value(),
+                                                              name=self.in_name.value(),
+                                                              start_joint=self.in_start_joint.value(),
+                                                              end_joint=self.in_end_joint.value(),
+                                                              rv_chain=self.in_rv_chain.value(),
+                                                              foot_locators_grp=self.in_foot_loc_grp.value(),
+                                                              roll_axis=self.in_roll_axis.value(),
+                                                              tag=self.in_tag.value())
+        self.out_self.set_value(self.component_instance)
 
 
 def register_plugin():

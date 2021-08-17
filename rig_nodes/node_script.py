@@ -6,13 +6,14 @@ class ScriptNode(luna_node.LunaNode):
     ID = 6
     IS_EXEC = True
     AUTO_INIT_EXECS = True
+    TITLE_EDITABLE = True
     ICON = 'python.png'
     DEFAULT_TITLE = 'Script'
     PALETTE_LABEL = 'Script (Python)'
     CATEGORY = 'Utils'
 
-    def __init__(self, scene, title=None, inputs=[], outputs=[]):
-        super(ScriptNode, self).__init__(scene, title=title, inputs=inputs, outputs=outputs)
+    def __init__(self, scene, title=None):
+        super(ScriptNode, self).__init__(scene, title=title)
         self.code = ''
 
     def execute(self):

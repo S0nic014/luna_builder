@@ -143,6 +143,14 @@ class DataType(object):
         return basetypes
 
     @classmethod
+    def get_type_from_dataclass(cls, dataclass):
+        for type_name, type_dict in DATATYPE_REGISTER.items():
+            if type_dict['class'] == dataclass:
+                return type_dict
+        Logger.error('Failed to find registered data type for class {0}'.format(dataclass))
+        raise ValueError
+
+    @classmethod
     def get_type_name(cls, data_type_dict):
         try:
             type_name = [dt_name for dt_name, desc in DATATYPE_REGISTER.items() if desc == data_type_dict][0]
@@ -181,6 +189,12 @@ def get_node_class_from_id(node_id):
         Logger.error('Node ID {0} was not found in register'.format(node_id))
         raise NodeIDNotFound
     return NODE_REGISTER[node_id]
+
+
+def check_available_node_ids(start, end):
+    for node_id in range(start, end):
+        if node_id not in NODE_REGISTER.keys():
+            Logger.info('Available ID: {0}'.format(node_id))
 
 
 # ========== FUNCTIONS =========== #

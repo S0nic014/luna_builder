@@ -43,7 +43,7 @@ class SkinMenu(QtWidgets.QMenu):
         self.detach_skin_action.triggered.connect(lambda: pm.mel.eval("DetachSkinOptions;"))
         self.mirror_skin_action.triggered.connect(lambda: pm.mel.eval("MirrorSkinWeightsOptions;"))
         self.copy_skin_action.triggered.connect(lambda: pm.mel.eval("CopySkinWeightsOptions;"))
-        self.export_all_action.triggered.connect(importexport.SkinManager.export_all)
+        self.export_all_action.triggered.connect(lambda *_: importexport.SkinManager.export_all())
         self.import_all_action.triggered.connect(importexport.SkinManager.import_all)
         self.export_selected_action.triggered.connect(importexport.SkinManager.export_selected)
         self.import_selected_action.triggered.connect(importexport.SkinManager.import_selected)

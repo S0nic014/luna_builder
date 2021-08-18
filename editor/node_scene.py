@@ -273,6 +273,7 @@ class Scene(node_serializable.Serializable):
 
     def load_from_file(self, file_path):
         try:
+            self.clear()
             start_time = timeit.default_timer()
             data = fileFn.load_json(file_path, object_pairs_hook=OrderedDict)
             self.deserialize(data)

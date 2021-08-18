@@ -151,7 +151,3 @@ class Edge(node_serializable.Serializable):
         self.start_socket = hashmap[data['start']]
         self.end_socket = hashmap[data['end']]
         self.update_edge_graphics_type()
-
-
-if __name__ == '__main__':
-    print list(Edge.Type)[1].value

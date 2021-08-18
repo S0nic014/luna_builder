@@ -79,14 +79,15 @@ class GetComponentAsNode(luna_node.LunaNode):
         super(GetComponentAsNode, self).init_sockets(reset=reset)
         self.in_component = self.add_input(editor_conf.DataType.COMPONENT)
         self.in_sample_component = self.add_input(editor_conf.DataType.COMPONENT, label='Sample Type')
-
         self.out_component = self.add_output(editor_conf.DataType.COMPONENT, label='Cast Result')
+
+        self.mark_input_as_required(self.in_sample_component)
 
         # Connection
         self.in_sample_component.signals.connection_changed.connect(self.update_out_component_type)
 
     def execute(self):
-        comp_class = self.in_component.value().__class__  # type: luna_rig.Component
+        comp_class = self.in_sample_component.value().__class__  # type: luna_rig.Component
         cast_instance = comp_class(self.in_component.value().pynode)
         self.out_component.set_value(cast_instance)
 

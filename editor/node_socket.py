@@ -103,10 +103,6 @@ class Socket(node_serializable.Serializable):
         if hasattr(self, 'gr_socket'):
             self.gr_socket._color_background = self._data_type.get('color')
             self.gr_socket.update()
-        # Remove not valid connections
-        for edge in self.edges:
-            if not self.can_be_connected(edge.get_other_socket(self)):
-                edge.remove()
         self.node.update_size()
 
     @ property
@@ -184,6 +180,9 @@ class Socket(node_serializable.Serializable):
         while self.edges:
             self.edges[0].remove(silent=silent)
         self.edges = []
+
+    def get_invalid_edges(self):
+        return [edge for edge in self.edges if not self.can_be_connected(edge.get_other_socket(self))]
 
     def remove_edge(self, edge, silent=False):
         self.edges.remove(edge)
@@ -266,7 +265,6 @@ class InputSocket(Socket):
     def can_be_connected(self, other_socket):
         super(InputSocket, self).can_be_connected(other_socket)
         if not issubclass(other_socket.data_class, self.data_class):
-            Logger.warning('Can\'t connect data types {0} and {1}'.format(other_socket.data_class, self.data_class))
             return False
         return True
 
@@ -290,7 +288,6 @@ class OutputSocket(Socket):
     def can_be_connected(self, other_socket):
         super(OutputSocket, self).can_be_connected(other_socket)
         if not issubclass(self.data_class, other_socket.data_class):
-            Logger.warning('Can\'t connect data types {0} and {1}'.format(self.data_class, other_socket.data_class))
             return False
         return True
 

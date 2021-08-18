@@ -210,9 +210,9 @@ class Node(node_serializable.Serializable):
     def on_num_sockets_changed(self):
         self.update_size()
 
-    def remove(self):
+    def remove(self, silent=False):
         try:
-            self.remove_all_connections(include_exec=True)
+            self.remove_all_connections(include_exec=True, silent=silent)
             self.scene.gr_scene.removeItem(self.gr_node)
             self.gr_node = None
             self.scene.remove_node(self)
@@ -220,11 +220,11 @@ class Node(node_serializable.Serializable):
             Logger.exception('Failed to delete node {0}'.format(self))
 
     # ========= Evaluation ============= #
-    def remove_all_connections(self, include_exec=False):
+    def remove_all_connections(self, include_exec=False, silent=False):
         for socket in self.inputs + self.outputs:
             if not include_exec and socket.data_type == editor_conf.DataType.EXEC:
                 continue
-            socket.remove_all_edges()
+            socket.remove_all_edges(silent=silent)
 
     def is_compiled(self):
         return self._is_compiled

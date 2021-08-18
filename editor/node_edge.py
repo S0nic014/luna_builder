@@ -37,12 +37,7 @@ class Edge(node_serializable.Serializable):
 
     @start_socket.setter
     def start_socket(self, value):
-        if self._start_socket is not None:
-            self._start_socket.remove_edge(self)
-
-        self._start_socket = value
-        if self._start_socket is not None:
-            self._start_socket.set_connected_edge(self)
+        self.set_start_socket(value, silent=False)
 
     @property
     def end_socket(self):
@@ -50,12 +45,7 @@ class Edge(node_serializable.Serializable):
 
     @end_socket.setter
     def end_socket(self, value):
-        if self._end_socket is not None:
-            self._end_socket.remove_edge(self)
-
-        self._end_socket = value
-        if self._end_socket is not None:
-            self._end_socket.set_connected_edge(self)
+        self.set_end_socket(value, silent=False)
 
     @property
     def edge_type(self):
@@ -80,6 +70,22 @@ class Edge(node_serializable.Serializable):
         self.scene.gr_scene.addItem(self.gr_edge)
         if self.start_socket or self.end_socket:
             self.update_positions()
+
+    def set_start_socket(self, value, silent=False):
+        if self._start_socket is not None:
+            self._start_socket.remove_edge(self, silent=silent)
+
+        self._start_socket = value
+        if self._start_socket is not None:
+            self._start_socket.set_connected_edge(self, silent=silent)
+
+    def set_end_socket(self, value, silent=False):
+        if self._end_socket is not None:
+            self._end_socket.remove_edge(self, silent=silent)
+
+        self._end_socket = value
+        if self._end_socket is not None:
+            self._end_socket.set_connected_edge(self, silent=silent)
 
     def update_edge_graphics_type(self):
         self.edge_type = self.scene.edge_type
@@ -106,12 +112,12 @@ class Edge(node_serializable.Serializable):
             self.gr_edge.set_destination(*source_pos)
         self.gr_edge.update()
 
-    def remove_from_sockets(self):
-        self.start_socket = None
-        self.end_socket = None
+    def remove_from_sockets(self, silent=False):
+        self.set_start_socket(None, silent=silent)
+        self.set_end_socket(None, silent=silent)
 
-    def remove(self):
-        self.remove_from_sockets()
+    def remove(self, silent=False):
+        self.remove_from_sockets(silent=silent)
         self.scene.gr_scene.removeItem(self.gr_edge)
         self.gr_edge = None
         self.scene.remove_edge(self)

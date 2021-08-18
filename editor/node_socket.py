@@ -180,9 +180,9 @@ class Socket(node_serializable.Serializable):
         if not silent:
             self.signals.connection_changed.emit()
 
-    def remove_all_edges(self):
+    def remove_all_edges(self, silent=False):
         while self.edges:
-            self.edges[0].remove()
+            self.edges[0].remove(silent=silent)
         self.edges = []
 
     def remove_edge(self, edge, silent=False):
@@ -290,7 +290,7 @@ class OutputSocket(Socket):
     def can_be_connected(self, other_socket):
         super(OutputSocket, self).can_be_connected(other_socket)
         if not issubclass(self.data_class, other_socket.data_class):
-            Logger.warning('Can\'t connect data types {0} and {1}'.format(other_socket.data_class, self.data_class))
+            Logger.warning('Can\'t connect data types {0} and {1}'.format(self.data_class, other_socket.data_class))
             return False
         return True
 

@@ -169,7 +169,7 @@ class Scene(node_serializable.Serializable):
 
     def clear(self):
         while(self.nodes):
-            self.nodes[0].remove()
+            self.nodes[0].remove(silent=True)
         self.has_been_modified = False
 
     def update_edge_types(self):

@@ -69,7 +69,36 @@ class AnimComponentNode(ComponentNode):
         self.in_hook.set_value(None)
 
 
+class GetComponentAsNode(luna_node.LunaNode):
+    ID = 3
+    IS_EXEC = True
+    AUTO_INIT_EXECS = True
+    DEFAULT_TITLE = "Get Component As"
+
+    def init_sockets(self, reset=True):
+        super(GetComponentAsNode, self).init_sockets(reset=reset)
+        self.in_component = self.add_input(editor_conf.DataType.COMPONENT)
+        self.in_sample_component = self.add_input(editor_conf.DataType.COMPONENT, label='Sample Type')
+
+        self.out_component = self.add_output(editor_conf.DataType.COMPONENT, label='Cast Result')
+
+        # Connection
+        self.in_sample_component.signals.connection_changed.connect(self.update_out_component_type)
+
+    def execute(self):
+        comp_class = self.in_component.value().__class__  # type: luna_rig.Component
+        cast_instance = comp_class(self.in_component.value().pynode)
+        self.out_component.set_value(cast_instance)
+
+    def update_out_component_type(self):
+        if not self.in_sample_component.list_connections():
+            self.out_component.data_type = editor_conf.DataType.COMPONENT
+            return
+        self.out_component.data_type = self.in_sample_component.list_connections()[0].data_type
+
+
 def register_plugin():
+    editor_conf.register_node(GetComponentAsNode.ID, GetComponentAsNode)
     # Component methods
     editor_conf.register_function(ComponentNode.COMPONENT_CLASS.get_side,
                                   editor_conf.DataType.COMPONENT,
@@ -115,6 +144,7 @@ def register_plugin():
                                   editor_conf.DataType.COMPONENT,
                                   inputs_dict=OrderedDict([
                                       ('Component', editor_conf.DataType.COMPONENT),
+                                      ('Sample Type', editor_conf.DataType.COMPONENT),
                                       ('By Tag', editor_conf.DataType.STRING)
                                   ]),
                                   outputs_dict=OrderedDict([

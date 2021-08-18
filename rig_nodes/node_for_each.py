@@ -16,6 +16,7 @@ class ForEachNode(luna_node.LunaNode):
         self.in_collection = self.add_input(editor_conf.DataType.LIST, label='List')
         self.out_loop_body = self.add_output(editor_conf.DataType.EXEC, label='Loop body', max_connections=1)
         self.out_item = self.add_output(self.COLLECTION_DATATYPE, label='Item')
+        self.mark_input_as_required(self.in_collection)
 
     def list_exec_outputs(self):
         return [self.exec_out_socket]
@@ -25,6 +26,16 @@ class ForEachNode(luna_node.LunaNode):
         if self.out_loop_body.list_connections():
             loop_body.extend(self.out_loop_body.list_connections()[0].node.get_exec_queue())
         return loop_body
+
+    def verify(self):
+        result = super(ForEachNode, self).verify()
+        if not result:
+            return False
+        for node in self.get_loop_body():
+            result = node.verify()
+            if not result:
+                return False
+        return True
 
     def execute(self):
         for item in self.in_collection.value():

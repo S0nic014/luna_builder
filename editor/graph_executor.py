@@ -72,11 +72,11 @@ class GraphExecutor(object):
         self.scene.is_executing = False
 
     def execute_step(self):
-        if not self.exec_chain and not self.ready_to_execute():
-            return
-
         if self.step == len(self.exec_chain):
             self.reset_stepped_execution()
+
+        if not self.exec_chain and not self.ready_to_execute():
+            return
 
         try:
             self.scene.is_executing = True

@@ -117,7 +117,8 @@ class Socket(node_serializable.Serializable):
     # ============ Datatype methods ============= #
 
     def is_runtime_data(self):
-        return self.data_class in editor_conf.DataType.runtime_types(classes=True)
+        runtime_classes = editor_conf.DataType.runtime_types(classes=True)
+        return self.data_class in runtime_classes or self.value().__class__ in runtime_classes
     # ============ Value methods ============= #
 
     def value(self):

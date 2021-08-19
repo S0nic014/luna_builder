@@ -217,6 +217,7 @@ class BuilderMainWindow(QtWidgets.QMainWindow):
 
         if self.current_editor.maybe_save():
             event.accept()
+            self.attrib_editor.clear()
         else:
             event.ignore()
 

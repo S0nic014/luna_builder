@@ -24,13 +24,13 @@ class AttributesEditor(QtWidgets.QWidget):
 
     @current_widget.setter
     def current_widget(self, widget):
-        self.clear_layout()
+        self.clear()
         self._current_widget = widget
         self.main_layout.addWidget(self._current_widget)
         self._current_widget.show()
 
     def update_current_node_widget(self):
-        self.clear_layout()
+        self.clear()
         if not self.main_window.current_editor:
             return
 
@@ -44,14 +44,14 @@ class AttributesEditor(QtWidgets.QWidget):
             self.current_widget = widget
 
     def update_current_var_widget(self, list_item):
-        self.clear_layout()
+        self.clear()
         if not list_item or not self.current_editor:
             return
         var_widget = node_scene_vars.VarAttribWidget(list_item, self.current_editor.scene)
         self.current_widget = var_widget
         var_widget.data_type_switched.connect(self.update_current_var_widget)
 
-    def clear_layout(self):
+    def clear(self):
         if self.current_widget:
             self.current_widget.close()
             self.current_widget.deleteLater()

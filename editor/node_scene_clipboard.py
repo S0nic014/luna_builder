@@ -53,7 +53,7 @@ class SceneClipboard(object):
         mouse_x, mouse_y = mouse_scene_pos.x(), mouse_scene_pos.y()
 
         # Calculate selected objects bbox and center
-        minx = maxx = miny = maxy = 10000000, -10000000, 10000000, -10000000
+        minx, maxx, miny, maxy = 10000000, -10000000, 10000000, -10000000
         for node_data in data['nodes']:
             x, y = node_data['pos_x'], node_data['pos_y']
             minx = min(x, minx)

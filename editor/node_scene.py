@@ -153,10 +153,7 @@ class Scene(node_serializable.Serializable):
         self.nodes.remove(node)
 
     def remove_edge(self, edge):
-        try:
-            self.edges.remove(edge)
-        except ValueError:
-            Logger.warning('Tried to remove Edge {0} that is not registered with the scene!'.format(edge))
+        self.edges.remove(edge)
 
     def list_node_ids(self):
         return [node.id for node in self.nodes]
@@ -385,6 +382,10 @@ class Scene(node_serializable.Serializable):
 
         while all_edges:
             edge = all_edges.pop()
+            try:
+                self.edges.index(edge)
+            except ValueError:
+                continue
             edge.remove()
 
         # Set edge type

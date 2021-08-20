@@ -209,11 +209,6 @@ class Socket(node_serializable.Serializable):
             Logger.warning('Can\'t connect sockets on the same node')
             return False
 
-        #!TODO: Find a way to check for cycles
-        # if assigned_socket.node in item.socket.node.list_children(recursive=True) or item.socket.node in assigned_socket.node.list_children():
-        #     Logger.warning('Can\'t create connection due to cycle')
-        #     return False
-
         return True
 
     def list_connections(self):
@@ -264,10 +259,10 @@ class InputSocket(Socket):
         self.signals.connection_changed.connect(self.on_connection_changed)
 
     def can_be_connected(self, other_socket):
-        super(InputSocket, self).can_be_connected(other_socket)
+        result = super(InputSocket, self).can_be_connected(other_socket)
         if not issubclass(other_socket.data_class, self.data_class):
             return False
-        return True
+        return result
 
     def value(self):
         if self.has_edge():
@@ -287,10 +282,10 @@ class OutputSocket(Socket):
         self.signals.value_changed.connect(self.notify_connected_inputs_value)
 
     def can_be_connected(self, other_socket):
-        super(OutputSocket, self).can_be_connected(other_socket)
+        result = super(OutputSocket, self).can_be_connected(other_socket)
         if not issubclass(self.data_class, other_socket.data_class):
             return False
-        return True
+        return result
 
     def notify_connected_inputs_value(self):
         for socket in self.list_connections():

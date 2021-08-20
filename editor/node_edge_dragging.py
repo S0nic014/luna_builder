@@ -43,7 +43,7 @@ class EdgeDrag(object):
             item = item.gr_socket
 
         self.gr_view.reset_edge_mode()
-        self.drag_edge.remove()
+        self.drag_edge.remove(silent=True)
         self.drag_edge = None
 
         # Non socket click or can't be connected

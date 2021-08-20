@@ -20,14 +20,14 @@ class Edge(node_serializable.Serializable):
         nice_id = '{0}..{1}'.format(hex(id(self))[2:5], hex(id(self))[-3:])
         return "<{0} {1}>".format(cls_name, nice_id)
 
-    def __init__(self, scene, start_socket=None, end_socket=None):
+    def __init__(self, scene, start_socket=None, end_socket=None, silent=False):
         super(Edge, self).__init__()
         self._start_socket = None
         self._end_socket = None
         self.scene = scene
 
-        self.start_socket = start_socket
-        self.end_socket = end_socket
+        self.set_start_socket(start_socket, silent=silent)
+        self.set_end_socket(end_socket, silent=silent)
         self.update_edge_graphics_type()
         self.scene.add_edge(self)
 

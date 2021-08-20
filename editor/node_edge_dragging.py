@@ -31,10 +31,10 @@ class EdgeDrag(object):
             self.drag_start_socket = item.socket
             if isinstance(item.socket, node_socket.OutputSocket):
                 Logger.debug('Assign start socket to: {0}'.format(item.socket))
-                self.drag_edge = node_edge.Edge(self.gr_view.scene, item.socket, None)
+                self.drag_edge = node_edge.Edge(self.gr_view.scene, start_socket=item.socket, end_socket=None, silent=True)
             else:
                 Logger.debug('Assign end socket to: {0}'.format(item.socket))
-                self.drag_edge = node_edge.Edge(self.gr_view.scene, None, item.socket)
+                self.drag_edge = node_edge.Edge(self.gr_view.scene, start_socket=None, end_socket=item.socket, silent=True)
         except Exception:
             Logger.exception('Start edge drag exception')
 

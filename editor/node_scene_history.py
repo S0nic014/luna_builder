@@ -100,20 +100,26 @@ class SceneHistory(object):
         return stamp
 
     def restore_stamp(self, stamp):
-        self.scene.deserialize(stamp['snapshot'])
 
-        # Restore selection
-        for edge_id in stamp['selection']['edges']:
-            for edge in self.scene.edges:
-                if edge.id == edge_id:
-                    edge.gr_edge.setSelected(True)
-                    break
+        try:
+            self.scene.deserialize(stamp['snapshot'])
+            self.scene.gr_scene.clearSelection()
 
-        for node_id in stamp['selection']['nodes']:
-            for node in self.scene.nodes:
-                if node.id == node_id:
-                    node.gr_node.setSelected(True)
-                    break
+            # Restore selection
+            for edge_id in stamp['selection']['edges']:
+                for edge in self.scene.edges:
+                    if edge.id == edge_id:
+                        edge.gr_edge.setSelected(True)
+                        break
+
+            for node_id in stamp['selection']['nodes']:
+                for node in self.scene.nodes:
+                    if node.id == node_id:
+                        node.gr_node.setSelected(True)
+                        break
+        except Exception:
+            Logger.exception('Restore history stamp exception.')
+            raise
 
     def debug_varibles(self):
         for step, stamp in enumerate(self.stack):

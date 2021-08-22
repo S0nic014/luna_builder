@@ -30,7 +30,6 @@ class SceneSignals(QtCore.QObject):
     items_deselected = QtCore.Signal()
     item_drag_entered = QtCore.Signal(QtCore.QEvent)
     item_dropped = QtCore.Signal(QtCore.QEvent)
-    selection_changed = QtCore.Signal()
     file_load_finished = QtCore.Signal()
 
 
@@ -185,14 +184,13 @@ class Scene(node_serializable.Serializable):
             return
 
         # No current selection and existing previous selection (To avoid resetting selection after cut operation)
-        if not current_selection and current_selection != self.last_selected_items:
+        if not current_selection:
             self.history.store_history('Deselected everything', set_modified=False)
             self.signals.items_deselected.emit()
         else:
             self.history.store_history('Selection changed', set_modified=False)
             self.signals.item_selected.emit()
         self._last_selected_items = current_selection
-        self.signals.selection_changed.emit()
 
     def rename_selected_node(self):
         sel = self.selected_nodes
@@ -254,7 +252,7 @@ class Scene(node_serializable.Serializable):
         self._items_are_being_deleted = False
         if store_history:
             self.history.store_history('Item deleted', set_modified=True)
-        self.signals.selection_changed.emit()
+        self.signals.items_deselected.emit()
 
     # ====== File ====== #
 

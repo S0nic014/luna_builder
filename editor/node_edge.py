@@ -120,7 +120,8 @@ class Edge(node_serializable.Serializable):
         self.remove_from_sockets(silent=silent)
         self.scene.gr_scene.removeItem(self.gr_edge)
         self.gr_edge = None
-        self.scene.remove_edge(self)
+        if self in self.scene.edges:
+            self.scene.remove_edge(self)
 
     def get_other_socket(self, this_socket):
         result = None

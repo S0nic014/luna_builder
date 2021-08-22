@@ -15,16 +15,15 @@ class AttributesEditor(QtWidgets.QWidget):
         self.setLayout(self.main_layout)
 
     @property
-    def current_widget(self):
-        return self._current_widget
-
-    @property
     def current_editor(self):
         return self.main_window.current_editor
 
+    @property
+    def current_widget(self):
+        return self._current_widget
+
     @current_widget.setter
     def current_widget(self, widget):
-        self.clear()
         self._current_widget = widget
         self.main_layout.addWidget(self._current_widget)
         self._current_widget.show()
@@ -53,7 +52,7 @@ class AttributesEditor(QtWidgets.QWidget):
 
     def clear(self):
         if self.current_widget:
+            self.main_layout.removeWidget(self.current_widget)
             self.current_widget.close()
             self.current_widget.deleteLater()
-            self.main_layout.removeWidget(self.current_widget)
             self._current_widget = None

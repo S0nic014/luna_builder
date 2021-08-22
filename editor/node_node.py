@@ -314,7 +314,7 @@ class Node(node_serializable.Serializable):
             ('outputs', outputs)
         ])
 
-    def deserialize(self, data, hashmap={}, restore_id=True):
+    def deserialize(self, data, hashmap, restore_id=True):
         # Pre
         self.pre_deserilization(data)
 

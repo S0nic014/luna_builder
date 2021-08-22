@@ -20,5 +20,5 @@ class Serializable(object):
     def serialize(self):
         raise NotImplementedError()
 
-    def deserialize(self, data, hashmap={}):
+    def deserialize(self, data, hashmap=None):
         raise NotImplementedError()

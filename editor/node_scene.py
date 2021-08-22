@@ -336,8 +336,10 @@ class Scene(node_serializable.Serializable):
             ('edge_type', self.edge_type.name)
         ])
 
-    def deserialize(self, data, hashmap={}, restore_id=True):
-        hashmap = {}
+    def deserialize(self, data, hashmap=None, restore_id=True):
+        if hashmap is None:
+            hashmap = {}
+
         if restore_id:
             self.id = data['id']
         self.vars.deserialize(data.get('vars', OrderedDict()))

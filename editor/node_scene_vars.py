@@ -109,7 +109,7 @@ class SceneVars(node_serializable.Serializable):
             raise
         return result
 
-    def deserialize(self, data, hashmap={}):
+    def deserialize(self, data):
         # Direct assignment of _vars = data results in KeyError
         self._vars.clear()
         self._vars.update(data)

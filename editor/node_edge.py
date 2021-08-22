@@ -5,6 +5,7 @@ from luna import Logger
 import luna.utils.enumFn as enumFn
 import luna_builder.editor.graphics_edge as graphics_edge
 import luna_builder.editor.node_serializable as node_serializable
+import luna_builder.editor.node_socket as node_socket
 imp.reload(graphics_edge)
 
 
@@ -72,6 +73,10 @@ class Edge(node_serializable.Serializable):
             self.update_positions()
 
     def set_start_socket(self, value, silent=False):
+        if value is not None and not isinstance(value, node_socket.Socket):
+            Logger.error('Invalid value passed as start socket: {0}'.format(value))
+            raise ValueError
+
         if self._start_socket is not None:
             self._start_socket.remove_edge(self, silent=silent)
 
@@ -80,6 +85,10 @@ class Edge(node_serializable.Serializable):
             self._start_socket.set_connected_edge(self, silent=silent)
 
     def set_end_socket(self, value, silent=False):
+        if value is not None and not isinstance(value, node_socket.Socket):
+            Logger.error('Invalid value passed as end socket: {0}'.format(value))
+            raise ValueError
+
         if self._end_socket is not None:
             self._end_socket.remove_edge(self, silent=silent)
 

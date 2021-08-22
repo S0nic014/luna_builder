@@ -238,7 +238,7 @@ class QLVarsListWidget(QtWidgets.QListWidget):
 
     def populate(self):
         self.clear()
-        if not self.scene_vars:
+        if not self.scene_vars or not self.scene_vars._vars:
             return
 
         for var_name, value_dt_pair in self.scene_vars._vars.items():

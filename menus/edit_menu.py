@@ -93,6 +93,7 @@ class EditMenu(QtWidgets.QMenu):
                 self.main_window.refresh_variables()
             except Exception:
                 Logger.exception('Undo exception')
+                raise
 
     def on_redo(self):
         if self.node_scene is not None:
@@ -101,6 +102,7 @@ class EditMenu(QtWidgets.QMenu):
                 self.main_window.refresh_variables()
             except Exception:
                 Logger.exception('Redo exception')
+                raise
 
     def on_copy(self):
         if self.node_scene:

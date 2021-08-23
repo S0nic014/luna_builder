@@ -227,7 +227,7 @@ class Socket(node_serializable.Serializable):
             value = self.value()
 
         return OrderedDict([
-            ('id', self.id),
+            ('id', self.uid),
             ('index', self.index),
             ('position', self.node_position.value),
             ('data_type', editor_conf.DataType.get_type_name(self.data_type)),
@@ -238,7 +238,7 @@ class Socket(node_serializable.Serializable):
 
     def deserialize(self, data, hashmap, restore_id=True):
         if restore_id:
-            self.id = data['id']
+            self.uid = data['id']
         data_type = editor_conf.DataType.get_type(data['data_type'])
         value = data.get('value', data_type['default'])
         self.data_type = data_type

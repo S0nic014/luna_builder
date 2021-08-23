@@ -150,14 +150,14 @@ class Edge(node_serializable.Serializable):
 
     def serialize(self):
         return OrderedDict([
-            ('id', self.id),
-            ('start', self.start_socket.id),
-            ('end', self.end_socket.id)
+            ('id', self.uid),
+            ('start', self.start_socket.uid),
+            ('end', self.end_socket.uid)
         ])
 
     def deserialize(self, data, hashmap, restore_id=True):
         if restore_id:
-            self.id = data.get('id')
+            self.uid = data.get('id')
         self.start_socket = hashmap[data['start']]
         self.end_socket = hashmap[data['end']]
         self.update_edge_graphics_type()

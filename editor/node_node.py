@@ -305,7 +305,7 @@ class Node(node_serializable.Serializable):
             outputs.append(socket.serialize())
 
         return OrderedDict([
-            ('id', self.id),
+            ('id', self.uid),
             ('node_id', self.__class__.ID),
             ('title', self.title),
             ('pos_x', self.gr_node.scenePos().x()),
@@ -320,7 +320,7 @@ class Node(node_serializable.Serializable):
 
         # Desereialization
         if restore_id:
-            self.id = data.get('id')
+            self.uid = data.get('id')
         hashmap[data['id']] = self
 
         self.set_position(data['pos_x'], data['pos_y'])

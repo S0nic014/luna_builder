@@ -29,6 +29,7 @@ class EditMenu(QtWidgets.QMenu):
 
     def create_actions(self):
         self.rename_selected_node_action = QtWidgets.QAction('Rename selected node', self)
+        self.regenerate_uuids_action = QtWidgets.QAction('Regenerate UUIDs', self)
         self.undo_action = QtWidgets.QAction("&Undo", self)
         self.redo_action = QtWidgets.QAction("&Redo", self)
         self.copy_action = QtWidgets.QAction("&Copy", self)
@@ -36,7 +37,7 @@ class EditMenu(QtWidgets.QMenu):
         self.paste_action = QtWidgets.QAction("&Paste", self)
         self.delete_action = QtWidgets.QAction("&Delete", self)
 
-        self.addAction(self.rename_selected_node_action)
+        # self.addAction(self.rename_selected_node_action)
 
         self.rename_selected_node_action.setShortcut('F2')
         self.undo_action.setShortcut('Ctrl+Z')
@@ -51,6 +52,7 @@ class EditMenu(QtWidgets.QMenu):
         self.aboutToShow.connect(self.update_actions_state)
         # Actions
         self.rename_selected_node_action.triggered.connect(self.on_rename_selected_node)
+        self.regenerate_uuids_action.triggered.connect(self.on_regenerate_uuids)
         self.undo_action.triggered.connect(self.on_undo)
         self.redo_action.triggered.connect(self.on_redo)
         self.copy_action.triggered.connect(self.on_copy)
@@ -60,6 +62,7 @@ class EditMenu(QtWidgets.QMenu):
 
     def populate(self):
         self.addAction(self.rename_selected_node_action)
+        # self.addAction(self.regenerate_uuids_action)
         self.addAction(self.undo_action)
         self.addAction(self.redo_action)
         self.addSeparator()
@@ -119,3 +122,7 @@ class EditMenu(QtWidgets.QMenu):
     def on_delete(self):
         if self.node_scene:
             self.node_scene.delete_selected()
+
+    def on_regenerate_uuids(self):
+        if self.node_scene:
+            self.node_scene.regenerate_uuids()

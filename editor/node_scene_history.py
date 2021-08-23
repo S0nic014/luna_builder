@@ -88,8 +88,8 @@ class SceneHistory(object):
             self.scene.has_been_modified = True
 
     def create_stamp(self, description):
-        sel_obj = {'nodes': [node.id for node in self.scene.selected_nodes],
-                   'edges': [edge.id for edge in self.scene.selected_edges]}
+        sel_obj = {'nodes': [node.uid for node in self.scene.selected_nodes],
+                   'edges': [edge.uid for edge in self.scene.selected_edges]}
 
         stamp = {
             'desc': description,
@@ -106,15 +106,15 @@ class SceneHistory(object):
             self.scene.gr_scene.clearSelection()
 
             # Restore selection
-            for edge_id in stamp['selection']['edges']:
+            for edge_uid in stamp['selection']['edges']:
                 for edge in self.scene.edges:
-                    if edge.id == edge_id:
+                    if edge.uid == edge_uid:
                         edge.gr_edge.setSelected(True)
                         break
 
-            for node_id in stamp['selection']['nodes']:
+            for node_uid in stamp['selection']['nodes']:
                 for node in self.scene.nodes:
-                    if node.id == node_id:
+                    if node.uid == node_uid:
                         node.gr_node.setSelected(True)
                         break
         except Exception:

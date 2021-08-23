@@ -17,12 +17,12 @@ class SceneClipboard(object):
         for node in self.scene.selected_nodes:
             sel_nodes.append(node.serialize())
             for socket in node.inputs + node.outputs:
-                sel_sockets[socket.id] = socket
+                sel_sockets[socket.uid] = socket
 
         # Remove all edges not connected to a node in selected list
         edges_to_remove = []
         for edge in sel_edges:
-            if edge.start_socket.id not in sel_sockets or edge.end_socket.id not in sel_sockets:
+            if edge.start_socket.uid not in sel_sockets or edge.end_socket.uid not in sel_sockets:
                 edges_to_remove.append(edge)
 
         for edge in edges_to_remove:

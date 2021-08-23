@@ -1,3 +1,6 @@
+import uuid
+
+
 class Serializable(object):
 
     @classmethod
@@ -15,7 +18,7 @@ class Serializable(object):
         return meta_type_str
 
     def __init__(self):
-        self.id = id(self)
+        self.uid = str(uuid.uuid4())
 
     def serialize(self):
         raise NotImplementedError()

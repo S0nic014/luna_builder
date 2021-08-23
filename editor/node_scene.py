@@ -2,6 +2,7 @@ import imp
 import json
 import os
 import timeit
+import uuid
 from collections import OrderedDict
 from PySide2 import QtCore
 from PySide2 import QtWidgets
@@ -155,10 +156,10 @@ class Scene(node_serializable.Serializable):
         self.edges.remove(edge)
 
     def list_node_ids(self):
-        return [node.id for node in self.nodes]
+        return [node.uid for node in self.nodes]
 
     def list_edges_ids(self):
-        return [node.id for node in self.edges]
+        return [node.uid for node in self.edges]
 
     def get_item_at(self, position):
         return self.view.itemAt(position)
@@ -316,6 +317,20 @@ class Scene(node_serializable.Serializable):
         except Exception:
             Logger.exception('Failed to instance getter node')
 
+    def regenerate_uuids(self):
+        obj_count = 1
+        self.uid = str(uuid.uuid4())
+        for node in self.nodes:
+            node.uid = str(uuid.uuid4())
+            obj_count += 1
+            for socket in node.inputs + node.outputs:
+                socket.uid = str(uuid.uuid4())
+                obj_count += 1
+        for edge in self.edges:
+            edge.uid = str(uuid.uuid4())
+            obj_count += 1
+        Logger.info('Generated new UUIDs for {0} objects'.format(obj_count))
+
     def serialize(self):
         nodes, edges = [], []
         for n in self.nodes:
@@ -327,7 +342,7 @@ class Scene(node_serializable.Serializable):
             edges.append(e.serialize())
 
         return OrderedDict([
-            ('id', self.id),
+            ('id', self.uid),
             ('vars', self.vars.serialize()),
             ('scene_width', self.scene_width),
             ('scene_height', self.scene_height),
@@ -341,7 +356,7 @@ class Scene(node_serializable.Serializable):
             hashmap = {}
 
         if restore_id:
-            self.id = data['id']
+            self.uid = data['id']
         self.vars.deserialize(data.get('vars', OrderedDict()))
 
         # Deserialize nodes
@@ -349,7 +364,7 @@ class Scene(node_serializable.Serializable):
         for node_data in data['nodes']:
             found = False
             for node in all_nodes:
-                if node.id == node_data['id']:
+                if node.uid == node_data['id']:
                     found = node
                     break
 
@@ -370,7 +385,7 @@ class Scene(node_serializable.Serializable):
         for edge_data in data['edges']:
             found = False
             for edge in all_edges:
-                if edge.id == edge_data['id']:
+                if edge.uid == edge_data['id']:
                     found = edge
                     break
             if not found:
